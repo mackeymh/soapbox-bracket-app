@@ -1,13 +1,30 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const BYE_SEEDS_64 = new Set([1, 17, 9, 25, 5, 21, 13, 29, 3, 19, 11, 27, 7, 23, 15]);
+const STORAGE_KEYS = {
+  bracketType: "soapbox_bracketType",
+  viewMode: "soapbox_viewMode",
+  seeds12: "soapbox_seeds12",
+  seeds64: "soapbox_seeds64",
+  races12: "soapbox_races12",
+  races64: "soapbox_races64",
+  selected12: "soapbox_selected12",
+  selected64: "soapbox_selected64",
+};
+
+const BYE_SEEDS_64 = new Set([
+  1, 17, 9, 25, 5, 21, 13, 29, 3, 19, 11, 27, 7, 23, 15,
+]);
 
 const ROUND_ORDER_12 = [
   "Play-In Round",
   "Quarterfinals",
   "Semifinals",
   "Final",
-];
+  "Placement",
+  "5th / 6th",
+  "7th / 8th",
+  "3rd / 4th",
+]
 
 const ROUND_ORDER_64 = [
   "Opening Round",
@@ -21,6 +38,39 @@ const ROUND_ORDER_64 = [
   "3rd / 4th",
 ];
 
+function loadFromStorage(key, fallback) {
+  try {
+    if (typeof window === "undefined") return fallback;
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveToStorage(key, value) {
+  try {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function makeSeedMap(count) {
+  const map = {};
+  for (let i = 1; i <= count; i++) {
+    map[i] = `Racer ${i}`;
+  }
+  return map;
+}
+
+function parseTime(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function createRace({
   id,
   round,
@@ -30,7 +80,6 @@ function createRace({
   racerB = "",
   nextWinnerTo = null,
   nextWinnerSlot = null,
-  placementKey = null,
   allowBye = false,
 }) {
   return {
@@ -44,6 +93,10 @@ function createRace({
     run1Lane2: "",
     run2Lane1: "",
     run2Lane2: "",
+    run1Winner: "",
+    run2Winner: "",
+    run1Status: "Pending",
+    run2Status: "Pending",
     totalA: "",
     totalB: "",
     winner: "",
@@ -52,14 +105,13 @@ function createRace({
     note: "",
     media: "",
     allowBye,
-    byeFor: "", // "A" | "B" | ""
+    byeFor: "",
     dqA: false,
     dqB: false,
     tiebreaker: false,
     flagged: false,
     nextWinnerTo,
     nextWinnerSlot,
-    placementKey,
   };
 }
 
@@ -114,6 +166,7 @@ function make12CarRaces(seeds) {
       racerB: "",
       nextWinnerTo: 9,
       nextWinnerSlot: "A",
+      allowBye: true,
     }),
     createRace({
       id: 6,
@@ -124,6 +177,7 @@ function make12CarRaces(seeds) {
       racerB: "",
       nextWinnerTo: 9,
       nextWinnerSlot: "B",
+      allowBye: true,
     }),
     createRace({
       id: 7,
@@ -134,6 +188,7 @@ function make12CarRaces(seeds) {
       racerB: "",
       nextWinnerTo: 10,
       nextWinnerSlot: "A",
+      allowBye: true,
     }),
     createRace({
       id: 8,
@@ -144,6 +199,7 @@ function make12CarRaces(seeds) {
       racerB: "",
       nextWinnerTo: 10,
       nextWinnerSlot: "B",
+      allowBye: true,
     }),
     createRace({
       id: 9,
@@ -152,6 +208,7 @@ function make12CarRaces(seeds) {
       slotB: "Winner Race 6",
       nextWinnerTo: 11,
       nextWinnerSlot: "A",
+      allowBye: true,
     }),
     createRace({
       id: 10,
@@ -160,14 +217,50 @@ function make12CarRaces(seeds) {
       slotB: "Winner Race 8",
       nextWinnerTo: 11,
       nextWinnerSlot: "B",
+      allowBye: true,
     }),
     createRace({
       id: 11,
       round: "Final",
       slotA: "Winner Race 9",
       slotB: "Winner Race 10",
-      placementKey: "championship",
+      allowBye: true,
     }),
+  createRace({
+  id: 12,
+  round: "Placement",
+  slotA: "Loser Race 5",
+  slotB: "Loser Race 6",
+  allowBye: true,
+}),
+createRace({
+  id: 13,
+  round: "Placement",
+  slotA: "Loser Race 7",
+  slotB: "Loser Race 8",
+  allowBye: true,
+}),
+createRace({
+  id: 14,
+  round: "5th / 6th",
+  slotA: "Winner Race 12",
+  slotB: "Winner Race 13",
+  allowBye: true,
+}),
+createRace({
+  id: 15,
+  round: "7th / 8th",
+  slotA: "Loser Race 12",
+  slotB: "Loser Race 13",
+  allowBye: true,
+}),
+createRace({
+  id: 16,
+  round: "3rd / 4th",
+  slotA: "Loser Race 9",
+  slotB: "Loser Race 10",
+  allowBye: true,
+}),
   ];
 }
 
@@ -187,52 +280,50 @@ function make64CarRaces(seeds) {
         racerB: seeds[seedB] || "",
         nextWinnerTo: 32 + Math.ceil(i / 2),
         nextWinnerSlot: i % 2 === 1 ? "A" : "B",
-        allowBye: BYE_SEEDS_64.has(seedA) || !seeds[seedB] || !seeds[seedA],
+        allowBye:
+          BYE_SEEDS_64.has(seedA) || !seeds[seedA]?.trim() || !seeds[seedB]?.trim(),
       })
     );
   }
 
   for (let i = 33; i <= 48; i++) {
-    const source1 = (i - 33) * 2 + 1;
-    const source2 = source1 + 1;
     races.push(
       createRace({
         id: i,
         round: "Round of 32",
-        slotA: `Winner Race ${source1}`,
-        slotB: `Winner Race ${source2}`,
+        slotA: `Winner Race ${(i - 33) * 2 + 1}`,
+        slotB: `Winner Race ${(i - 33) * 2 + 2}`,
         nextWinnerTo: 48 + Math.ceil((i - 32) / 2),
         nextWinnerSlot: (i - 33) % 2 === 0 ? "A" : "B",
+        allowBye: true,
       })
     );
   }
 
   for (let i = 49; i <= 56; i++) {
-    const source1 = 33 + (i - 49) * 2;
-    const source2 = source1 + 1;
     races.push(
       createRace({
         id: i,
         round: "Sweet 16",
-        slotA: `Winner Race ${source1}`,
-        slotB: `Winner Race ${source2}`,
+        slotA: `Winner Race ${33 + (i - 49) * 2}`,
+        slotB: `Winner Race ${34 + (i - 49) * 2}`,
         nextWinnerTo: 56 + Math.ceil((i - 48) / 2),
         nextWinnerSlot: (i - 49) % 2 === 0 ? "A" : "B",
+        allowBye: true,
       })
     );
   }
 
   for (let i = 57; i <= 60; i++) {
-    const source1 = 49 + (i - 57) * 2;
-    const source2 = source1 + 1;
     races.push(
       createRace({
         id: i,
         round: "Elite 8",
-        slotA: `Winner Race ${source1}`,
-        slotB: `Winner Race ${source2}`,
+        slotA: `Winner Race ${49 + (i - 57) * 2}`,
+        slotB: `Winner Race ${50 + (i - 57) * 2}`,
         nextWinnerTo: 60 + Math.ceil((i - 56) / 2),
         nextWinnerSlot: (i - 57) % 2 === 0 ? "A" : "B",
+        allowBye: true,
       })
     );
   }
@@ -245,7 +336,7 @@ function make64CarRaces(seeds) {
       slotB: "Winner Race 58",
       nextWinnerTo: 63,
       nextWinnerSlot: "A",
-      placementKey: "sfTop",
+      allowBye: true,
     }),
     createRace({
       id: 62,
@@ -254,124 +345,132 @@ function make64CarRaces(seeds) {
       slotB: "Winner Race 60",
       nextWinnerTo: 63,
       nextWinnerSlot: "B",
-      placementKey: "sfBottom",
+      allowBye: true,
     }),
     createRace({
       id: 63,
       round: "Championship",
       slotA: "Winner Race 61",
       slotB: "Winner Race 62",
-      placementKey: "championship",
+      allowBye: true,
     }),
     createRace({
       id: 66,
       round: "5th / 6th",
       slotA: "Loser Race 57",
       slotB: "Loser Race 58",
-      placementKey: "fifthSixth",
+      allowBye: true,
     }),
     createRace({
       id: 67,
       round: "7th / 8th",
       slotA: "Loser Race 59",
       slotB: "Loser Race 60",
-      placementKey: "seventhEighth",
+      allowBye: true,
     }),
     createRace({
       id: 68,
       round: "3rd / 4th",
       slotA: "Loser Race 61",
       slotB: "Loser Race 62",
-      placementKey: "thirdFourth",
+      allowBye: true,
     })
   );
 
   return races;
 }
 
-function makeSeedMap(count) {
-  const map = {};
-  for (let i = 1; i <= count; i++) {
-    map[i] = `Racer ${i}`;
-  }
-  return map;
-}
-
-function parseTime(value) {
-  if (value === "" || value === null || value === undefined) return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function clearRaceResult(race) {
-  return {
-    ...race,
-    totalA: "",
-    totalB: "",
-    winner: "",
-    loser: "",
-    tiebreaker: false,
-    flagged: false,
-    status: "Pending",
-  };
-}
-
 function computeRaceResult(race) {
-  const a = race.racerA?.trim();
-  const b = race.racerB?.trim();
+  const racerA = (race.racerA || "").trim();
+  const racerB = (race.racerB || "").trim();
 
-  if (!a && !b) {
+  let run1Winner = "";
+  let run2Winner = "";
+  let run1Status = "Pending";
+  let run2Status = "Pending";
+
+  const r1l1 = parseTime(race.run1Lane1);
+  const r1l2 = parseTime(race.run1Lane2);
+  const r2l1 = parseTime(race.run2Lane1);
+  const r2l2 = parseTime(race.run2Lane2);
+
+  if (r1l1 !== null && r1l2 !== null) {
+    run1Status = "Complete";
+    if (r1l1 < r1l2) run1Winner = racerA;
+    else if (r1l2 < r1l1) run1Winner = racerB;
+    else run1Winner = "Tie";
+  }
+
+  if (r2l1 !== null && r2l2 !== null) {
+    run2Status = "Complete";
+    if (r2l2 < r2l1) run2Winner = racerA;
+    else if (r2l1 < r2l2) run2Winner = racerB;
+    else run2Winner = "Tie";
+  }
+
+  if (!racerA && !racerB) {
     return {
-      ...clearRaceResult(race),
-      flagged: true,
+      ...race,
+      run1Winner,
+      run2Winner,
+      run1Status,
+      run2Status,
+      totalA: "",
+      totalB: "",
+      winner: "",
+      loser: "",
+      tiebreaker: false,
+      flagged: false,
       status: "Pending",
-      note: race.note,
     };
   }
 
   if (race.byeFor === "A") {
-    if (!a) {
-      return {
-        ...clearRaceResult(race),
-        flagged: true,
-        status: "Flagged",
-      };
-    }
     return {
       ...race,
+      run1Winner: "BYE",
+      run2Winner: "BYE",
+      run1Status: "Complete",
+      run2Status: "Complete",
       totalA: "",
       totalB: "",
-      winner: a,
-      loser: b || "",
+      winner: racerA || "",
+      loser: racerB || "",
       tiebreaker: false,
-      flagged: false,
-      status: "Complete",
+      flagged: !racerA,
+      status: racerA ? "Complete" : "Flagged",
     };
   }
 
   if (race.byeFor === "B") {
-    if (!b) {
-      return {
-        ...clearRaceResult(race),
-        flagged: true,
-        status: "Flagged",
-      };
-    }
     return {
       ...race,
+      run1Winner: "BYE",
+      run2Winner: "BYE",
+      run1Status: "Complete",
+      run2Status: "Complete",
       totalA: "",
       totalB: "",
-      winner: b,
-      loser: a || "",
+      winner: racerB || "",
+      loser: racerA || "",
       tiebreaker: false,
-      flagged: false,
-      status: "Complete",
+      flagged: !racerB,
+      status: racerB ? "Complete" : "Flagged",
     };
   }
 
   if (race.dqA && race.dqB) {
     return {
-      ...clearRaceResult(race),
+      ...race,
+      run1Winner: "DQ",
+      run2Winner: "DQ",
+      run1Status: "Complete",
+      run2Status: "Complete",
+      totalA: "",
+      totalB: "",
+      winner: "",
+      loser: "",
+      tiebreaker: false,
       flagged: true,
       status: "Flagged",
     };
@@ -380,38 +479,54 @@ function computeRaceResult(race) {
   if (race.dqA) {
     return {
       ...race,
+      run1Winner: "DQ",
+      run2Winner: "DQ",
+      run1Status: "Complete",
+      run2Status: "Complete",
       totalA: "",
       totalB: "",
-      winner: b || "",
-      loser: a || "",
+      winner: racerB || "",
+      loser: racerA || "",
       tiebreaker: false,
-      flagged: !b,
-      status: b ? "Complete" : "Flagged",
+      flagged: !racerB,
+      status: racerB ? "Complete" : "Flagged",
     };
   }
 
   if (race.dqB) {
     return {
       ...race,
+      run1Winner: "DQ",
+      run2Winner: "DQ",
+      run1Status: "Complete",
+      run2Status: "Complete",
       totalA: "",
       totalB: "",
-      winner: a || "",
-      loser: b || "",
+      winner: racerA || "",
+      loser: racerB || "",
       tiebreaker: false,
-      flagged: !a,
-      status: a ? "Complete" : "Flagged",
+      flagged: !racerA,
+      status: racerA ? "Complete" : "Flagged",
     };
   }
 
-  const r1l1 = parseTime(race.run1Lane1);
-  const r1l2 = parseTime(race.run1Lane2);
-  const r2l1 = parseTime(race.run2Lane1);
-  const r2l2 = parseTime(race.run2Lane2);
-
   if ([r1l1, r1l2, r2l1, r2l2].some((v) => v === null)) {
     return {
-      ...clearRaceResult(race),
-      status: "Pending",
+      ...race,
+      run1Winner,
+      run2Winner,
+      run1Status,
+      run2Status,
+      totalA: "",
+      totalB: "",
+      winner: "",
+      loser: "",
+      tiebreaker: false,
+      flagged: false,
+      status:
+        run1Status === "Complete" || run2Status === "Complete"
+          ? "In Progress"
+          : "Pending",
     };
   }
 
@@ -421,6 +536,10 @@ function computeRaceResult(race) {
   if (totalA === totalB) {
     return {
       ...race,
+      run1Winner,
+      run2Winner,
+      run1Status,
+      run2Status,
       totalA,
       totalB,
       winner: "",
@@ -431,35 +550,119 @@ function computeRaceResult(race) {
     };
   }
 
-  const winner = totalA < totalB ? a : b;
-  const loser = totalA < totalB ? b : a;
+  const winner = totalA < totalB ? racerA : racerB;
+  const loser = totalA < totalB ? racerB : racerA;
 
   return {
     ...race,
+    run1Winner,
+    run2Winner,
+    run1Status,
+    run2Status,
     totalA,
     totalB,
-    winner: winner || "",
-    loser: loser || "",
+    winner,
+    loser,
     tiebreaker: false,
     flagged: false,
-    status: winner ? "Complete" : "Flagged",
+    status: "Complete",
   };
+}
+
+function applyAdvancement(races, bracketType) {
+  const updated = races.map((race) => ({ ...race }));
+
+  function setRaceSlot(raceId, slot, value) {
+    const race = updated.find((r) => r.id === raceId);
+    if (!race) return;
+    if (slot === "A") race.racerA = value || "";
+    if (slot === "B") race.racerB = value || "";
+  }
+
+  updated.forEach((race) => {
+    if (race.nextWinnerTo && race.nextWinnerSlot) {
+      setRaceSlot(race.nextWinnerTo, race.nextWinnerSlot, race.winner || "");
+    }
+  });
+
+  if (bracketType === "12") {
+  const r5 = updated.find((r) => r.id === 5);
+  const r6 = updated.find((r) => r.id === 6);
+  const r7 = updated.find((r) => r.id === 7);
+  const r8 = updated.find((r) => r.id === 8);
+  const r9 = updated.find((r) => r.id === 9);
+  const r10 = updated.find((r) => r.id === 10);
+  const r12 = updated.find((r) => r.id === 12);
+  const r13 = updated.find((r) => r.id === 13);
+
+  setRaceSlot(12, "A", r5?.loser || "");
+  setRaceSlot(12, "B", r6?.loser || "");
+
+  setRaceSlot(13, "A", r7?.loser || "");
+  setRaceSlot(13, "B", r8?.loser || "");
+
+  setRaceSlot(14, "A", r12?.winner || "");
+  setRaceSlot(14, "B", r13?.winner || "");
+
+  setRaceSlot(15, "A", r12?.loser || "");
+  setRaceSlot(15, "B", r13?.loser || "");
+
+  setRaceSlot(16, "A", r9?.loser || "");
+  setRaceSlot(16, "B", r10?.loser || "");
+}
+if (bracketType === "64") {
+    const r57 = updated.find((r) => r.id === 57);
+    const r58 = updated.find((r) => r.id === 58);
+    const r59 = updated.find((r) => r.id === 59);
+    const r60 = updated.find((r) => r.id === 60);
+    const r61 = updated.find((r) => r.id === 61);
+    const r62 = updated.find((r) => r.id === 62);
+
+    setRaceSlot(66, "A", r57?.loser || "");
+    setRaceSlot(66, "B", r58?.loser || "");
+    setRaceSlot(67, "A", r59?.loser || "");
+    setRaceSlot(67, "B", r60?.loser || "");
+    setRaceSlot(68, "A", r61?.loser || "");
+    setRaceSlot(68, "B", r62?.loser || "");
+  }
+
+  return updated;
+}
+
+function recalculateAll(races, bracketType) {
+  let working = races.map((race) => computeRaceResult(race));
+  working = applyAdvancement(working, bracketType);
+  working = working.map((race) => computeRaceResult(race));
+  working = applyAdvancement(working, bracketType);
+  return working;
+}
+
+function getStatusColor(status) {
+  if (status === "Complete") return "#22c55e";
+  if (status === "In Progress") return "#38bdf8";
+  if (status === "Tiebreaker") return "#f59e0b";
+  if (status === "Flagged") return "#ef4444";
+  return "#94a3b8";
 }
 
 function buildPlacements(races, bracketType) {
   if (bracketType === "12") {
-    const finalRace = races.find((r) => r.id === 11);
-    return [
-      { place: "1st", name: finalRace?.winner || "" },
-      { place: "2nd", name: finalRace?.loser || "" },
-      { place: "3rd", name: "" },
-      { place: "4th", name: "" },
-      { place: "5th", name: "" },
-      { place: "6th", name: "" },
-      { place: "7th", name: "" },
-      { place: "8th", name: "" },
-    ];
-  }
+  const r11 = races.find((r) => r.id === 11);
+  const r14 = races.find((r) => r.id === 14);
+  const r15 = races.find((r) => r.id === 15);
+  const r16 = races.find((r) => r.id === 16);
+
+  return [
+    { place: "1st", name: r11?.winner || "" },
+    { place: "2nd", name: r11?.loser || "" },
+    { place: "3rd", name: r16?.winner || "" },
+    { place: "4th", name: r16?.loser || "" },
+    { place: "5th", name: r14?.winner || "" },
+    { place: "6th", name: r14?.loser || "" },
+    { place: "7th", name: r15?.winner || "" },
+    { place: "8th", name: r15?.loser || "" },
+  ];
+}
 
   const r63 = races.find((r) => r.id === 63);
   const r66 = races.find((r) => r.id === 66);
@@ -478,67 +681,200 @@ function buildPlacements(races, bracketType) {
   ];
 }
 
-function applyAdvancement(races, bracketType) {
-  let updated = races.map((r) => ({ ...r }));
+function mergeSeedNamesIntoRaces(baseRaces, existingRaces) {
+  return baseRaces.map((baseRace) => {
+    const existing = existingRaces.find((r) => r.id === baseRace.id);
+    if (!existing) return baseRace;
 
-  const setSlot = (raceId, slot, value) => {
-    const idx = updated.findIndex((r) => r.id === raceId);
-    if (idx === -1) return;
-    if (slot === "A") updated[idx].racerA = value || "";
-    if (slot === "B") updated[idx].racerB = value || "";
-  };
+    const isSeedSlotA = baseRace.slotA.startsWith("Seed ");
+    const isSeedSlotB = baseRace.slotB.startsWith("Seed ");
 
-  updated.forEach((race) => {
-    if (race.nextWinnerTo && race.nextWinnerSlot) {
-      setSlot(race.nextWinnerTo, race.nextWinnerSlot, race.winner || "");
-    }
+    return {
+      ...existing,
+      slotA: baseRace.slotA,
+      slotB: baseRace.slotB,
+      racerA: isSeedSlotA ? baseRace.racerA : existing.racerA,
+      racerB: isSeedSlotB ? baseRace.racerB : existing.racerB,
+      allowBye: baseRace.allowBye || existing.allowBye,
+    };
   });
+}
 
-  if (bracketType === "64") {
-    const r57 = updated.find((r) => r.id === 57);
-    const r58 = updated.find((r) => r.id === 58);
-    const r59 = updated.find((r) => r.id === 59);
-    const r60 = updated.find((r) => r.id === 60);
-    const r61 = updated.find((r) => r.id === 61);
-    const r62 = updated.find((r) => r.id === 62);
+const inputStyle = {
+  width: "100%",
+  padding: 10,
+  borderRadius: 8,
+  marginBottom: 10,
+  border: "1px solid #475569",
+  background: "#0f172a",
+  color: "white",
+};
 
-    setSlot(66, "A", r57?.loser || "");
-    setSlot(66, "B", r58?.loser || "");
-    setSlot(67, "A", r59?.loser || "");
-    setSlot(67, "B", r60?.loser || "");
-    setSlot(68, "A", r61?.loser || "");
-    setSlot(68, "B", r62?.loser || "");
+const panelStyle = {
+  background: "#1e293b",
+  border: "1px solid #334155",
+  borderRadius: 12,
+  padding: 18,
+};
+
+const SCHOOL_CODES = [
+  "11X016",
+  "11X019",
+  "11X041",
+  "11X068",
+  "11X076",
+  "11X078",
+  "11X083",
+  "11X087",
+  "11X089",
+  "11X096",
+  "11X097",
+  "11X103",
+  "11X105",
+  "11X106",
+  "11X108",
+  "11X111",
+  "11X121",
+  "11X127",
+  "11X144",
+  "11X153",
+  "11X160",
+  "11X169",
+  "11X175",
+  "11X180",
+  "11X181",
+  "11X194",
+  "11X370",
+  "11X462",
+  "11X483",
+  "11X498",
+  "11X529",
+  "11X566",
+  "11X567",
+];
+
+function schoolCodeToShort(code) {
+  return code.replace("11X", "");
+}
+
+function raceMatchesSchool(race, selectedSchool) {
+  if (selectedSchool === "All Schools") return true;
+
+  const shortCode = schoolCodeToShort(selectedSchool);
+  const racerA = race.racerA || "";
+  const racerB = race.racerB || "";
+
+  return racerA.startsWith(`${shortCode}-`) || racerB.startsWith(`${shortCode}-`);
+}
+
+function getSchoolPerformance(races, schoolCode) {
+  if (schoolCode === "All Schools") {
+    return {
+      cars: [],
+      total: races.length,
+      completed: races.filter((race) => race.status === "Complete").length,
+      wins: 0,
+      losses: 0,
+      upcoming: races.filter((race) => race.status === "Pending").length,
+      current: races.filter(
+        (race) =>
+          race.status === "In Progress" ||
+          race.status === "Tiebreaker" ||
+          race.status === "Flagged"
+      ).length,
+    };
   }
 
-  return updated;
-}
+  const shortCode = schoolCodeToShort(schoolCode);
 
-function recalculateAll(races, bracketType) {
-  let working = races.map((r) => computeRaceResult(r));
-  working = applyAdvancement(working, bracketType);
+  const schoolRaces = races.filter((race) => {
+    const a = race.racerA || "";
+    const b = race.racerB || "";
+    return a.startsWith(`${shortCode}-`) || b.startsWith(`${shortCode}-`);
+  });
 
-  // Recompute after advancement so dependent races can update cleanly.
-  working = working.map((r) => computeRaceResult(r));
-  working = applyAdvancement(working, bracketType);
+  const cars = Array.from(
+    new Set(
+      schoolRaces.flatMap((race) => {
+        const list = [];
+        if ((race.racerA || "").startsWith(`${shortCode}-`)) list.push(race.racerA);
+        if ((race.racerB || "").startsWith(`${shortCode}-`)) list.push(race.racerB);
+        return list;
+      })
+    )
+  ).sort();
 
-  return working;
-}
+  const completed = schoolRaces.filter((race) => race.status === "Complete").length;
+  const wins = schoolRaces.filter((race) => (race.winner || "").startsWith(`${shortCode}-`)).length;
+  const upcoming = schoolRaces.filter((race) => race.status === "Pending").length;
+  const current = schoolRaces.filter(
+    (race) =>
+      race.status === "In Progress" ||
+      race.status === "Tiebreaker" ||
+      race.status === "Flagged"
+  ).length;
 
-function statusColor(status) {
-  if (status === "Complete") return "#22c55e";
-  if (status === "Tiebreaker") return "#f59e0b";
-  if (status === "Flagged") return "#ef4444";
-  return "#94a3b8";
+  return {
+    cars,
+    total: schoolRaces.length,
+    completed,
+    wins,
+    losses: completed - wins,
+    upcoming,
+    current,
+  };
 }
 
 export default function App() {
-  const [bracketType, setBracketType] = useState("12");
-  const [viewMode, setViewMode] = useState("admin");
-  const [seedNames, setSeedNames] = useState(makeSeedMap(12));
-  const [races, setRaces] = useState(recalculateAll(make12CarRaces(makeSeedMap(12)), "12"));
-  const [selectedRaceId, setSelectedRaceId] = useState(1);
+  const initialSeeds12 = loadFromStorage(STORAGE_KEYS.seeds12, makeSeedMap(12));
+  const initialSeeds64 = loadFromStorage(STORAGE_KEYS.seeds64, makeSeedMap(64));
 
+  const initialRaces12 = loadFromStorage(
+    STORAGE_KEYS.races12,
+    recalculateAll(make12CarRaces(initialSeeds12), "12")
+  );
+  const initialRaces64 = loadFromStorage(
+    STORAGE_KEYS.races64,
+    recalculateAll(make64CarRaces(initialSeeds64), "64")
+  );
+
+  const [bracketType, setBracketType] = useState(
+    loadFromStorage(STORAGE_KEYS.bracketType, "12")
+  );
+  const [viewMode, setViewMode] = useState(
+    loadFromStorage(STORAGE_KEYS.viewMode, "admin")
+  );
+
+  const [selectedSchoolFilter, setSelectedSchoolFilter] = useState("All Schools");
+  const [spectatorRaceFilter, setSpectatorRaceFilter] = useState("Completed");
+
+  const [seedNames12, setSeedNames12] = useState(initialSeeds12);
+  const [seedNames64, setSeedNames64] = useState(initialSeeds64);
+
+  const [races12, setRaces12] = useState(initialRaces12);
+  const [races64, setRaces64] = useState(initialRaces64);
+
+  const [selectedRaceId12, setSelectedRaceId12] = useState(
+    loadFromStorage(STORAGE_KEYS.selected12, 1)
+  );
+  const [selectedRaceId64, setSelectedRaceId64] = useState(
+    loadFromStorage(STORAGE_KEYS.selected64, 1)
+  );
+
+  useEffect(() => saveToStorage(STORAGE_KEYS.bracketType, bracketType), [bracketType]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.viewMode, viewMode), [viewMode]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.seeds12, seedNames12), [seedNames12]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.seeds64, seedNames64), [seedNames64]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.races12, races12), [races12]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.races64, races64), [races64]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.selected12, selectedRaceId12), [selectedRaceId12]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.selected64, selectedRaceId64), [selectedRaceId64]);
+
+  const seedNames = bracketType === "12" ? seedNames12 : seedNames64;
+  const races = bracketType === "12" ? races12 : races64;
+  const selectedRaceId = bracketType === "12" ? selectedRaceId12 : selectedRaceId64;
   const roundOrder = bracketType === "12" ? ROUND_ORDER_12 : ROUND_ORDER_64;
+  const selectedRace = races.find((race) => race.id === selectedRaceId) || null;
 
   const groupedRaces = useMemo(
     () =>
@@ -549,46 +885,65 @@ export default function App() {
     [races, roundOrder]
   );
 
-  const selectedRace = races.find((race) => race.id === selectedRaceId) || null;
-  const latestCompletedRace = [...races]
-    .filter((r) => r.status === "Complete" && r.winner)
+  const latestPublishedRace = [...races]
+    .filter(
+      (race) =>
+        race.run1Status === "Complete" ||
+        race.run2Status === "Complete" ||
+        race.status === "Complete"
+    )
     .sort((a, b) => b.id - a.id)[0];
 
-  const nextPendingRace = races.find((r) => r.status === "Pending");
-  const placements = buildPlacements(races, bracketType);
+  const nextPendingRace = races.find(
+    (race) => race.status === "Pending" || race.status === "In Progress"
+  );
 
-  function rebuild(type, seeds) {
-    const freshRaces =
-      type === "12" ? make12CarRaces(seeds) : make64CarRaces(seeds);
-    const recalculated = recalculateAll(freshRaces, type);
-    setBracketType(type);
-    setRaces(recalculated);
-    setSelectedRaceId(recalculated[0]?.id || null);
-  }
+  const placements = buildPlacements(races, bracketType);
+  const schoolPerformance = getSchoolPerformance(races, selectedSchoolFilter);
 
   function changeBracket(type) {
-    const count = type === "12" ? 12 : 64;
-    const newSeeds = makeSeedMap(count);
-    setSeedNames(newSeeds);
-    rebuild(type, newSeeds);
+    setBracketType(type);
+  }
+
+  function setSelectedRaceId(id) {
+    if (bracketType === "12") setSelectedRaceId12(id);
+    else setSelectedRaceId64(id);
   }
 
   function updateSeed(seed, value) {
-    setSeedNames((prev) => {
-      const next = { ...prev, [seed]: value };
-      const rebuilt = bracketType === "12" ? make12CarRaces(next) : make64CarRaces(next);
-      setRaces(recalculateAll(rebuilt, bracketType));
-      return next;
-    });
+    if (bracketType === "12") {
+      const nextSeeds = { ...seedNames12, [seed]: value };
+      setSeedNames12(nextSeeds);
+
+      const rebuilt = make12CarRaces(nextSeeds);
+      const merged = mergeSeedNamesIntoRaces(rebuilt, races12);
+      setRaces12(recalculateAll(merged, "12"));
+    } else {
+      const nextSeeds = { ...seedNames64, [seed]: value };
+      setSeedNames64(nextSeeds);
+
+      const rebuilt = make64CarRaces(nextSeeds);
+      const merged = mergeSeedNamesIntoRaces(rebuilt, races64);
+      setRaces64(recalculateAll(merged, "64"));
+    }
   }
 
   function updateRace(id, updates) {
-    setRaces((prev) =>
-      recalculateAll(
-        prev.map((race) => (race.id === id ? { ...race, ...updates } : race)),
-        bracketType
-      )
-    );
+    if (bracketType === "12") {
+      setRaces12((prev) =>
+        recalculateAll(
+          prev.map((race) => (race.id === id ? { ...race, ...updates } : race)),
+          "12"
+        )
+      );
+    } else {
+      setRaces64((prev) =>
+        recalculateAll(
+          prev.map((race) => (race.id === id ? { ...race, ...updates } : race)),
+          "64"
+        )
+      );
+    }
   }
 
   function renderHeader() {
@@ -600,171 +955,598 @@ export default function App() {
           style={{ maxWidth: 180, marginBottom: 10 }}
         />
         <h1
-  style={{
-    fontSize: 32,
-    margin: 0,
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  }}
->
-  5th Annual District 11 Soap Box Derby Race
-</h1>
-        <div style={{ color: "#cbd5e1", marginTop: 6 }}>
-          Seed entry, two-run timing, BYE, DQ, auto-advance, live placements
-        </div>
+          style={{
+            fontSize: 32,
+            margin: 0,
+            color: "white",
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          5th Annual District 11 Soap Box Derby Race
+        </h1>
       </div>
     );
   }
 
   if (viewMode === "spectator") {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "linear-gradient(180deg, #020617 0%, #0f172a 100%)",
-          color: "white",
-          fontFamily: "Arial, sans-serif",
-          padding: 24,
-        }}
-      >
-        {renderHeader()}
-
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 20, flexWrap: "wrap" }}>
-          <button
-            onClick={() => setViewMode("admin")}
-            style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#334155", color: "white", cursor: "pointer" }}
-          >
-            Back to Admin
-          </button>
-          <button
-            onClick={() => changeBracket("12")}
-            style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: bracketType === "12" ? "#22c55e" : "#334155", color: "white", cursor: "pointer" }}
-          >
-            12-Car
-          </button>
-          <button
-            onClick={() => changeBracket("64")}
-            style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: bracketType === "64" ? "#22c55e" : "#334155", color: "white", cursor: "pointer" }}
-          >
-            64-Car
-          </button>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, alignItems: "start" }}>
-          <div style={{ background: "#111827", border: "1px solid #334155", borderRadius: 18, padding: 28 }}>
-            <div style={{ color: "#93c5fd", fontSize: 18, marginBottom: 12 }}>Latest Result</div>
-
-            {latestCompletedRace ? (
-              <>
-                <div style={{ color: "#cbd5e1", fontSize: 20 }}>WINNER</div>
-                <div style={{ fontSize: 58, fontWeight: "bold", lineHeight: 1.1 }}>{latestCompletedRace.winner}</div>
-                <div style={{ fontSize: 36, color: "#22c55e", fontWeight: "bold", marginTop: 12 }}>
-                  {latestCompletedRace.totalA !== "" || latestCompletedRace.totalB !== ""
-                    ? `${latestCompletedRace.winner === latestCompletedRace.racerA ? latestCompletedRace.totalA : latestCompletedRace.totalB} total`
-                    : latestCompletedRace.byeFor
-                    ? "Advanced by BYE"
-                    : latestCompletedRace.dqA || latestCompletedRace.dqB
-                    ? "Advanced by DQ"
-                    : "--"}
-                </div>
-               <div style={{ marginTop: 16, fontSize: 22, color: "#cbd5e1" }}>
-  {latestCompletedRace.racerA} vs {latestCompletedRace.racerB}
-</div>
-
-{!latestCompletedRace.byeFor &&
-  !latestCompletedRace.dqA &&
-  !latestCompletedRace.dqB && (
+  return (
     <div
       style={{
-        marginTop: 14,
-        background: "#1e293b",
-        padding: 14,
-        borderRadius: 12,
-        fontSize: 16,
-        color: "#e2e8f0",
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #020617 0%, #0f172a 100%)",
+        color: "white",
+        fontFamily: "Arial, sans-serif",
+        padding: 24,
       }}
     >
-      <div style={{ fontWeight: "bold", marginBottom: 8 }}>Run Times</div>
-      <div>Run 1 Lane 1: {latestCompletedRace.run1Lane1 || "--"}</div>
-      <div>Run 1 Lane 2: {latestCompletedRace.run1Lane2 || "--"}</div>
-      <div>Run 2 Lane 1: {latestCompletedRace.run2Lane1 || "--"}</div>
-      <div>Run 2 Lane 2: {latestCompletedRace.run2Lane2 || "--"}</div>
+      {renderHeader()}
 
-      <div style={{ marginTop: 10 }}>
-        {latestCompletedRace.racerA}: {latestCompletedRace.totalA === "" ? "--" : latestCompletedRace.totalA}
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: 18,
+          color: "#e2e8f0",
+          fontSize: 20,
+          fontWeight: "bold",
+        }}
+      >
+        {bracketType === "12" ? "12-Car Bracket Race" : "64-Car Bracket Race"}
       </div>
-      <div>
-        {latestCompletedRace.racerB}: {latestCompletedRace.totalB === "" ? "--" : latestCompletedRace.totalB}
-      </div>
-    </div>
-  )}
-                <div style={{ marginTop: 6, color: "#94a3b8" }}>
-                  Race {latestCompletedRace.id} • {latestCompletedRace.round}
-                </div>
 
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          justifyContent: "center",
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        <button
+          onClick={() => setViewMode("admin")}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 10,
+            border: "none",
+            background: "#334155",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          Back to Admin
+        </button>
+        <button
+          onClick={() => changeBracket("12")}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 10,
+            border: "none",
+            background: bracketType === "12" ? "#22c55e" : "#334155",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          12-Car
+        </button>
+        <button
+          onClick={() => changeBracket("64")}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 10,
+            border: "none",
+            background: bracketType === "64" ? "#22c55e" : "#334155",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          64-Car
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          justifyContent: "center",
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        {["Completed", "Current", "Pending", "All"].map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setSpectatorRaceFilter(filter)}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+              background:
+                spectatorRaceFilter === filter ? "#38bdf8" : "#334155",
+              color: "white",
+              fontWeight: "bold",
+            }}
+          >
+            {filter} Races
+          </button>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: 20,
+        }}
+      >
+        <select
+          value={selectedSchoolFilter}
+          onChange={(e) => setSelectedSchoolFilter(e.target.value)}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 8,
+            border: "1px solid #475569",
+            background: "#0f172a",
+            color: "white",
+            minWidth: 220,
+          }}
+        >
+          <option value="All Schools">All Schools</option>
+          {SCHOOL_CODES.map((school) => (
+            <option key={school} value={school}>
+              {school}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.5fr 1fr",
+          gap: 24,
+          alignItems: "start",
+        }}
+      >
+        <div style={{ ...panelStyle, background: "#111827", padding: 28 }}>
+          <div style={{ color: "#93c5fd", fontSize: 18, marginBottom: 12 }}>
+            Latest Published Result
+          </div>
+
+          {latestPublishedRace && raceMatchesSchool(latestPublishedRace, selectedSchoolFilter) ? (
+            <>
+              <div style={{ fontSize: 22, color: "#cbd5e1", marginBottom: 8 }}>
+                {latestPublishedRace.racerA || latestPublishedRace.slotA} vs{" "}
+                {latestPublishedRace.racerB || latestPublishedRace.slotB}
+              </div>
+              <div style={{ color: "#94a3b8", marginBottom: 12 }}>
+                Race {latestPublishedRace.id} • {latestPublishedRace.round}
+              </div>
+
+              {latestPublishedRace.run1Status === "Complete" && (
                 <div
                   style={{
-                    marginTop: 24,
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    border: "1px solid #334155",
-                    background: "#0f172a",
-                    minHeight: 240,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    background: "#1e293b",
+                    padding: 14,
+                    borderRadius: 12,
+                    marginBottom: 12,
                   }}
                 >
-                  {latestCompletedRace.media ? (
-                    <img
-                      src={latestCompletedRace.media}
-                      alt="Finish line result"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div style={{ color: "#64748b", fontSize: 20 }}>
-                      Finish-line image preview
-                    </div>
-                  )}
+                  <div style={{ fontWeight: "bold", marginBottom: 8 }}>First Run</div>
+                  <div>
+                    Lane 1 ({latestPublishedRace.racerA || "Racer A"}):{" "}
+                    {latestPublishedRace.run1Lane1 || "--"}
+                  </div>
+                  <div>
+                    Lane 2 ({latestPublishedRace.racerB || "Racer B"}):{" "}
+                    {latestPublishedRace.run1Lane2 || "--"}
+                  </div>
+                  <div style={{ marginTop: 4, color: "#22c55e", fontWeight: "bold" }}>
+                    Winner: {latestPublishedRace.run1Winner || "--"}
+                  </div>
+                </div>
+              )}
+
+              {latestPublishedRace.run2Status === "Complete" && (
+                <div
+                  style={{
+                    background: "#1e293b",
+                    padding: 14,
+                    borderRadius: 12,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div style={{ fontWeight: "bold", marginBottom: 8 }}>
+                    Final Run (Lanes Switched)
+                  </div>
+                  <div>
+                    Lane 1 ({latestPublishedRace.racerB || "Racer B"}):{" "}
+                    {latestPublishedRace.run2Lane1 || "--"}
+                  </div>
+                  <div>
+                    Lane 2 ({latestPublishedRace.racerA || "Racer A"}):{" "}
+                    {latestPublishedRace.run2Lane2 || "--"}
+                  </div>
+                  <div style={{ marginTop: 4, color: "#22c55e", fontWeight: "bold" }}>
+                    Winner: {latestPublishedRace.run2Winner || "--"}
+                  </div>
+                </div>
+              )}
+
+              {latestPublishedRace.status === "Complete" && (
+                <div
+                  style={{
+                    background: "#1e293b",
+                    padding: 14,
+                    borderRadius: 12,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div style={{ fontWeight: "bold", marginBottom: 8 }}>Overall</div>
+                  <div>
+                    {latestPublishedRace.racerA || "Racer A"} Total:{" "}
+                    {latestPublishedRace.totalA === ""
+                      ? "--"
+                      : latestPublishedRace.totalA}
+                  </div>
+                  <div>
+                    {latestPublishedRace.racerB || "Racer B"} Total:{" "}
+                    {latestPublishedRace.totalB === ""
+                      ? "--"
+                      : latestPublishedRace.totalB}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      color: "#22c55e",
+                      fontWeight: "bold",
+                      fontSize: 20,
+                    }}
+                  >
+                    Overall Winner: {latestPublishedRace.winner || "--"}
+                  </div>
+                </div>
+              )}
+
+              {latestPublishedRace.byeFor && (
+                <div style={{ color: "#22c55e", fontWeight: "bold", marginBottom: 10 }}>
+                  {latestPublishedRace.byeFor === "A"
+                    ? `${latestPublishedRace.racerA} advanced by BYE`
+                    : `${latestPublishedRace.racerB} advanced by BYE`}
+                </div>
+              )}
+
+              {latestPublishedRace.dqA && !latestPublishedRace.dqB && (
+                <div style={{ color: "#22c55e", fontWeight: "bold", marginBottom: 10 }}>
+                  {latestPublishedRace.racerA} DQ — {latestPublishedRace.racerB} advanced
+                </div>
+              )}
+
+              {latestPublishedRace.dqB && !latestPublishedRace.dqA && (
+                <div style={{ color: "#22c55e", fontWeight: "bold", marginBottom: 10 }}>
+                  {latestPublishedRace.racerB} DQ — {latestPublishedRace.racerA} advanced
+                </div>
+              )}
+
+              {latestPublishedRace.dqA && latestPublishedRace.dqB && (
+                <div style={{ color: "#ef4444", fontWeight: "bold", marginBottom: 10 }}>
+                  Both racers DQ’d — no winner
+                </div>
+              )}
+
+              {latestPublishedRace.media ? (
+                <img
+                  src={latestPublishedRace.media}
+                  alt="Finish line result"
+                  style={{
+                    width: "100%",
+                    borderRadius: 12,
+                    border: "1px solid #334155",
+                    marginTop: 8,
+                  }}
+                />
+              ) : null}
+            </>
+          ) : (
+            <div style={{ color: "#94a3b8", fontSize: 18 }}>
+              No published race results for this filter yet.
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "grid", gap: 16 }}>
+          <div style={{ ...panelStyle, background: "#111827" }}>
+            <div style={{ color: "#93c5fd", marginBottom: 10, fontSize: 18 }}>
+              School Summary
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <strong>School:</strong> {selectedSchoolFilter}
+            </div>
+            <div style={{ marginBottom: 6 }}>
+              <strong>Total Races:</strong> {schoolPerformance.total}
+            </div>
+            <div style={{ marginBottom: 6 }}>
+              <strong>Completed:</strong> {schoolPerformance.completed}
+            </div>
+            <div style={{ marginBottom: 6 }}>
+              <strong>Current:</strong> {schoolPerformance.current}
+            </div>
+            <div style={{ marginBottom: 6 }}>
+              <strong>Upcoming:</strong> {schoolPerformance.upcoming}
+            </div>
+            {selectedSchoolFilter !== "All Schools" && (
+              <>
+                <div style={{ marginBottom: 6 }}>
+                  <strong>Wins:</strong> {schoolPerformance.wins}
+                </div>
+                <div style={{ marginBottom: 6 }}>
+                  <strong>Losses:</strong> {schoolPerformance.losses}
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <strong>Cars:</strong>{" "}
+                  {schoolPerformance.cars.length > 0
+                    ? schoolPerformance.cars.join(", ")
+                    : "--"}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div style={{ ...panelStyle, background: "#111827" }}>
+            <div style={{ color: "#93c5fd", marginBottom: 10, fontSize: 18 }}>
+              Up Next
+            </div>
+            {nextPendingRace && raceMatchesSchool(nextPendingRace, selectedSchoolFilter) ? (
+              <>
+                <div style={{ fontSize: 24, fontWeight: "bold" }}>
+                  {nextPendingRace.racerA || nextPendingRace.slotA}
+                </div>
+                <div style={{ color: "#94a3b8", margin: "6px 0" }}>vs</div>
+                <div style={{ fontSize: 24, fontWeight: "bold" }}>
+                  {nextPendingRace.racerB || nextPendingRace.slotB}
+                </div>
+                <div style={{ marginTop: 10, color: "#cbd5e1" }}>
+                  Race {nextPendingRace.id} • {nextPendingRace.round}
                 </div>
               </>
             ) : (
-              <div style={{ color: "#94a3b8", fontSize: 20 }}>
-                No completed race yet.
+              <div style={{ color: "#94a3b8" }}>
+                No upcoming race for this filter.
               </div>
             )}
           </div>
 
-          <div style={{ display: "grid", gap: 16 }}>
-            <div style={{ background: "#111827", border: "1px solid #334155", borderRadius: 18, padding: 20 }}>
-              <div style={{ color: "#93c5fd", marginBottom: 10, fontSize: 18 }}>Up Next</div>
-              {nextPendingRace ? (
-                <>
-                  <div style={{ fontSize: 24, fontWeight: "bold" }}>{nextPendingRace.racerA || nextPendingRace.slotA}</div>
-                  <div style={{ color: "#94a3b8", margin: "6px 0" }}>vs</div>
-                  <div style={{ fontSize: 24, fontWeight: "bold" }}>{nextPendingRace.racerB || nextPendingRace.slotB}</div>
-                  <div style={{ marginTop: 10, color: "#cbd5e1" }}>Race {nextPendingRace.id} • {nextPendingRace.round}</div>
-                </>
-              ) : (
-                <div style={{ color: "#94a3b8" }}>All races complete.</div>
-              )}
+          <div
+            style={{
+              ...panelStyle,
+              background: "#111827",
+              maxHeight: 430,
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ color: "#93c5fd", marginBottom: 12, fontSize: 18 }}>
+              {bracketType === "12" ? "12-Car Heat Results" : "64-Car Heat Results"} —{" "}
+              {spectatorRaceFilter}
             </div>
 
-            <div style={{ background: "#111827", border: "1px solid #334155", borderRadius: 18, padding: 20 }}>
-              <div style={{ color: "#93c5fd", marginBottom: 12, fontSize: 18 }}>Live Placements</div>
-              {placements.map((p) => (
-                <div key={p.place} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #1e293b" }}>
-                  <strong>{p.place}</strong>
-                  <span>{p.name || "--"}</span>
+            {groupedRaces.map((group) => {
+              const visibleRaces = group.races.filter((race) => {
+                const matchesSchool = raceMatchesSchool(race, selectedSchoolFilter);
+
+                if (!matchesSchool) return false;
+
+                if (spectatorRaceFilter === "All") return true;
+
+                if (spectatorRaceFilter === "Completed") {
+                  return race.status === "Complete";
+                }
+
+                if (spectatorRaceFilter === "Current") {
+                  return (
+                    race.status === "In Progress" ||
+                    race.status === "Tiebreaker" ||
+                    race.status === "Flagged" ||
+                    ((race.run1Status === "Complete" || race.run2Status === "Complete") &&
+                      race.status !== "Complete")
+                  );
+                }
+
+                if (spectatorRaceFilter === "Pending") {
+                  return race.status === "Pending";
+                }
+
+                return true;
+              });
+
+              if (visibleRaces.length === 0) return null;
+
+              return (
+                <div key={group.roundName} style={{ marginBottom: 18 }}>
+                  <div
+                    style={{
+                      fontWeight: "bold",
+                      marginBottom: 8,
+                      color: "#e2e8f0",
+                      fontSize: 16,
+                    }}
+                  >
+                    {group.roundName}
+                  </div>
+
+                  {visibleRaces.map((race) => (
+                    <div
+                      key={race.id}
+                      style={{
+                        background: "#1e293b",
+                        borderRadius: 12,
+                        padding: 12,
+                        marginBottom: 10,
+                        border: "1px solid #334155",
+                      }}
+                    >
+                      <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 6 }}>
+                        Race {race.id}
+                      </div>
+
+                      <div style={{ fontWeight: "bold", marginBottom: 6 }}>
+                        {race.racerA || race.slotA} vs {race.racerB || race.slotB}
+                      </div>
+
+                      <div
+                        style={{
+                          marginBottom: 8,
+                          color: getStatusColor(race.status),
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Status: {race.status}
+                      </div>
+
+                      {race.run1Status === "Complete" && (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            padding: 10,
+                            borderRadius: 10,
+                            background: "#0f172a",
+                            color: "#e2e8f0",
+                            fontSize: 14,
+                          }}
+                        >
+                          <div style={{ fontWeight: "bold", marginBottom: 6 }}>First Run</div>
+                          <div>
+                            Lane 1 ({race.racerA || "Racer A"}): {race.run1Lane1 || "--"}
+                          </div>
+                          <div>
+                            Lane 2 ({race.racerB || "Racer B"}): {race.run1Lane2 || "--"}
+                          </div>
+                          <div style={{ marginTop: 4, color: "#22c55e", fontWeight: "bold" }}>
+                            Winner: {race.run1Winner || "--"}
+                          </div>
+                        </div>
+                      )}
+
+                      {race.run2Status === "Complete" && (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            padding: 10,
+                            borderRadius: 10,
+                            background: "#0f172a",
+                            color: "#e2e8f0",
+                            fontSize: 14,
+                          }}
+                        >
+                          <div style={{ fontWeight: "bold", marginBottom: 6 }}>
+                            Final Run (Lanes Switched)
+                          </div>
+                          <div>
+                            Lane 1 ({race.racerB || "Racer B"}): {race.run2Lane1 || "--"}
+                          </div>
+                          <div>
+                            Lane 2 ({race.racerA || "Racer A"}): {race.run2Lane2 || "--"}
+                          </div>
+                          <div style={{ marginTop: 4, color: "#22c55e", fontWeight: "bold" }}>
+                            Winner: {race.run2Winner || "--"}
+                          </div>
+                        </div>
+                      )}
+
+                      {race.status === "Complete" && (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            padding: 10,
+                            borderRadius: 10,
+                            background: "#0f172a",
+                            color: "#e2e8f0",
+                            fontSize: 14,
+                          }}
+                        >
+                          <div style={{ fontWeight: "bold", marginBottom: 6 }}>Overall</div>
+                          <div>
+                            {race.racerA || "Racer A"} Total:{" "}
+                            {race.totalA === "" ? "--" : race.totalA}
+                          </div>
+                          <div>
+                            {race.racerB || "Racer B"} Total:{" "}
+                            {race.totalB === "" ? "--" : race.totalB}
+                          </div>
+                          <div
+                            style={{
+                              marginTop: 4,
+                              color: "#22c55e",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Overall Winner: {race.winner || "--"}
+                          </div>
+                        </div>
+                      )}
+
+                      {race.byeFor && (
+                        <div style={{ marginTop: 8, color: "#22c55e", fontWeight: "bold" }}>
+                          {race.byeFor === "A"
+                            ? `${race.racerA} advanced by BYE`
+                            : `${race.racerB} advanced by BYE`}
+                        </div>
+                      )}
+
+                      {race.dqA && !race.dqB && (
+                        <div style={{ marginTop: 8, color: "#22c55e", fontWeight: "bold" }}>
+                          {race.racerA} DQ — {race.racerB} advanced
+                        </div>
+                      )}
+
+                      {race.dqB && !race.dqA && (
+                        <div style={{ marginTop: 8, color: "#22c55e", fontWeight: "bold" }}>
+                          {race.racerB} DQ — {race.racerA} advanced
+                        </div>
+                      )}
+
+                      {race.dqA && race.dqB && (
+                        <div style={{ marginTop: 8, color: "#ef4444", fontWeight: "bold" }}>
+                          Both racers DQ’d
+                        </div>
+                      )}
+
+                      {race.tiebreaker && (
+                        <div style={{ marginTop: 8, color: "#f59e0b", fontWeight: "bold" }}>
+                          Tiebreaker required
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              );
+            })}
+          </div>
+
+          <div style={{ ...panelStyle, background: "#111827" }}>
+            <div style={{ color: "#93c5fd", marginBottom: 12, fontSize: 18 }}>
+              Live Placements
             </div>
+            {placements.map((p) => (
+              <div
+                key={p.place}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "6px 0",
+                  borderBottom: "1px solid #1e293b",
+                }}
+              >
+                <strong>{p.place}</strong>
+                <span>{p.name || "--"}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div
@@ -778,37 +1560,88 @@ export default function App() {
     >
       {renderHeader()}
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", justifyContent: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          marginBottom: 20,
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
         <button
           onClick={() => changeBracket("12")}
-          style={{ padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: bracketType === "12" ? "#22c55e" : "#334155", color: "white" }}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            background: bracketType === "12" ? "#22c55e" : "#334155",
+            color: "white",
+          }}
         >
           12-Car Bracket
         </button>
         <button
           onClick={() => changeBracket("64")}
-          style={{ padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: bracketType === "64" ? "#22c55e" : "#334155", color: "white" }}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            background: bracketType === "64" ? "#22c55e" : "#334155",
+            color: "white",
+          }}
         >
           64-Car Bracket
         </button>
         <button
           onClick={() => setViewMode("spectator")}
-          style={{ padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: "#2563eb", color: "white" }}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            background: "#2563eb",
+            color: "white",
+          }}
         >
           Open Spectator View
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1.6fr 1fr", gap: 20, alignItems: "start" }}>
-        <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 18, maxHeight: "80vh", overflowY: "auto" }}>
-          <h2 style={{ marginTop: 0 }}>Seed Entry</h2>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.1fr 1.6fr 1fr",
+          gap: 20,
+          alignItems: "start",
+        }}
+      >
+        <div
+          style={{
+            ...panelStyle,
+            maxHeight: "80vh",
+            overflowY: "auto",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>
+            Seed Entry ({bracketType === "12" ? "12-Car" : "64-Car"})
+          </h2>
           <div style={{ color: "#94a3b8", fontSize: 14, marginBottom: 12 }}>
-            Enter racer names for all seeds.
+            Seeds are saved automatically.
           </div>
 
           {Object.keys(seedNames).map((seed) => (
             <div key={seed} style={{ marginBottom: 10 }}>
-              <label style={{ display: "block", marginBottom: 4, fontSize: 13, color: "#cbd5e1" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: 4,
+                  fontSize: 13,
+                  color: "#cbd5e1",
+                }}
+              >
                 Seed {seed}
               </label>
               <input
@@ -832,7 +1665,16 @@ export default function App() {
           <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
             {groupedRaces.map((group) => (
               <div key={group.roundName} style={{ minWidth: 250 }}>
-                <h2 style={{ fontSize: 20, marginBottom: 12, color: "#93c5fd" }}>{group.roundName}</h2>
+                <h2
+                  style={{
+                    fontSize: 20,
+                    marginBottom: 12,
+                    color: "#93c5fd",
+                  }}
+                >
+                  {group.roundName}
+                </h2>
+
                 {group.races.map((race) => (
                   <div
                     key={race.id}
@@ -850,22 +1692,29 @@ export default function App() {
                     <div>{race.racerA || race.slotA}</div>
                     <div style={{ color: "#94a3b8", margin: "4px 0" }}>vs</div>
                     <div>{race.racerB || race.slotB}</div>
-                    <div style={{ marginTop: 10, color: statusColor(race.status), fontWeight: "bold", fontSize: 14 }}>
+                    <div
+                      style={{
+                        marginTop: 10,
+                        color: getStatusColor(race.status),
+                        fontWeight: "bold",
+                        fontSize: 14,
+                      }}
+                    >
                       {race.status}
                     </div>
+                    {race.run1Status === "Complete" && (
+                      <div style={{ marginTop: 4, color: "#38bdf8", fontSize: 13 }}>
+                        First Run Winner: {race.run1Winner || "--"}
+                      </div>
+                    )}
+                    {race.run2Status === "Complete" && (
+                      <div style={{ marginTop: 4, color: "#38bdf8", fontSize: 13 }}>
+                        Final Run Winner: {race.run2Winner || "--"}
+                      </div>
+                    )}
                     {race.winner && (
                       <div style={{ marginTop: 6, color: "#22c55e", fontWeight: "bold" }}>
-                        Winner: {race.winner}
-                      </div>
-                    )}
-                    {race.tiebreaker && (
-                      <div style={{ marginTop: 6, color: "#f59e0b", fontWeight: "bold" }}>
-                        Tiebreaker Required
-                      </div>
-                    )}
-                    {race.flagged && !race.winner && (
-                      <div style={{ marginTop: 6, color: "#ef4444", fontWeight: "bold" }}>
-                        Heat flagged
+                        Overall Winner: {race.winner}
                       </div>
                     )}
                   </div>
@@ -875,7 +1724,15 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 20, position: "sticky", top: 20, maxHeight: "80vh", overflowY: "auto" }}>
+        <div
+          style={{
+            ...panelStyle,
+            position: "sticky",
+            top: 20,
+            maxHeight: "80vh",
+            overflowY: "auto",
+          }}
+        >
           <h2 style={{ marginTop: 0 }}>Heat Admin</h2>
 
           {!selectedRace ? (
@@ -894,11 +1751,7 @@ export default function App() {
                   <label style={{ display: "block", marginBottom: 6 }}>BYE</label>
                   <select
                     value={selectedRace.byeFor}
-                    onChange={(e) =>
-                      updateRace(selectedRace.id, {
-                        byeFor: e.target.value,
-                      })
-                    }
+                    onChange={(e) => updateRace(selectedRace.id, { byeFor: e.target.value })}
                     style={{
                       width: "100%",
                       padding: 10,
@@ -916,7 +1769,14 @@ export default function App() {
                 </>
               )}
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 10,
+                  marginBottom: 14,
+                }}
+              >
                 <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <input
                     type="checkbox"
@@ -935,7 +1795,9 @@ export default function App() {
                 </label>
               </div>
 
-              <div style={{ color: "#93c5fd", fontWeight: "bold", marginBottom: 8 }}>Run 1</div>
+              <div style={{ color: "#93c5fd", fontWeight: "bold", marginBottom: 8 }}>
+                First Run
+              </div>
               <input
                 type="number"
                 step="0.001"
@@ -953,7 +1815,9 @@ export default function App() {
                 style={inputStyle}
               />
 
-              <div style={{ color: "#93c5fd", fontWeight: "bold", margin: "12px 0 8px" }}>Run 2 (lanes switch)</div>
+              <div style={{ color: "#93c5fd", fontWeight: "bold", margin: "12px 0 8px" }}>
+                Final Run (Lanes Switched)
+              </div>
               <input
                 type="number"
                 step="0.001"
@@ -971,19 +1835,69 @@ export default function App() {
                 style={inputStyle}
               />
 
-              <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "#0f172a", border: "1px solid #334155" }}>
-                <div>Total Racer A: {selectedRace.totalA === "" ? "--" : selectedRace.totalA}</div>
-                <div>Total Racer B: {selectedRace.totalB === "" ? "--" : selectedRace.totalB}</div>
-                <div style={{ marginTop: 8, fontWeight: "bold", color: selectedRace.winner ? "#22c55e" : selectedRace.flagged ? "#ef4444" : "#cbd5e1" }}>
-                  Winner: {selectedRace.winner || "--"}
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: 12,
+                  borderRadius: 10,
+                  background: "#0f172a",
+                  border: "1px solid #334155",
+                }}
+              >
+                <div style={{ fontWeight: "bold", marginBottom: 8 }}>Published Results</div>
+
+                <div>First Run Status: {selectedRace.run1Status}</div>
+                <div>First Run Winner: {selectedRace.run1Winner || "--"}</div>
+
+                <div style={{ marginTop: 8 }}>Final Run Status: {selectedRace.run2Status}</div>
+                <div>Final Run Winner: {selectedRace.run2Winner || "--"}</div>
+
+                <div style={{ marginTop: 8 }}>
+                  {selectedRace.racerA || "Racer A"} Total:{" "}
+                  {selectedRace.totalA === "" ? "--" : selectedRace.totalA}
                 </div>
-                {selectedRace.loser && <div>Loser: {selectedRace.loser}</div>}
-                {selectedRace.tiebreaker && <div style={{ color: "#f59e0b" }}>Exact tie — tiebreaker required.</div>}
-                {selectedRace.dqA && !selectedRace.dqB && <div>Racer A disqualified. Racer B advances.</div>}
-                {selectedRace.dqB && !selectedRace.dqA && <div>Racer B disqualified. Racer A advances.</div>}
-                {selectedRace.dqA && selectedRace.dqB && <div style={{ color: "#ef4444" }}>Both racers disqualified. No winner.</div>}
-                {selectedRace.byeFor === "A" && <div>Racer A advances by BYE.</div>}
-                {selectedRace.byeFor === "B" && <div>Racer B advances by BYE.</div>}
+                <div>
+                  {selectedRace.racerB || "Racer B"} Total:{" "}
+                  {selectedRace.totalB === "" ? "--" : selectedRace.totalB}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontWeight: "bold",
+                    color: selectedRace.winner
+                      ? "#22c55e"
+                      : selectedRace.flagged
+                      ? "#ef4444"
+                      : "#cbd5e1",
+                  }}
+                >
+                  Overall Winner: {selectedRace.winner || "--"}
+                </div>
+
+                {selectedRace.tiebreaker && (
+                  <div style={{ color: "#f59e0b", marginTop: 6 }}>
+                    Exact tie — tiebreaker required.
+                  </div>
+                )}
+
+                {selectedRace.dqA && !selectedRace.dqB && (
+                  <div style={{ marginTop: 6 }}>Racer A disqualified. Racer B advances.</div>
+                )}
+                {selectedRace.dqB && !selectedRace.dqA && (
+                  <div style={{ marginTop: 6 }}>Racer B disqualified. Racer A advances.</div>
+                )}
+                {selectedRace.dqA && selectedRace.dqB && (
+                  <div style={{ marginTop: 6, color: "#ef4444" }}>
+                    Both racers disqualified. No winner.
+                  </div>
+                )}
+                {selectedRace.byeFor === "A" && (
+                  <div style={{ marginTop: 6 }}>Racer A advances by BYE.</div>
+                )}
+                {selectedRace.byeFor === "B" && (
+                  <div style={{ marginTop: 6 }}>Racer B advances by BYE.</div>
+                )}
               </div>
 
               <label style={{ display: "block", marginTop: 14, marginBottom: 6 }}>Notes</label>
@@ -995,7 +1909,9 @@ export default function App() {
                 placeholder="Notes"
               />
 
-              <label style={{ display: "block", marginTop: 14, marginBottom: 6 }}>Media URL</label>
+              <label style={{ display: "block", marginTop: 14, marginBottom: 6 }}>
+                Media URL
+              </label>
               <input
                 type="text"
                 value={selectedRace.media}
@@ -1008,14 +1924,27 @@ export default function App() {
                 <img
                   src={selectedRace.media}
                   alt="Race media"
-                  style={{ width: "100%", borderRadius: 10, border: "1px solid #475569", marginTop: 12 }}
+                  style={{
+                    width: "100%",
+                    borderRadius: 10,
+                    border: "1px solid #475569",
+                    marginTop: 12,
+                  }}
                 />
               )}
 
               <div style={{ marginTop: 20 }}>
                 <h3 style={{ marginBottom: 10 }}>Live Placements</h3>
                 {placements.map((p) => (
-                  <div key={p.place} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid #334155" }}>
+                  <div
+                    key={p.place}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "5px 0",
+                      borderBottom: "1px solid #334155",
+                    }}
+                  >
                     <strong>{p.place}</strong>
                     <span>{p.name || "--"}</span>
                   </div>
@@ -1028,13 +1957,3 @@ export default function App() {
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: 10,
-  borderRadius: 8,
-  marginBottom: 10,
-  border: "1px solid #475569",
-  background: "#0f172a",
-  color: "white",
-};
