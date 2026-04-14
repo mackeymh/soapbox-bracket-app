@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "./lib/supabase";
 
+console.log("Supabase connected:", supabase);
 const STORAGE_KEYS = {
   bracketType: "soapbox_bracketType",
   viewMode: "soapbox_viewMode",

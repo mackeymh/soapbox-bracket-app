@@ -1,10 +1,18 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./index.css";
+import AdminPage from "./pages/AdminPage";
+import SpectatorPage from "./pages/SpectatorPage";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/spectator" element={<SpectatorPage />} />
+        <Route path="*" element={<Navigate to="/spectator" replace />} />
+      </Routes>
+    </BrowserRouter>
+  </React.StrictMode>
+);
