@@ -119,65 +119,81 @@ const DQ_REASONS = [
 
 export default function AdminPage() {
   const navigate = useNavigate();
-const [authorized, setAuthorized] = useState(false);
-const [bracketType, setBracketType] = useState("12");
+  const [authorized, setAuthorized] = useState(false);
+  const [bracketType, setBracketType] = useState("12");
   const [seeds, setSeeds] = useState([]);
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-  const access = sessionStorage.getItem("admin_access");
+    const access = sessionStorage.getItem("admin_access");
 
-  if (access !== "granted") {
-    navigate("/admin-login");
-  } else {
-    setAuthorized(true);
-  }
-}, [navigate]);
+    if (access !== "granted") {
+      navigate("/admin-login");
+    } else {
+      setAuthorized(true);
+    }
+  }, [navigate]);
 
-useEffect(() => {
-  if (!authorized) return;
-  loadData(bracketType);
-}, [authorized, bracketType]);
+  useEffect(() => {
+    if (!authorized) return;
 
-  async function loadData(type) {
-  setLoading(true);
-  setMessage("");
+    let cancelled = false;
 
-  try {
-    const [seedRows, raceRows] = await Promise.all([
-      fetchSeeds(type),
-      fetchRaces(type),
-    ]);
+    async function loadData() {
+      setLoading(true);
+      setMessage("");
 
-    setSeeds(seedRows);
+      try {
+        const [seedRows, raceRows] = await Promise.all([
+          fetchSeeds(bracketType),
+          fetchRaces(bracketType),
+        ]);
 
-    let workingRaces = raceRows;
+        if (cancelled) return;
 
-    if (raceRows.length === 0) {
-      const defaults = type === "12" ? buildDefault12Races() : buildDefault64Races();
-      for (const race of defaults) {
-        await upsertRace(race);
+        setSeeds(seedRows);
+
+        let workingRaces = raceRows;
+
+        if (raceRows.length === 0) {
+          const defaults =
+            bracketType === "12" ? buildDefault12Races() : buildDefault64Races();
+          for (const race of defaults) {
+            await upsertRace(race);
+          }
+          workingRaces = await fetchRaces(bracketType);
+        }
+
+        if (seedRows.length > 0) {
+          await syncSeedsToRaces(bracketType, seedRows);
+          workingRaces = await fetchRaces(bracketType);
+          await advanceBracket(bracketType, workingRaces);
+          workingRaces = await fetchRaces(bracketType);
+        }
+
+        if (!cancelled) {
+          setRaces(workingRaces);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("ADMIN LOAD ERROR:", error);
+          setMessage(`Failed to load admin data: ${error.message || "Unknown error"}`);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-      workingRaces = await fetchRaces(type);
     }
 
-    if (seedRows.length > 0) {
-      await syncSeedsToRaces(type, seedRows);
-      workingRaces = await fetchRaces(type);
-      await advanceBracket(type, workingRaces);
-      workingRaces = await fetchRaces(type);
-    }
+    loadData();
 
-    setRaces(workingRaces);
-  } catch (error) {
-    console.error("ADMIN LOAD ERROR:", error);
-    setMessage(`Failed to load admin data: ${error.message || "Unknown error"}`);
-  } finally {
-    setLoading(false);
-  }
-}
+    return () => {
+      cancelled = true;
+    };
+  }, [authorized, bracketType]);
 
   async function handleSeedBlur(seedNumber, label) {
     try {
@@ -559,6 +575,8 @@ useEffect(() => {
           {message}
         </div>
       )}
+
+      {loading && <div style={{ marginBottom: 16 }}>Loading bracket data...</div>}
 
       <h2>Seeds</h2>
       {Array.from({ length: bracketType === "12" ? 12 : 64 }).map((_, i) => {

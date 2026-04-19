@@ -3,8 +3,8 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";
 
-import AdminPage from "./pages/AdminPage";
 import SpectatorPage from "./pages/SpectatorPage";
+import AdminPage from "./pages/AdminPage";
 import AdminGate from "./pages/AdminGate";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
