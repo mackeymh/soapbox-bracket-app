@@ -100,21 +100,22 @@ export default function SpectatorPage() {
             marginBottom: 20,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <img
               src="/logo.png"
               alt="District 11 Logo"
               style={{
-                height: 80,
+                height: 56,
                 width: "auto",
+                flexShrink: 0,
               }}
             />
 
-            <div>
+            <div style={{ minWidth: 0 }}>
               <h1
                 style={{
                   margin: 0,
-                  fontSize: 56,
+                  fontSize: 28,
                   fontWeight: 800,
                   color: "#f8fafc",
                   lineHeight: 1.05,
@@ -126,8 +127,9 @@ export default function SpectatorPage() {
               <div
                 style={{
                   color: "#cbd5e1",
-                  fontSize: 22,
-                  marginTop: 4,
+                  fontSize: 16,
+                  marginTop: 2,
+                  lineHeight: 1.2,
                 }}
               >
                 Live Race Board
@@ -270,8 +272,8 @@ export default function SpectatorPage() {
                   <div><strong>Winner:</strong> {race.winner || "--"}</div>
                 </div>
               </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
     </div>
