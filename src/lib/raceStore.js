@@ -12,11 +12,17 @@ export async function fetchSeeds(bracketType) {
 }
 
 export async function upsertSeed(seed) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("seeds")
-    .upsert(seed, { onConflict: "bracket_type,seed_number" });
+    .upsert(seed, { onConflict: "bracket_type,seed_number" })
+    .select();
 
-  if (error) throw error;
+  if (error) {
+    console.error("UPSERT SEED ERROR:", error, seed);
+    throw error;
+  }
+
+  return data;
 }
 
 export async function fetchRaces(bracketType) {
@@ -30,14 +36,39 @@ export async function fetchRaces(bracketType) {
   return data ?? [];
 }
 
-export async function updateRace(raceId, updates) {
-  const { error } = await supabase
+export async function upsertRace(race) {
+  const { data, error } = await supabase
+    .from("races")
+    .upsert(race, { onConflict: "bracket_type,id" })
+    .select();
+
+  if (error) {
+    console.error("UPSERT RACE ERROR:", error, race);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateRace(raceId, updates, bracketType) {
+  const { data, error } = await supabase
     .from("races")
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", raceId);
+    .eq("id", raceId)
+    .eq("bracket_type", bracketType)
+    .select();
 
-  if (error) throw error;
+  if (error) {
+    console.error("UPDATE RACE ERROR:", error, {
+      raceId,
+      updates,
+      bracketType,
+    });
+    throw error;
+  }
+
+  return data;
 }
