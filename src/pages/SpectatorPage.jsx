@@ -101,8 +101,26 @@ export default function SpectatorPage() {
           }}
         >
           <div>
-            <h1 style={{ margin: 0, fontSize: 36 }}>District 11 Soap Box Derby</h1>
-            <div style={{ color: MUTED, marginTop: 6 }}>Live Race Board</div>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: 16 }}
+            >
+              <img src="/logo.png" alt="District 11 Logo" style={{ height: 70 }} />
+
+              <div>
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 48,
+                    fontWeight: 800,
+                    color: "#f8fafc",
+                  }}
+                >
+                  District 11 Soap Box Derby
+                </h1>
+
+                <div style={{ color: "#cbd5e1" }}>Live Race Board</div>
+              </div>
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
