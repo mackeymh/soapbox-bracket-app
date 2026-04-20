@@ -19,6 +19,29 @@ const COLORS = {
   red: "#7f1d1d",
 };
 
+function schoolCodeToShort(code) {
+  return code.replace("11X", "").replace(/^0+/, "");
+}
+
+function normalizeCarLabel(label = "") {
+  const [schoolPart = "", carPart = ""] = label.split("-");
+  const normalizedSchool = schoolPart.replace(/^0+/, "");
+  return carPart ? `${normalizedSchool}-${carPart}` : normalizedSchool;
+}
+
+function raceMatchesSchool(race, selectedSchool) {
+  if (selectedSchool === "All Schools") return true;
+
+  const shortCode = schoolCodeToShort(selectedSchool);
+  const racerA = normalizeCarLabel(race.racer_a || "");
+  const racerB = normalizeCarLabel(race.racer_b || "");
+
+  return (
+    racerA.startsWith(`${shortCode}-`) ||
+    racerB.startsWith(`${shortCode}-`)
+  );
+}
+
 function hasAnyRunData(race) {
   return (
     race.run1_lane1 != null ||
@@ -35,10 +58,7 @@ function isRaceMidRace(race) {
 }
 
 function isRaceCurrent(race, nextRaceId) {
-  // 🚫 NEVER allow completed races
   if (race.status === "Complete") return false;
-
-  // 🚫 NEVER allow DQ conflicts
   if (race.status === "DQ Conflict") return false;
 
   const isNext = race.id === nextRaceId;
@@ -50,7 +70,9 @@ function isRaceCurrent(race, nextRaceId) {
 
 function getStandings(bracketType, races) {
   const map = {};
-  races.forEach(r => (map[r.id] = r));
+  races.forEach((r) => {
+    map[r.id] = r;
+  });
 
   if (bracketType === "12") {
     return [
@@ -82,6 +104,7 @@ export default function SpectatorPage() {
   const [bracketType, setBracketType] = useState("12");
   const [tab, setTab] = useState("Races");
   const [filter, setFilter] = useState("Current");
+  const [schoolFilter, setSchoolFilter] = useState("All Schools");
   const currentRef = useRef(null);
 
   useEffect(() => {
@@ -91,18 +114,9 @@ export default function SpectatorPage() {
     }
 
     load();
-    const i = setInterval(load, 5000);
-    return () => clearInterval(i);
+    const intervalId = setInterval(load, 5000);
+    return () => clearInterval(intervalId);
   }, [bracketType]);
-
-  useEffect(() => {
-  if (currentRef.current) {
-    currentRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-}, [currentRace]);
 
   const sorted = useMemo(
     () => [...races].sort((a, b) => a.id - b.id),
@@ -110,72 +124,107 @@ export default function SpectatorPage() {
   );
 
   const nextRaceId = useMemo(() => {
-  // 🔥 PRIORITY 1: manual override
-  const override = sorted.find(r => r.is_current_override);
-  if (override) return override.id;
+    const override = sorted.find((r) => r.is_current_override);
+    if (override) return override.id;
 
-  // fallback: auto logic
-  const next = sorted.find(r =>
-    !hasAnyRunData(r) &&
-    r.status !== "Complete" &&
-    r.status !== "DQ Conflict"
+    const next = sorted.find(
+      (r) =>
+        !hasAnyRunData(r) &&
+        r.status !== "Complete" &&
+        r.status !== "DQ Conflict"
+    );
+
+    return next?.id ?? null;
+  }, [sorted]);
+
+  const currentRace = useMemo(
+    () => sorted.find((r) => r.id === nextRaceId),
+    [sorted, nextRaceId]
   );
 
-  return next?.id ?? null;
-}, [sorted]);
-
-  const currentRace = sorted.find(r => r.id === nextRaceId);
-
-  const visible = sorted.filter(r => {
-    if (filter === "All") return true;
-
-    if (filter === "Completed") {
-      return r.status === "Complete";
+  useEffect(() => {
+    if (currentRef.current) {
+      currentRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
+  }, [currentRace]);
 
-    if (filter === "Pending") {
-      return !hasAnyRunData(r);
-    }
+  const visible = useMemo(() => {
+    return sorted.filter((r) => {
+      if (!raceMatchesSchool(r, schoolFilter)) return false;
 
-    if (filter === "Current") {
-      if (r.status === "Complete") return false;
-      if (r.status === "DQ Conflict") return false;
-      return isRaceCurrent(r, nextRaceId);
-    }
+      if (filter === "All") return true;
 
-    return true;
-  });
+      if (filter === "Completed") {
+        return r.status === "Complete";
+      }
+
+      if (filter === "Pending") {
+        return !hasAnyRunData(r);
+      }
+
+      if (filter === "Current") {
+        if (r.status === "Complete") return false;
+        if (r.status === "DQ Conflict") return false;
+        return isRaceCurrent(r, nextRaceId);
+      }
+
+      return true;
+    });
+  }, [sorted, filter, schoolFilter, nextRaceId]);
+
+  const orderedVisible = useMemo(() => {
+    if (!currentRace) return visible;
+
+    const currentInVisible = visible.find((r) => r.id === currentRace.id);
+    if (!currentInVisible) return visible;
+
+    return [
+      currentInVisible,
+      ...visible.filter((r) => r.id !== currentRace.id),
+    ];
+  }, [visible, currentRace]);
 
   return (
-    <div style={{ background: COLORS.bg, minHeight: "100vh", padding: 16, color: COLORS.text }}>
-
-      {/* HEADER */}
+    <div
+      style={{
+        background: COLORS.bg,
+        minHeight: "100vh",
+        padding: 16,
+        color: COLORS.text,
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <img src="/logo.png" style={{ height: 48 }} />
+        <img src="/logo.png" alt="District 11 logo" style={{ height: 48 }} />
         <div>
-          <div style={{ fontWeight: 800, fontSize: 20 }}>District 11 Soap Box Derby</div>
+          <div style={{ fontWeight: 800, fontSize: 20 }}>
+            District 11 Soap Box Derby
+          </div>
           <div style={{ color: COLORS.muted }}>Live Race Board</div>
         </div>
       </div>
 
-      {/* NOW RACING */}
       {currentRace && (
-        <div style={{
-          marginTop: 12,
-          background: COLORS.accent,
-          color: "#022c22",
-          padding: 10,
-          borderRadius: 10,
-          fontWeight: 800,
-          textAlign: "center"
-        }}>
-          NOW RACING: {currentRace.racer_a || currentRace.slot_a} vs {currentRace.racer_b || currentRace.slot_b}
+        <div
+          style={{
+            marginTop: 12,
+            background: COLORS.accent,
+            color: "#022c22",
+            padding: 10,
+            borderRadius: 10,
+            fontWeight: 800,
+            textAlign: "center",
+          }}
+        >
+          NOW RACING: {currentRace.racer_a || currentRace.slot_a} vs{" "}
+          {currentRace.racer_b || currentRace.slot_b}
         </div>
       )}
 
-      {/* TABS */}
       <div style={{ display: "flex", gap: 20, marginTop: 16 }}>
-        {["Races", "Standings"].map(t => (
+        {["Races", "Standings"].map((t) => (
           <div
             key={t}
             onClick={() => setTab(t)}
@@ -183,7 +232,8 @@ export default function SpectatorPage() {
               cursor: "pointer",
               fontWeight: 700,
               color: tab === t ? COLORS.accent : COLORS.muted,
-              borderBottom: tab === t ? `2px solid ${COLORS.accent}` : "none"
+              borderBottom:
+                tab === t ? `2px solid ${COLORS.accent}` : "none",
             }}
           >
             {t}
@@ -191,9 +241,8 @@ export default function SpectatorPage() {
         ))}
       </div>
 
-      {/* BRACKET */}
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        {["12", "64"].map(b => (
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+        {["12", "64"].map((b) => (
           <button
             key={b}
             onClick={() => setBracketType(b)}
@@ -202,7 +251,7 @@ export default function SpectatorPage() {
               borderRadius: 999,
               background: bracketType === b ? COLORS.accent : "#1f2937",
               color: "#fff",
-              border: "none"
+              border: "none",
             }}
           >
             {b}-Car
@@ -210,10 +259,17 @@ export default function SpectatorPage() {
         ))}
       </div>
 
-      {/* FILTER */}
       {tab === "Races" && (
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: 12 }}>
-          {["Current", "Pending", "Completed", "All"].map(f => (
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            marginTop: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          {["Current", "Pending", "Completed", "All"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -222,73 +278,116 @@ export default function SpectatorPage() {
                 borderRadius: 999,
                 background: filter === f ? COLORS.accent : "#1f2937",
                 color: "#fff",
-                border: "none"
+                border: "none",
+                whiteSpace: "nowrap",
               }}
             >
               {f}
             </button>
           ))}
+
+          <select
+            value={schoolFilter}
+            onChange={(e) => setSchoolFilter(e.target.value)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 999,
+              background: "#1f2937",
+              color: "#fff",
+              border: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <option value="All Schools">All Schools</option>
+            {SCHOOL_CODES.map((school) => (
+              <option key={school} value={school}>
+                {school}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
-      {/* CONTENT */}
       {tab === "Races" && (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px,1fr))",
-          gap: 12,
-          marginTop: 16
-        }}>
-          {visible.map(r => {
-            const current = isRaceCurrent(r, nextRaceId);
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px,1fr))",
+            gap: 12,
+            marginTop: 16,
+          }}
+        >
+          {orderedVisible.map((r) => {
+            const current = currentRace ? r.id === currentRace.id : false;
 
             return (
-              <div key={r.id} style={{
-                background: COLORS.card,
-                border: current ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
-                borderRadius: 16,
-                padding: 14
-              }}
-              ref={current ? currentRef : null}
-            >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div
+                key={r.id}
+                ref={current ? currentRef : null}
+                style={{
+                  background: COLORS.card,
+                  border: current
+                    ? `2px solid ${COLORS.accent}`
+                    : `1px solid ${COLORS.border}`,
+                  borderRadius: 16,
+                  padding: 14,
+                  boxShadow: current
+                    ? "0 0 18px rgba(34,197,94,0.45)"
+                    : "none",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                  }}
+                >
                   <div>
                     <div style={{ fontWeight: 800 }}>Race {r.id}</div>
                     <div style={{ color: COLORS.muted }}>{r.round}</div>
                   </div>
-                  {current && <div style={{ color: COLORS.accent }}>● CURRENT</div>}
+                  {current && (
+                    <div style={{ color: COLORS.accent, fontWeight: 800 }}>
+                      ● LIVE
+                    </div>
+                  )}
                 </div>
 
-                {/* RACERS */}
-                {[r.racer_a || r.slot_a, r.racer_b || r.slot_b].map((name, i) => (
-                  <div key={i} style={{
-                    marginTop: 8,
-                    padding: 10,
-                    borderRadius: 10,
-                    background: r.winner === name ? "#14532d" : "#1f2937",
-                    border: `1px solid ${COLORS.border}`,
-                    textAlign: "center",
-                    fontWeight: 700
-                  }}>
-                    {name}
-                  </div>
-                ))}
+                {[r.racer_a || r.slot_a, r.racer_b || r.slot_b].map(
+                  (name, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        marginTop: 8,
+                        padding: 10,
+                        borderRadius: 10,
+                        background: r.winner === name ? "#14532d" : "#1f2937",
+                        border: `1px solid ${COLORS.border}`,
+                        textAlign: "center",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {name}
+                    </div>
+                  )
+                )}
 
-                {/* DQ */}
                 {(r.dq_a || r.dq_b) && (
-                  <div style={{
-                    marginTop: 10,
-                    background: COLORS.red,
-                    padding: 8,
-                    borderRadius: 8,
-                    fontSize: 13
-                  }}>
+                  <div
+                    style={{
+                      marginTop: 10,
+                      background: COLORS.red,
+                      padding: 8,
+                      borderRadius: 8,
+                      fontSize: 13,
+                    }}
+                  >
                     {r.dq_a && `A DQ: ${r.dq_reason_a || ""}`}
                     {r.dq_b && ` B DQ: ${r.dq_reason_b || ""}`}
                   </div>
                 )}
 
-                {/* TIMES */}
                 <div style={{ marginTop: 10, fontSize: 14 }}>
                   Run 1: {r.run1_lane1 ?? "--"} | {r.run1_lane2 ?? "--"}
                   <br />
@@ -305,12 +404,15 @@ export default function SpectatorPage() {
       {tab === "Standings" && (
         <div style={{ marginTop: 20 }}>
           {getStandings(bracketType, sorted).map(([place, racer]) => (
-            <div key={place} style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: 10,
-              borderBottom: `1px solid ${COLORS.border}`
-            }}>
+            <div
+              key={place}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: 10,
+                borderBottom: `1px solid ${COLORS.border}`,
+              }}
+            >
               <div style={{ fontWeight: 700 }}>{place}</div>
               <div>{racer || "--"}</div>
             </div>
