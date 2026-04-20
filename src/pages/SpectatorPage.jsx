@@ -50,21 +50,19 @@ function getStatusTone(status) {
 
 function hasAnyRunData(race) {
   return (
-    race.run1_lane1 !== null && race.run1_lane1 !== "" ||
-    race.run1_lane2 !== null && race.run1_lane2 !== "" ||
-    race.run2_lane1 !== null && race.run2_lane1 !== "" ||
-    race.run2_lane2 !== null && race.run2_lane2 !== ""
+    race.run1_lane1 != null ||
+    race.run1_lane2 != null ||
+    race.run2_lane1 != null ||
+    race.run2_lane2 != null
   );
 }
 
 function isRaceMidRace(race) {
   const run1Done =
-    (race.run1_lane1 !== null && race.run1_lane1 !== "") ||
-    (race.run1_lane2 !== null && race.run1_lane2 !== "");
+    race.run1_lane1 != null || race.run1_lane2 != null;
 
   const run2Done =
-    (race.run2_lane1 !== null && race.run2_lane1 !== "") ||
-    (race.run2_lane2 !== null && race.run2_lane2 !== "");
+    race.run2_lane1 != null || race.run2_lane2 != null;
 
   return run1Done && !run2Done;
 }
