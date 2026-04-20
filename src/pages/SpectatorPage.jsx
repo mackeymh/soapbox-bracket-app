@@ -103,12 +103,25 @@ export default function SpectatorPage() {
   const currentRace = sorted.find(r => r.id === nextRaceId);
 
   const visible = sorted.filter(r => {
-    if (filter === "All") return true;
-    if (filter === "Completed") return r.status === "Complete";
-    if (filter === "Pending") return !hasAnyRunData(r);
-    if (filter === "Current") return isRaceCurrent(r, nextRaceId);
-    return true;
-  });
+  if (filter === "All") return true;
+
+  if (filter === "Completed") {
+    return r.status === "Complete";
+  }
+
+  if (filter === "Pending") {
+    return !hasAnyRunData(r);
+  }
+
+  if (filter === "Current") {
+    // 🚫 HARD BLOCK DQ FIRST
+    if (r.status === "DQ Conflict") return false;
+
+    return isRaceCurrent(r, nextRaceId);
+  }
+
+  return true;
+});
 
   return (
     <div style={{ background: COLORS.bg, minHeight: "100vh", padding: 16, color: COLORS.text }}>
