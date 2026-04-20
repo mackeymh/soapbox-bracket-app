@@ -100,9 +100,19 @@ export default function SpectatorPage() {
   );
 
   const nextRaceId = useMemo(() => {
-    const next = sorted.find(r => !hasAnyRunData(r) && r.status !== "Complete");
-    return next?.id ?? null;
-  }, [sorted]);
+  // 🔥 PRIORITY 1: manual override
+  const override = sorted.find(r => r.is_current_override);
+  if (override) return override.id;
+
+  // fallback: auto logic
+  const next = sorted.find(r =>
+    !hasAnyRunData(r) &&
+    r.status !== "Complete" &&
+    r.status !== "DQ Conflict"
+  );
+
+  return next?.id ?? null;
+}, [sorted]);
 
   const currentRace = sorted.find(r => r.id === nextRaceId);
 

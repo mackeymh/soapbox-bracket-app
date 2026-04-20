@@ -451,13 +451,18 @@ export default function AdminPage() {
     try {
       const parsedValue =
         field.includes("lane") && value !== "" ? Number(value) : value;
+      const isTimingField =
+        field === "run1_lane1" ||
+        field === "run1_lane2" ||
+        field === "run2_lane1" ||
+        field === "run2_lane2";
 
       await updateRace(raceId, { [field]: parsedValue }, bracketType);
 
       let refreshedRaces = await fetchRaces(bracketType);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
-      if (race) {
+      if (race && isTimingField) {
         const outcome = getOutcomeFromTimes({
           ...race,
           [field]: parsedValue,
@@ -490,7 +495,29 @@ export default function AdminPage() {
     }
   }
 
-  async function handleRaceToggle(raceId, field, checked) {
+  async function setCurrentRace(raceId) {
+  // Clear all overrides
+  for (const r of races) {
+    if (r.is_current_override) {
+      await updateRace(r.id, { is_current_override: false }, bracketType);
+    }
+  }
+
+  // Set selected race
+  await updateRace(raceId, { is_current_override: true }, bracketType);
+
+  const updated = await fetchRaces(bracketType);
+  setRaces(updated);
+}
+
+async function clearCurrentRace(raceId) {
+  await updateRace(raceId, { is_current_override: false }, bracketType);
+
+  const updated = await fetchRaces(bracketType);
+  setRaces(updated);
+}
+
+async function handleRaceToggle(raceId, field, checked) {
     try {
       await updateRace(raceId, { [field]: checked }, bracketType);
 
@@ -635,6 +662,21 @@ export default function AdminPage() {
           <div style={{ marginBottom: 8 }}>
             {race.racer_a || race.slot_a} vs {race.racer_b || race.slot_b}
           </div>
+
+          <div style={{ marginTop: 8 }}>
+  <button onClick={() => setCurrentRace(race.id)}>
+    Set Current
+  </button>
+
+  {race.is_current_override && (
+    <button
+      onClick={() => clearCurrentRace(race.id)}
+      style={{ marginLeft: 8 }}
+    >
+      Clear
+    </button>
+  )}
+</div>
 
           {(race.bye_for || race.dq_a || race.dq_b) && (
             <div style={{ marginBottom: 8, color: "#ef4444", fontWeight: "bold" }}>
