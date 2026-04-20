@@ -254,7 +254,7 @@ export default function SpectatorPage() {
               border: "none",
             }}
           >
-            {b}-Car
+            {b} Cars
           </button>
         ))}
       </div>
