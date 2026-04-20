@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { fetchRaces } from "../lib/raceStore";
 
 const SCHOOL_CODES = [
@@ -82,6 +82,7 @@ export default function SpectatorPage() {
   const [bracketType, setBracketType] = useState("12");
   const [tab, setTab] = useState("Races");
   const [filter, setFilter] = useState("Current");
+  const currentRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -93,6 +94,15 @@ export default function SpectatorPage() {
     const i = setInterval(load, 5000);
     return () => clearInterval(i);
   }, [bracketType]);
+
+  useEffect(() => {
+  if (currentRef.current) {
+    currentRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+}, [currentRace]);
 
   const sorted = useMemo(
     () => [...races].sort((a, b) => a.id - b.id),
@@ -238,7 +248,9 @@ export default function SpectatorPage() {
                 border: current ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
                 borderRadius: 16,
                 padding: 14
-              }}>
+              }}
+              ref={current ? currentRef : null}
+            >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontWeight: 800 }}>Race {r.id}</div>
