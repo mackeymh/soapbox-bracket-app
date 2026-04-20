@@ -336,8 +336,8 @@ export default function SpectatorPage() {
                 const racerA = race.racer_a || race.slot_a || "--";
                 const racerB = race.racer_b || race.slot_b || "--";
                 const current =
-  race.status !== "DQ Conflict" &&
-  isRaceCurrent(race, nextRaceId);
+                  race.status !== "DQ Conflict" &&
+                  isRaceCurrent(race, nextRaceId);
                 return (
                   <div
                     key={`${race.bracket_type}-${race.id}`}
