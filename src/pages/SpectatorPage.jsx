@@ -30,11 +30,53 @@ function raceMatchesSchool(race, selectedSchool) {
 }
 
 function getStatusTone(status) {
-  if (status === "Complete") return { bg: "#14532d", color: "#dcfce7", label: "Completed" };
-  if (status === "Pending" || !status) return { bg: "#1e293b", color: "#e2e8f0", label: "Pending" };
-  if (status === "Tiebreaker Needed") return { bg: "#7c2d12", color: "#ffedd5", label: "Tiebreaker Needed" };
-  if (status === "DQ Conflict") return { bg: "#7f1d1d", color: "#fee2e2", label: "DQ Conflict" };
+  if (status === "Complete") {
+    return { bg: "#14532d", color: "#dcfce7", label: "Completed" };
+  }
+  if (status === "Pending" || !status) {
+    return { bg: "#1e293b", color: "#e2e8f0", label: "Pending" };
+  }
+  if (status === "Tiebreaker Needed") {
+    return { bg: "#7c2d12", color: "#ffedd5", label: "Tiebreaker Needed" };
+  }
+  if (status === "DQ Conflict") {
+    return { bg: "#7f1d1d", color: "#fee2e2", label: "DQ Conflict" };
+  }
+  if (status === "In Progress") {
+    return { bg: "#1d4ed8", color: "#dbeafe", label: "In Progress" };
+  }
   return { bg: "#1e293b", color: "#e2e8f0", label: status || "Unknown" };
+}
+
+function hasAnyRunData(race) {
+  return (
+    race.run1_lane1 !== null && race.run1_lane1 !== "" ||
+    race.run1_lane2 !== null && race.run1_lane2 !== "" ||
+    race.run2_lane1 !== null && race.run2_lane1 !== "" ||
+    race.run2_lane2 !== null && race.run2_lane2 !== ""
+  );
+}
+
+function isRaceMidRace(race) {
+  const run1Done =
+    (race.run1_lane1 !== null && race.run1_lane1 !== "") ||
+    (race.run1_lane2 !== null && race.run1_lane2 !== "");
+
+  const run2Done =
+    (race.run2_lane1 !== null && race.run2_lane1 !== "") ||
+    (race.run2_lane2 !== null && race.run2_lane2 !== "");
+
+  return run1Done && !run2Done;
+}
+
+function isRaceCurrent(race, nextRaceId) {
+  const isNextRace = nextRaceId !== null && race.id === nextRaceId;
+  const isMidRace = isRaceMidRace(race);
+  const needsAttention =
+    race.status === "Tiebreaker Needed" ||
+    race.status === "DQ Conflict";
+
+  return isNextRace || isMidRace || needsAttention;
 }
 
 export default function SpectatorPage() {
@@ -47,8 +89,14 @@ export default function SpectatorPage() {
     let mounted = true;
 
     async function load() {
-      const rows = await fetchRaces(bracketType);
-      if (mounted) setRaces(rows);
+      try {
+        const rows = await fetchRaces(bracketType);
+        if (mounted) {
+          setRaces(rows);
+        }
+      } catch (error) {
+        console.error("SPECTATOR LOAD ERROR:", error);
+      }
     }
 
     load();
@@ -60,21 +108,40 @@ export default function SpectatorPage() {
     };
   }, [bracketType]);
 
+  const sortedRaces = useMemo(() => {
+    return [...races].sort((a, b) => a.id - b.id);
+  }, [races]);
+
+  const nextRaceId = useMemo(() => {
+    const nextRace = sortedRaces.find((race) => {
+      const noRunsStarted = !hasAnyRunData(race);
+      const notResolved =
+        race.status !== "Complete" &&
+        race.status !== "Tiebreaker Needed" &&
+        race.status !== "DQ Conflict";
+
+      return noRunsStarted && notResolved;
+    });
+
+    return nextRace ? nextRace.id : null;
+  }, [sortedRaces]);
+
   const visibleRaces = useMemo(() => {
-    return races.filter((race) => {
+    return sortedRaces.filter((race) => {
       if (!raceMatchesSchool(race, schoolFilter)) return false;
 
       if (statusFilter === "All") return true;
       if (statusFilter === "Completed") return race.status === "Complete";
-      if (statusFilter === "Current") {
-        return race.status === "Tiebreaker Needed" || race.status === "DQ Conflict";
-      }
       if (statusFilter === "Pending") {
-        return !race.status || race.status === "Pending";
+        return !hasAnyRunData(race) && (race.status === "Pending" || !race.status);
       }
+      if (statusFilter === "Current") {
+        return isRaceCurrent(race, nextRaceId);
+      }
+
       return true;
     });
-  }, [races, statusFilter, schoolFilter]);
+  }, [sortedRaces, schoolFilter, statusFilter, nextRaceId]);
 
   const pillButtonStyle = {
     padding: "10px 14px",
@@ -98,7 +165,6 @@ export default function SpectatorPage() {
       }}
     >
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        {/* Phone-friendly header */}
         <div
           style={{
             display: "flex",
@@ -142,7 +208,6 @@ export default function SpectatorPage() {
           </div>
         </div>
 
-        {/* Bracket buttons */}
         <div
           style={{
             display: "flex",
@@ -159,7 +224,6 @@ export default function SpectatorPage() {
           </button>
         </div>
 
-        {/* Filters */}
         <div
           style={{
             display: "flex",
@@ -216,16 +280,19 @@ export default function SpectatorPage() {
             const tone = getStatusTone(race.status);
             const racerA = race.racer_a || race.slot_a || "--";
             const racerB = race.racer_b || race.slot_b || "--";
+            const current = isRaceCurrent(race, nextRaceId);
 
             return (
               <div
                 key={`${race.bracket_type}-${race.id}`}
                 style={{
                   background: CARD_BG,
-                  border: `1px solid ${BORDER}`,
+                  border: current ? "2px solid #22c55e" : `1px solid ${BORDER}`,
                   borderRadius: 18,
                   padding: 16,
-                  boxShadow: "0 8px 20px rgba(0,0,0,0.22)",
+                  boxShadow: current
+                    ? "0 0 12px rgba(34,197,94,0.45)"
+                    : "0 8px 20px rgba(0,0,0,0.22)",
                 }}
               >
                 <div
@@ -242,18 +309,31 @@ export default function SpectatorPage() {
                     <div style={{ color: MUTED, fontSize: 15 }}>{race.round}</div>
                   </div>
 
-                  <div
-                    style={{
-                      background: tone.bg,
-                      color: tone.color,
-                      padding: "6px 10px",
-                      borderRadius: 999,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {tone.label}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+                    {current && (
+                      <div
+                        style={{
+                          color: "#22c55e",
+                          fontWeight: 800,
+                          fontSize: 12,
+                        }}
+                      >
+                        ● CURRENT
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        background: tone.bg,
+                        color: tone.color,
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {tone.label}
+                    </div>
                   </div>
                 </div>
 
