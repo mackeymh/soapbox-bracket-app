@@ -9,44 +9,15 @@ const SCHOOL_CODES = [
   "11X567",
 ];
 
-const D11_BG = "#0f172a";
-const CARD_BG = "#111827";
-const BORDER = "#334155";
-const MUTED = "#94a3b8";
-const TEXT = "#f8fafc";
-
-function schoolCodeToShort(code) {
-  return code.replace("11X", "");
-}
-
-function raceMatchesSchool(race, selectedSchool) {
-  if (selectedSchool === "All Schools") return true;
-  const shortCode = schoolCodeToShort(selectedSchool);
-
-  return (
-    (race.racer_a || "").startsWith(`${shortCode}-`) ||
-    (race.racer_b || "").startsWith(`${shortCode}-`)
-  );
-}
-
-function getStatusTone(status) {
-  if (status === "Complete") {
-    return { bg: "#14532d", color: "#dcfce7", label: "Completed" };
-  }
-  if (status === "Pending" || !status) {
-    return { bg: "#1e293b", color: "#e2e8f0", label: "Pending" };
-  }
-  if (status === "Tiebreaker Needed") {
-    return { bg: "#7c2d12", color: "#ffedd5", label: "Tiebreaker Needed" };
-  }
-  if (status === "DQ Conflict") {
-    return { bg: "#7f1d1d", color: "#fee2e2", label: "DQ Conflict" };
-  }
-  if (status === "In Progress") {
-    return { bg: "#1d4ed8", color: "#dbeafe", label: "In Progress" };
-  }
-  return { bg: "#1e293b", color: "#e2e8f0", label: status || "Unknown" };
-}
+const COLORS = {
+  bg: "#0f172a",
+  card: "#111827",
+  border: "#334155",
+  text: "#f8fafc",
+  muted: "#94a3b8",
+  accent: "#22c55e",
+  red: "#7f1d1d",
+};
 
 function hasAnyRunData(race) {
   return (
@@ -58,466 +29,256 @@ function hasAnyRunData(race) {
 }
 
 function isRaceMidRace(race) {
-  const run1Started =
-    race.run1_lane1 != null || race.run1_lane2 != null;
-
-  const run2Started =
-    race.run2_lane1 != null || race.run2_lane2 != null;
-
-  return run1Started && !run2Started;
+  const run1 = race.run1_lane1 != null || race.run1_lane2 != null;
+  const run2 = race.run2_lane1 != null || race.run2_lane2 != null;
+  return run1 && !run2;
 }
 
 function isRaceCurrent(race, nextRaceId) {
   if (race.status === "DQ Conflict") return false;
-  const isNextRace = nextRaceId !== null && race.id === nextRaceId;
-  const isMidRace = isRaceMidRace(race);
-  const isTiebreaker = race.status === "Tiebreaker Needed";
 
-  return isNextRace || isMidRace || isTiebreaker;
+  const isNext = race.id === nextRaceId;
+  const isMid = isRaceMidRace(race);
+  const isTie = race.status === "Tiebreaker Needed";
+
+  return isNext || isMid || isTie;
 }
 
-function getFinalStandings(bracketType, races) {
-  const raceMap = {};
-  races.forEach((race) => {
-    raceMap[race.id] = race;
-  });
+function getStandings(bracketType, races) {
+  const map = {};
+  races.forEach(r => (map[r.id] = r));
 
   if (bracketType === "12") {
     return [
-      { place: "1st", racer: raceMap[11]?.winner || "--" },
-      { place: "2nd", racer: raceMap[11]?.loser || "--" },
-      { place: "3rd", racer: raceMap[16]?.winner || "--" },
-      { place: "4th", racer: raceMap[16]?.loser || "--" },
-      { place: "5th", racer: raceMap[14]?.winner || "--" },
-      { place: "6th", racer: raceMap[14]?.loser || "--" },
-      { place: "7th", racer: raceMap[15]?.winner || "--" },
-      { place: "8th", racer: raceMap[15]?.loser || "--" },
+      ["1st", map[11]?.winner],
+      ["2nd", map[11]?.loser],
+      ["3rd", map[16]?.winner],
+      ["4th", map[16]?.loser],
+      ["5th", map[14]?.winner],
+      ["6th", map[14]?.loser],
+      ["7th", map[15]?.winner],
+      ["8th", map[15]?.loser],
     ];
   }
 
-  if (bracketType === "64") {
-    return [
-      { place: "1st", racer: raceMap[63]?.winner || "--" },
-      { place: "2nd", racer: raceMap[63]?.loser || "--" },
-      { place: "3rd", racer: raceMap[68]?.winner || "--" },
-      { place: "4th", racer: raceMap[68]?.loser || "--" },
-      { place: "5th", racer: raceMap[66]?.winner || "--" },
-      { place: "6th", racer: raceMap[66]?.loser || "--" },
-      { place: "7th", racer: raceMap[67]?.winner || "--" },
-      { place: "8th", racer: raceMap[67]?.loser || "--" },
-    ];
-  }
-
-  return [];
+  return [
+    ["1st", map[63]?.winner],
+    ["2nd", map[63]?.loser],
+    ["3rd", map[68]?.winner],
+    ["4th", map[68]?.loser],
+    ["5th", map[66]?.winner],
+    ["6th", map[66]?.loser],
+    ["7th", map[67]?.winner],
+    ["8th", map[67]?.loser],
+  ];
 }
 
 export default function SpectatorPage() {
-  const [bracketType, setBracketType] = useState("12");
   const [races, setRaces] = useState([]);
-  const [viewTab, setViewTab] = useState("Races");
-  const [statusFilter, setStatusFilter] = useState("Pending");
-  const [schoolFilter, setSchoolFilter] = useState("All Schools");
+  const [bracketType, setBracketType] = useState("12");
+  const [tab, setTab] = useState("Races");
+  const [filter, setFilter] = useState("Current");
 
   useEffect(() => {
-    let mounted = true;
-
     async function load() {
-      try {
-        const rows = await fetchRaces(bracketType);
-        if (mounted) {
-          setRaces(rows);
-        }
-      } catch (error) {
-        console.error("SPECTATOR LOAD ERROR:", error);
-      }
+      const data = await fetchRaces(bracketType);
+      setRaces(data);
     }
 
     load();
-    const interval = setInterval(load, 5000);
-
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
+    const i = setInterval(load, 5000);
+    return () => clearInterval(i);
   }, [bracketType]);
 
-  const sortedRaces = useMemo(() => {
-    return [...races].sort((a, b) => a.id - b.id);
-  }, [races]);
+  const sorted = useMemo(
+    () => [...races].sort((a, b) => a.id - b.id),
+    [races]
+  );
 
   const nextRaceId = useMemo(() => {
-    const nextRace = sortedRaces.find((race) => {
-      const noRunsStarted = !hasAnyRunData(race);
-      const notResolved =
-        race.status !== "Complete" &&
-        race.status !== "Tiebreaker Needed" &&
-        race.status !== "DQ Conflict";
+    const next = sorted.find(r => !hasAnyRunData(r) && r.status !== "Complete");
+    return next?.id ?? null;
+  }, [sorted]);
 
-      return noRunsStarted && notResolved;
-    });
+  const currentRace = sorted.find(r => r.id === nextRaceId);
 
-    return nextRace ? nextRace.id : null;
-  }, [sortedRaces]);
-
-  const visibleRaces = useMemo(() => {
-    return sortedRaces.filter((race) => {
-      if (!raceMatchesSchool(race, schoolFilter)) return false;
-
-      if (statusFilter === "All") return true;
-      if (statusFilter === "Completed") return race.status === "Complete";
-      if (statusFilter === "Pending") {
-        return !hasAnyRunData(race) && (race.status === "Pending" || !race.status);
-      }
-      if (statusFilter === "Current") {
-        return isRaceCurrent(race, nextRaceId);
-      }
-
-      return true;
-    });
-  }, [sortedRaces, schoolFilter, statusFilter, nextRaceId]);
-
-  const standings = useMemo(() => {
-    return getFinalStandings(bracketType, sortedRaces);
-  }, [bracketType, sortedRaces]);
-
-  const pillButtonStyle = {
-    padding: "10px 14px",
-    borderRadius: 12,
-    border: "1px solid #475569",
-    background: "#ffffff",
-    color: "#111827",
-    fontWeight: 600,
-    fontSize: 14,
-    cursor: "pointer",
-  };
+  const visible = sorted.filter(r => {
+    if (filter === "All") return true;
+    if (filter === "Completed") return r.status === "Complete";
+    if (filter === "Pending") return !hasAnyRunData(r);
+    if (filter === "Current") return isRaceCurrent(r, nextRaceId);
+    return true;
+  });
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: D11_BG,
-        color: TEXT,
-        padding: 16,
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 16,
-          }}
-        >
-          <img
-            src="/logo.png"
-            alt="District 11 Logo"
-            style={{
-              height: 52,
-              width: "auto",
-              flexShrink: 0,
-            }}
-          />
+    <div style={{ background: COLORS.bg, minHeight: "100vh", padding: 16, color: COLORS.text }}>
 
-          <div style={{ minWidth: 0 }}>
-            <h1
-              style={{
-                margin: 0,
-                fontSize: "clamp(24px, 6vw, 36px)",
-                fontWeight: 800,
-                color: "#f8fafc",
-                lineHeight: 1.05,
-              }}
-            >
-              District 11 Soap Box Derby
-            </h1>
-
-            <div
-              style={{
-                color: "#cbd5e1",
-                fontSize: "clamp(14px, 3.5vw, 20px)",
-                marginTop: 2,
-              }}
-            >
-              Live Race Board
-            </div>
-          </div>
+      {/* HEADER */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <img src="/logo.png" style={{ height: 48 }} />
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 20 }}>District 11 Soap Box Derby</div>
+          <div style={{ color: COLORS.muted }}>Live Race Board</div>
         </div>
+      </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            marginBottom: 12,
-          }}
-        >
-          <button onClick={() => setBracketType("12")} style={pillButtonStyle}>
-            12-Car
-          </button>
-          <button onClick={() => setBracketType("64")} style={pillButtonStyle}>
-            64-Car
-          </button>
+      {/* NOW RACING */}
+      {currentRace && (
+        <div style={{
+          marginTop: 12,
+          background: COLORS.accent,
+          color: "#022c22",
+          padding: 10,
+          borderRadius: 10,
+          fontWeight: 800,
+          textAlign: "center"
+        }}>
+          NOW RACING: {currentRace.racer_a || currentRace.slot_a} vs {currentRace.racer_b || currentRace.slot_b}
         </div>
+      )}
 
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            marginBottom: 12,
-          }}
-        >
-          <button onClick={() => setViewTab("Races")} style={pillButtonStyle}>
-            Races
-          </button>
-          <button onClick={() => setViewTab("Final Standings")} style={pillButtonStyle}>
-            Final Standings
-          </button>
-        </div>
-
-        {viewTab === "Races" && (
-          <>
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 16,
-              }}
-            >
-              <button onClick={() => setStatusFilter("Completed")} style={pillButtonStyle}>
-                Completed
-              </button>
-              <button onClick={() => setStatusFilter("Current")} style={pillButtonStyle}>
-                Current
-              </button>
-              <button onClick={() => setStatusFilter("Pending")} style={pillButtonStyle}>
-                Pending
-              </button>
-              <button onClick={() => setStatusFilter("All")} style={pillButtonStyle}>
-                All
-              </button>
-
-              <select
-                value={schoolFilter}
-                onChange={(e) => setSchoolFilter(e.target.value)}
-                style={{
-                  ...pillButtonStyle,
-                  minWidth: 150,
-                  background: "#ffffff",
-                }}
-              >
-                <option value="All Schools">All Schools</option>
-                {SCHOOL_CODES.map((school) => (
-                  <option key={school} value={school}>
-                    {school}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {visibleRaces.length === 0 && (
-              <div style={{ color: "#cbd5e1", marginTop: 24, fontSize: 18 }}>
-                No races match the current filters.
-              </div>
-            )}
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: 14,
-              }}
-            >
-              {visibleRaces.map((race) => {
-                const tone = getStatusTone(race.status);
-                const racerA = race.racer_a || race.slot_a || "--";
-                const racerB = race.racer_b || race.slot_b || "--";
-                const current =
-                  race.status !== "DQ Conflict" &&
-                  isRaceCurrent(race, nextRaceId);
-                return (
-                  <div
-                    key={`${race.bracket_type}-${race.id}`}
-                    style={{
-                      background: CARD_BG,
-                      border: current ? "2px solid #22c55e" : `1px solid ${BORDER}`,
-                      borderRadius: 18,
-                      padding: 16,
-                      boxShadow: current
-                        ? "0 0 12px rgba(34,197,94,0.45)"
-                        : "0 8px 20px rgba(0,0,0,0.22)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: 10,
-                        marginBottom: 12,
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: 20, fontWeight: 800 }}>Race {race.id}</div>
-                        <div style={{ color: MUTED, fontSize: 15 }}>{race.round}</div>
-                      </div>
-
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
-                        {current && (
-                          <div
-                            style={{
-                              color: "#22c55e",
-                              fontWeight: 800,
-                              fontSize: 12,
-                            }}
-                          >
-                            ● CURRENT
-                          </div>
-                        )}
-                        <div
-                          style={{
-                            background: tone.bg,
-                            color: tone.color,
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {tone.label}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
-                      <div
-                        style={{
-                          padding: 12,
-                          borderRadius: 12,
-                          background: race.winner === racerA ? "#14532d" : "#1f2937",
-                          border: `1px solid ${race.winner === racerA ? "#22c55e" : BORDER}`,
-                          fontWeight: 700,
-                          fontSize: 16,
-                          textAlign: "center",
-                        }}
-                      >
-                        {racerA}
-                      </div>
-                      <div
-                        style={{
-                          padding: 12,
-                          borderRadius: 12,
-                          background: race.winner === racerB ? "#14532d" : "#1f2937",
-                          border: `1px solid ${race.winner === racerB ? "#22c55e" : BORDER}`,
-                          fontWeight: 700,
-                          fontSize: 16,
-                          textAlign: "center",
-                        }}
-                      >
-                        {racerB}
-                      </div>
-                    </div>
-
-                    {(race.bye_for || race.dq_a || race.dq_b) && (
-                      <div
-                        style={{
-                          marginBottom: 12,
-                          color: "#fecaca",
-                          background: "#7f1d1d",
-                          padding: 10,
-                          borderRadius: 10,
-                          fontSize: 14,
-                        }}
-                      >
-                        {race.bye_for === "A" && "Racer A advanced by BYE"}
-                        {race.bye_for === "B" && "Racer B advanced by BYE"}
-                        {race.bye_for && (race.dq_a || race.dq_b) ? " | " : ""}
-                        {race.dq_a && `Racer A DQ${race.dq_reason_a ? ` — ${race.dq_reason_a}` : ""}`}
-                        {race.dq_a && race.dq_b ? " | " : ""}
-                        {race.dq_b && `Racer B DQ${race.dq_reason_b ? ` — ${race.dq_reason_b}` : ""}`}
-                      </div>
-                    )}
-
-                    <div style={{ display: "grid", gap: 6, color: "#e2e8f0", fontSize: 15 }}>
-                      <div>Run 1: {race.run1_lane1 ?? "--"} | {race.run1_lane2 ?? "--"}</div>
-                      <div>Run 2: {race.run2_lane1 ?? "--"} | {race.run2_lane2 ?? "--"}</div>
-                      <div>Total A: {race.total_a ?? "--"}</div>
-                      <div>Total B: {race.total_b ?? "--"}</div>
-                      <div><strong>Winner:</strong> {race.winner || "--"}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {viewTab === "Final Standings" && (
+      {/* TABS */}
+      <div style={{ display: "flex", gap: 20, marginTop: 16 }}>
+        {["Races", "Standings"].map(t => (
           <div
+            key={t}
+            onClick={() => setTab(t)}
             style={{
-              background: CARD_BG,
-              border: `1px solid ${BORDER}`,
-              borderRadius: 18,
-              padding: 16,
-              boxShadow: "0 8px 20px rgba(0,0,0,0.22)",
+              cursor: "pointer",
+              fontWeight: 700,
+              color: tab === t ? COLORS.accent : COLORS.muted,
+              borderBottom: tab === t ? `2px solid ${COLORS.accent}` : "none"
             }}
           >
-            <div
+            {t}
+          </div>
+        ))}
+      </div>
+
+      {/* BRACKET */}
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        {["12", "64"].map(b => (
+          <button
+            key={b}
+            onClick={() => setBracketType(b)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 999,
+              background: bracketType === b ? COLORS.accent : "#1f2937",
+              color: "#fff",
+              border: "none"
+            }}
+          >
+            {b}-Car
+          </button>
+        ))}
+      </div>
+
+      {/* FILTER */}
+      {tab === "Races" && (
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: 12 }}>
+          {["Current", "Pending", "Completed", "All"].map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
               style={{
-                fontSize: 22,
-                fontWeight: 800,
-                marginBottom: 14,
-                color: "#f8fafc",
+                padding: "6px 12px",
+                borderRadius: 999,
+                background: filter === f ? COLORS.accent : "#1f2937",
+                color: "#fff",
+                border: "none"
               }}
             >
-              {bracketType === "12" ? "12-Car Final Standings" : "64-Car Final Standings"}
-            </div>
+              {f}
+            </button>
+          ))}
+        </div>
+      )}
 
-            <div style={{ display: "grid", gap: 10 }}>
-              {standings.map((entry) => (
-                <div
-                  key={entry.place}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: 12,
-                    borderRadius: 12,
-                    background: "#1f2937",
-                    border: `1px solid ${BORDER}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 800,
-                      fontSize: 16,
-                      color: "#f8fafc",
-                      minWidth: 50,
-                    }}
-                  >
-                    {entry.place}
+      {/* CONTENT */}
+      {tab === "Races" && (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px,1fr))",
+          gap: 12,
+          marginTop: 16
+        }}>
+          {visible.map(r => {
+            const current = isRaceCurrent(r, nextRaceId);
+
+            return (
+              <div key={r.id} style={{
+                background: COLORS.card,
+                border: current ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                borderRadius: 16,
+                padding: 14
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontWeight: 800 }}>Race {r.id}</div>
+                    <div style={{ color: COLORS.muted }}>{r.round}</div>
                   </div>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 16,
-                      color: "#e2e8f0",
-                      textAlign: "right",
-                    }}
-                  >
-                    {entry.racer}
-                  </div>
+                  {current && <div style={{ color: COLORS.accent }}>● CURRENT</div>}
                 </div>
-              ))}
+
+                {/* RACERS */}
+                {[r.racer_a || r.slot_a, r.racer_b || r.slot_b].map((name, i) => (
+                  <div key={i} style={{
+                    marginTop: 8,
+                    padding: 10,
+                    borderRadius: 10,
+                    background: r.winner === name ? "#14532d" : "#1f2937",
+                    border: `1px solid ${COLORS.border}`,
+                    textAlign: "center",
+                    fontWeight: 700
+                  }}>
+                    {name}
+                  </div>
+                ))}
+
+                {/* DQ */}
+                {(r.dq_a || r.dq_b) && (
+                  <div style={{
+                    marginTop: 10,
+                    background: COLORS.red,
+                    padding: 8,
+                    borderRadius: 8,
+                    fontSize: 13
+                  }}>
+                    {r.dq_a && `A DQ: ${r.dq_reason_a || ""}`}
+                    {r.dq_b && ` B DQ: ${r.dq_reason_b || ""}`}
+                  </div>
+                )}
+
+                {/* TIMES */}
+                <div style={{ marginTop: 10, fontSize: 14 }}>
+                  Run 1: {r.run1_lane1 ?? "--"} | {r.run1_lane2 ?? "--"}
+                  <br />
+                  Run 2: {r.run2_lane1 ?? "--"} | {r.run2_lane2 ?? "--"}
+                  <br />
+                  Winner: {r.winner || "--"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "Standings" && (
+        <div style={{ marginTop: 20 }}>
+          {getStandings(bracketType, sorted).map(([place, racer]) => (
+            <div key={place} style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: 10,
+              borderBottom: `1px solid ${COLORS.border}`
+            }}>
+              <div style={{ fontWeight: 700 }}>{place}</div>
+              <div>{racer || "--"}</div>
             </div>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
