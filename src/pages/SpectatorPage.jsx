@@ -68,6 +68,7 @@ function isRaceMidRace(race) {
 }
 
 function isRaceCurrent(race, nextRaceId) {
+  if (race.status === "DQ Conflict") return false;
   const isNextRace = nextRaceId !== null && race.id === nextRaceId;
   const isMidRace = isRaceMidRace(race);
   const isTiebreaker = race.status === "Tiebreaker Needed";
@@ -334,8 +335,9 @@ export default function SpectatorPage() {
                 const tone = getStatusTone(race.status);
                 const racerA = race.racer_a || race.slot_a || "--";
                 const racerB = race.racer_b || race.slot_b || "--";
-                const current = isRaceCurrent(race, nextRaceId);
-
+                const current =
+  race.status !== "DQ Conflict" &&
+  isRaceCurrent(race, nextRaceId);
                 return (
                   <div
                     key={`${race.bracket_type}-${race.id}`}
