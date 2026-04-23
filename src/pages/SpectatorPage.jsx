@@ -1,13 +1,29 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { fetchRaces } from "../lib/raceStore";
 
-const SCHOOL_CODES = [
-  "11X016","11X019","11X041","11X068","11X076","11X078","11X083","11X087",
-  "11X089","11X096","11X097","11X103","11X105","11X106","11X108","11X111",
-  "11X121","11X127","11X144","11X153","11X160","11X169","11X175","11X180",
-  "11X181","11X194","11X370","11X462","11X483","11X498","11X529","11X566",
-  "11X567",
-];
+const DISTRICT_CONFIG = {
+  d11: {
+    title: "District 11 Soap Box Derby",
+    logo: "/logo.png",
+    allowedBrackets: ["12", "64"],
+    defaultBracket: "12",
+    schoolCodes: [
+      "11X016","11X019","11X041","11X068","11X076","11X078","11X083","11X087",
+      "11X089","11X096","11X097","11X103","11X105","11X106","11X108","11X111",
+      "11X121","11X127","11X144","11X153","11X160","11X169","11X175","11X180",
+      "11X181","11X194","11X370","11X462","11X483","11X498","11X529","11X566",
+      "11X567",
+    ],
+  },
+  d12: {
+    title: "District 12 Soap Box Derby",
+    logo: "/logo-d12.png",
+    allowedBrackets: ["12"],
+    defaultBracket: "12",
+    schoolCodes: [],
+  },
+};
 
 const COLORS = {
   bg: "#0f172a",
@@ -245,23 +261,31 @@ function RaceRow({ race, current, currentRef }) {
 }
 
 export default function SpectatorPage() {
+  const { district = "d11" } = useParams();
+  const config = DISTRICT_CONFIG[district] || DISTRICT_CONFIG.d11;
+
   const [races, setRaces] = useState([]);
-  const [bracketType, setBracketType] = useState("12");
+  const [bracketType, setBracketType] = useState(config.defaultBracket);
   const [tab, setTab] = useState("Races");
   const [filter, setFilter] = useState("Current");
   const [schoolFilter, setSchoolFilter] = useState("All Schools");
   const currentRef = useRef(null);
 
   useEffect(() => {
+    setBracketType(config.defaultBracket);
+    setSchoolFilter("All Schools");
+  }, [district, config.defaultBracket]);
+
+  useEffect(() => {
     async function load() {
-      const data = await fetchRaces(bracketType);
+      const data = await fetchRaces(bracketType, district);
       setRaces(data);
     }
 
     load();
     const intervalId = setInterval(load, 5000);
     return () => clearInterval(intervalId);
-  }, [bracketType]);
+  }, [bracketType, district]);
 
   const sorted = useMemo(
     () => [...races].sort((a, b) => a.id - b.id),
@@ -298,7 +322,9 @@ export default function SpectatorPage() {
 
   const visible = useMemo(() => {
     return sorted.filter((r) => {
-      if (!raceMatchesSchool(r, schoolFilter)) return false;
+      if (config.schoolCodes.length > 0 && !raceMatchesSchool(r, schoolFilter)) {
+        return false;
+      }
 
       if (filter === "All") return true;
 
@@ -318,7 +344,7 @@ export default function SpectatorPage() {
 
       return true;
     });
-  }, [sorted, filter, schoolFilter, nextRaceId]);
+  }, [sorted, filter, schoolFilter, nextRaceId, config.schoolCodes.length]);
 
   const orderedVisible = useMemo(() => {
     if (!currentRace) return visible;
@@ -352,10 +378,10 @@ export default function SpectatorPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img src="/logo.png" alt="District 11 logo" style={{ height: 42 }} />
+          <img src={config.logo} alt={`${config.title} logo`} style={{ height: 42 }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: 18, lineHeight: 1.1 }}>
-              District 11 Soap Box Derby
+              {config.title}
             </div>
             <div style={{ color: COLORS.muted, fontSize: 13 }}>
               Live Race Board
@@ -402,25 +428,27 @@ export default function SpectatorPage() {
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-          {["12", "64"].map((b) => (
-            <button
-              key={b}
-              onClick={() => setBracketType(b)}
-              style={{
-                padding: "7px 12px",
-                borderRadius: 999,
-                background: bracketType === b ? COLORS.accent : COLORS.chip,
-                color: "#fff",
-                border: "none",
-                fontWeight: 700,
-                fontSize: 13,
-              }}
-            >
-              {b}-Car
-            </button>
-          ))}
-        </div>
+        {config.allowedBrackets.length > 1 && (
+          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+            {config.allowedBrackets.map((b) => (
+              <button
+                key={b}
+                onClick={() => setBracketType(b)}
+                style={{
+                  padding: "7px 12px",
+                  borderRadius: 999,
+                  background: bracketType === b ? COLORS.accent : COLORS.chip,
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: 13,
+                }}
+              >
+                {b}-Car
+              </button>
+            ))}
+          </div>
+        )}
 
         {tab === "Races" && (
           <div
@@ -451,27 +479,29 @@ export default function SpectatorPage() {
               </button>
             ))}
 
-            <select
-              value={schoolFilter}
-              onChange={(e) => setSchoolFilter(e.target.value)}
-              style={{
-                padding: "7px 12px",
-                borderRadius: 999,
-                background: COLORS.chip,
-                color: "#fff",
-                border: "none",
-                whiteSpace: "nowrap",
-                fontWeight: 700,
-                fontSize: 13,
-              }}
-            >
-              <option value="All Schools">All Schools</option>
-              {SCHOOL_CODES.map((school) => (
-                <option key={school} value={school}>
-                  {school}
-                </option>
-              ))}
-            </select>
+            {config.schoolCodes.length > 0 && (
+              <select
+                value={schoolFilter}
+                onChange={(e) => setSchoolFilter(e.target.value)}
+                style={{
+                  padding: "7px 12px",
+                  borderRadius: 999,
+                  background: COLORS.chip,
+                  color: "#fff",
+                  border: "none",
+                  whiteSpace: "nowrap",
+                  fontWeight: 700,
+                  fontSize: 13,
+                }}
+              >
+                <option value="All Schools">All Schools</option>
+                {config.schoolCodes.map((school) => (
+                  <option key={school} value={school}>
+                    {school}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         )}
 
@@ -488,7 +518,7 @@ export default function SpectatorPage() {
 
               return (
                 <RaceRow
-                  key={r.id}
+                  key={`${district}-${bracketType}-${r.id}`}
                   race={r}
                   current={current}
                   currentRef={currentRef}

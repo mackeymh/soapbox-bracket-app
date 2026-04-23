@@ -1,12 +1,17 @@
 import { supabase } from "./supabase";
 
-export async function fetchSeeds(bracketType) {
-  const { data, error } = await supabase
+export async function fetchSeeds(bracketType, district) {
+  let query = supabase
     .from("seeds")
     .select("*")
     .eq("bracket_type", bracketType)
     .order("seed_number", { ascending: true });
 
+  if (district) {
+    query = query.eq("district", district);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
 }
@@ -14,24 +19,25 @@ export async function fetchSeeds(bracketType) {
 export async function upsertSeed(seed) {
   const { data, error } = await supabase
     .from("seeds")
-    .upsert(seed, { onConflict: "bracket_type,seed_number" })
+    .upsert(seed, { onConflict: "district,bracket_type,seed_number" })
     .select();
 
-  if (error) {
-    console.error("UPSERT SEED ERROR:", error, seed);
-    throw error;
-  }
-
+  if (error) throw error;
   return data;
 }
 
-export async function fetchRaces(bracketType) {
-  const { data, error } = await supabase
+export async function fetchRaces(bracketType, district) {
+  let query = supabase
     .from("races")
     .select("*")
     .eq("bracket_type", bracketType)
     .order("id", { ascending: true });
 
+  if (district) {
+    query = query.eq("district", district);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
 }
@@ -39,36 +45,28 @@ export async function fetchRaces(bracketType) {
 export async function upsertRace(race) {
   const { data, error } = await supabase
     .from("races")
-    .upsert(race, { onConflict: "bracket_type,id" })
+    .upsert(race, { onConflict: "district,bracket_type,id" })
     .select();
 
-  if (error) {
-    console.error("UPSERT RACE ERROR:", error, race);
-    throw error;
-  }
-
+  if (error) throw error;
   return data;
 }
 
-export async function updateRace(raceId, updates, bracketType) {
-  const { data, error } = await supabase
+export async function updateRace(raceId, updates, bracketType, district) {
+  let query = supabase
     .from("races")
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
     })
     .eq("id", raceId)
-    .eq("bracket_type", bracketType)
-    .select();
+    .eq("bracket_type", bracketType);
 
-  if (error) {
-    console.error("UPDATE RACE ERROR:", error, {
-      raceId,
-      updates,
-      bracketType,
-    });
-    throw error;
+  if (district) {
+    query = query.eq("district", district);
   }
 
+  const { data, error } = await query.select();
+  if (error) throw error;
   return data;
 }

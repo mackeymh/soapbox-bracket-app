@@ -11,11 +11,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SpectatorPage />} />
-        <Route path="/spectator" element={<SpectatorPage />} />
+        <Route path="/" element={<Navigate to="/spectator/d11" replace />} />
+        <Route path="/spectator/:district" element={<SpectatorPage />} />
         <Route path="/admin-login" element={<AdminGate />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/spectator/d11" replace />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
