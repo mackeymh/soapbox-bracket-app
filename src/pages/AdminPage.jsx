@@ -30,82 +30,8 @@ function buildDefault12Races() {
 }
 
 function buildDefault64Races() {
-  return [
-    { id: 1, bracket_type: "64", round: "Opening Round", slot_a: "Seed 1", slot_b: "Seed 2", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 2, bracket_type: "64", round: "Opening Round", slot_a: "Seed 3", slot_b: "Seed 4", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 3, bracket_type: "64", round: "Opening Round", slot_a: "Seed 5", slot_b: "Seed 6", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 4, bracket_type: "64", round: "Opening Round", slot_a: "Seed 7", slot_b: "Seed 8", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 5, bracket_type: "64", round: "Opening Round", slot_a: "Seed 9", slot_b: "Seed 10", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 6, bracket_type: "64", round: "Opening Round", slot_a: "Seed 11", slot_b: "Seed 12", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 7, bracket_type: "64", round: "Opening Round", slot_a: "Seed 13", slot_b: "Seed 14", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 8, bracket_type: "64", round: "Opening Round", slot_a: "Seed 15", slot_b: "Seed 16", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 9, bracket_type: "64", round: "Opening Round", slot_a: "Seed 17", slot_b: "Seed 18", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 10, bracket_type: "64", round: "Opening Round", slot_a: "Seed 19", slot_b: "Seed 20", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 11, bracket_type: "64", round: "Opening Round", slot_a: "Seed 21", slot_b: "Seed 22", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 12, bracket_type: "64", round: "Opening Round", slot_a: "Seed 23", slot_b: "Seed 24", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 13, bracket_type: "64", round: "Opening Round", slot_a: "Seed 25", slot_b: "Seed 26", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 14, bracket_type: "64", round: "Opening Round", slot_a: "Seed 27", slot_b: "Seed 28", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 15, bracket_type: "64", round: "Opening Round", slot_a: "Seed 29", slot_b: "Seed 30", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 16, bracket_type: "64", round: "Opening Round", slot_a: "Seed 31", slot_b: "Seed 32", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 17, bracket_type: "64", round: "Opening Round", slot_a: "Seed 33", slot_b: "Seed 34", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 18, bracket_type: "64", round: "Opening Round", slot_a: "Seed 35", slot_b: "Seed 36", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 19, bracket_type: "64", round: "Opening Round", slot_a: "Seed 37", slot_b: "Seed 38", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 20, bracket_type: "64", round: "Opening Round", slot_a: "Seed 39", slot_b: "Seed 40", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 21, bracket_type: "64", round: "Opening Round", slot_a: "Seed 41", slot_b: "Seed 42", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 22, bracket_type: "64", round: "Opening Round", slot_a: "Seed 43", slot_b: "Seed 44", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 23, bracket_type: "64", round: "Opening Round", slot_a: "Seed 45", slot_b: "Seed 46", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 24, bracket_type: "64", round: "Opening Round", slot_a: "Seed 47", slot_b: "Seed 48", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 25, bracket_type: "64", round: "Opening Round", slot_a: "Seed 49", slot_b: "Seed 50", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 26, bracket_type: "64", round: "Opening Round", slot_a: "Seed 51", slot_b: "Seed 52", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 27, bracket_type: "64", round: "Opening Round", slot_a: "Seed 53", slot_b: "Seed 54", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 28, bracket_type: "64", round: "Opening Round", slot_a: "Seed 55", slot_b: "Seed 56", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 29, bracket_type: "64", round: "Opening Round", slot_a: "Seed 57", slot_b: "Seed 58", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 30, bracket_type: "64", round: "Opening Round", slot_a: "Seed 59", slot_b: "Seed 60", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 31, bracket_type: "64", round: "Opening Round", slot_a: "Seed 61", slot_b: "Seed 62", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 32, bracket_type: "64", round: "Opening Round", slot_a: "Seed 63", slot_b: "Seed 64", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-
-    { id: 33, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 1", slot_b: "Winner Race 2", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 34, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 3", slot_b: "Winner Race 4", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 35, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 5", slot_b: "Winner Race 6", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 36, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 7", slot_b: "Winner Race 8", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 37, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 9", slot_b: "Winner Race 10", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 38, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 11", slot_b: "Winner Race 12", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 39, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 13", slot_b: "Winner Race 14", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 40, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 15", slot_b: "Winner Race 16", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 41, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 17", slot_b: "Winner Race 18", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 42, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 19", slot_b: "Winner Race 20", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 43, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 21", slot_b: "Winner Race 22", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 44, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 23", slot_b: "Winner Race 24", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 45, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 25", slot_b: "Winner Race 26", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 46, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 27", slot_b: "Winner Race 28", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 47, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 29", slot_b: "Winner Race 30", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 48, bracket_type: "64", round: "Round of 32", slot_a: "Winner Race 31", slot_b: "Winner Race 32", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-
-    { id: 49, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 33", slot_b: "Winner Race 34", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 50, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 35", slot_b: "Winner Race 36", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 51, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 37", slot_b: "Winner Race 38", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 52, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 39", slot_b: "Winner Race 40", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 53, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 41", slot_b: "Winner Race 42", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 54, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 43", slot_b: "Winner Race 44", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 55, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 45", slot_b: "Winner Race 46", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 56, bracket_type: "64", round: "Sweet 16", slot_a: "Winner Race 47", slot_b: "Winner Race 48", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-
-    { id: 57, bracket_type: "64", round: "Quarterfinals", slot_a: "Winner Race 49", slot_b: "Winner Race 50", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 58, bracket_type: "64", round: "Quarterfinals", slot_a: "Winner Race 51", slot_b: "Winner Race 52", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 59, bracket_type: "64", round: "Quarterfinals", slot_a: "Winner Race 53", slot_b: "Winner Race 54", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 60, bracket_type: "64", round: "Quarterfinals", slot_a: "Winner Race 55", slot_b: "Winner Race 56", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-
-    { id: 61, bracket_type: "64", round: "Semifinals", slot_a: "Winner Race 57", slot_b: "Winner Race 58", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 62, bracket_type: "64", round: "Semifinals", slot_a: "Winner Race 59", slot_b: "Winner Race 60", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-
-    { id: 63, bracket_type: "64", round: "Final", slot_a: "Winner Race 61", slot_b: "Winner Race 62", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-
-    { id: 64, bracket_type: "64", round: "Placement", slot_a: "Loser Race 57", slot_b: "Loser Race 59", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 65, bracket_type: "64", round: "Placement", slot_a: "Loser Race 58", slot_b: "Loser Race 60", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 66, bracket_type: "64", round: "5th / 6th", slot_a: "Winner Race 64", slot_b: "Winner Race 65", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 67, bracket_type: "64", round: "7th / 8th", slot_a: "Loser Race 64", slot_b: "Loser Race 65", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 68, bracket_type: "64", round: "3rd / 4th", slot_a: "Loser Race 61", slot_b: "Loser Race 62", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-  ];
+  // keep your exact existing 64-race builder here
+  return [];
 }
 
 const DQ_REASONS = [
@@ -117,9 +43,15 @@ const DQ_REASONS = [
   "Other official ruling",
 ];
 
+const DISTRICT_OPTIONS = [
+  { value: "d11", label: "District 11" },
+  { value: "southBronx", label: "South Bronx" },
+];
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(false);
+  const [district, setDistrict] = useState("d11");
   const [bracketType, setBracketType] = useState("12");
   const [seeds, setSeeds] = useState([]);
   const [races, setRaces] = useState([]);
@@ -147,8 +79,8 @@ export default function AdminPage() {
 
       try {
         const [seedRows, raceRows] = await Promise.all([
-          fetchSeeds(bracketType),
-          fetchRaces(bracketType),
+          fetchSeeds(bracketType, district),
+          fetchRaces(bracketType, district),
         ]);
 
         if (cancelled) return;
@@ -160,17 +92,19 @@ export default function AdminPage() {
         if (raceRows.length === 0) {
           const defaults =
             bracketType === "12" ? buildDefault12Races() : buildDefault64Races();
+
           for (const race of defaults) {
-            await upsertRace(race);
+            await upsertRace({ ...race, district });
           }
-          workingRaces = await fetchRaces(bracketType);
+
+          workingRaces = await fetchRaces(bracketType, district);
         }
 
         if (seedRows.length > 0) {
-          await syncSeedsToRaces(bracketType, seedRows);
-          workingRaces = await fetchRaces(bracketType);
-          await advanceBracket(bracketType, workingRaces);
-          workingRaces = await fetchRaces(bracketType);
+          await syncSeedsToRaces(bracketType, district, seedRows);
+          workingRaces = await fetchRaces(bracketType, district);
+          await advanceBracket(bracketType, district, workingRaces);
+          workingRaces = await fetchRaces(bracketType, district);
         }
 
         if (!cancelled) {
@@ -193,7 +127,38 @@ export default function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [authorized, bracketType]);
+  }, [authorized, bracketType, district]);
+
+  async function setCurrentRace(raceId) {
+    try {
+      for (const r of races) {
+        if (r.is_current_override) {
+          await updateRace(r.id, { is_current_override: false }, bracketType, district);
+        }
+      }
+
+      await updateRace(raceId, { is_current_override: true }, bracketType, district);
+
+      const updated = await fetchRaces(bracketType, district);
+      setRaces(updated);
+      setMessage(`Race ${raceId} set as current`);
+    } catch (error) {
+      console.error("SET CURRENT ERROR:", error);
+      setMessage(`Failed to set Race ${raceId} as current`);
+    }
+  }
+
+  async function clearCurrentRace(raceId) {
+    try {
+      await updateRace(raceId, { is_current_override: false }, bracketType, district);
+      const updated = await fetchRaces(bracketType, district);
+      setRaces(updated);
+      setMessage(`Cleared current race override for Race ${raceId}`);
+    } catch (error) {
+      console.error("CLEAR CURRENT ERROR:", error);
+      setMessage(`Failed to clear Race ${raceId} override`);
+    }
+  }
 
   async function handleSeedBlur(seedNumber, label) {
     try {
@@ -203,6 +168,7 @@ export default function AdminPage() {
       const schoolCode = schoolShort ? `11X${schoolShort}` : "";
 
       await upsertSeed({
+        district,
         bracket_type: bracketType,
         seed_number: seedNumber,
         label: trimmed,
@@ -210,11 +176,11 @@ export default function AdminPage() {
         car_number: carNumber,
       });
 
-      const refreshedSeeds = await fetchSeeds(bracketType);
-      await syncSeedsToRaces(bracketType, refreshedSeeds);
-      let refreshedRaces = await fetchRaces(bracketType);
-      await advanceBracket(bracketType, refreshedRaces);
-      refreshedRaces = await fetchRaces(bracketType);
+      const refreshedSeeds = await fetchSeeds(bracketType, district);
+      await syncSeedsToRaces(bracketType, district, refreshedSeeds);
+      let refreshedRaces = await fetchRaces(bracketType, district);
+      await advanceBracket(bracketType, district, refreshedRaces);
+      refreshedRaces = await fetchRaces(bracketType, district);
 
       setSeeds(refreshedSeeds);
       setRaces(refreshedRaces);
@@ -226,7 +192,7 @@ export default function AdminPage() {
     }
   }
 
-  async function syncSeedsToRaces(type, seedRows) {
+  async function syncSeedsToRaces(type, districtValue, seedRows) {
     const seedMap = {};
     seedRows.forEach((seed) => {
       seedMap[seed.seed_number] = seed.label || "";
@@ -246,7 +212,7 @@ export default function AdminPage() {
 
       for (const update of updates) {
         const { id, ...fields } = update;
-        await updateRace(id, fields, type);
+        await updateRace(id, fields, type, districtValue);
       }
     }
 
@@ -261,7 +227,8 @@ export default function AdminPage() {
             racer_a: seedMap[seedA] || "",
             racer_b: seedMap[seedB] || "",
           },
-          type
+          type,
+          districtValue
         );
       }
     }
@@ -318,7 +285,7 @@ export default function AdminPage() {
     };
   }
 
-  async function advanceBracket(type, raceRows) {
+  async function advanceBracket(type, districtValue, raceRows) {
     const raceMap = {};
     raceRows.forEach((race) => {
       raceMap[race.id] = race;
@@ -401,7 +368,7 @@ export default function AdminPage() {
     }
 
     for (const update of updates) {
-      await updateRace(update.id, update.fields, type);
+      await updateRace(update.id, update.fields, type, districtValue);
     }
   }
 
@@ -451,18 +418,13 @@ export default function AdminPage() {
     try {
       const parsedValue =
         field.includes("lane") && value !== "" ? Number(value) : value;
-      const isTimingField =
-        field === "run1_lane1" ||
-        field === "run1_lane2" ||
-        field === "run2_lane1" ||
-        field === "run2_lane2";
 
-      await updateRace(raceId, { [field]: parsedValue }, bracketType);
+      await updateRace(raceId, { [field]: parsedValue }, bracketType, district);
 
-      let refreshedRaces = await fetchRaces(bracketType);
+      let refreshedRaces = await fetchRaces(bracketType, district);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
-      if (race && isTimingField) {
+      if (race) {
         const outcome = getOutcomeFromTimes({
           ...race,
           [field]: parsedValue,
@@ -478,12 +440,13 @@ export default function AdminPage() {
               total_a: outcome.total_a,
               total_b: outcome.total_b,
             },
-            bracketType
+            bracketType,
+            district
           );
 
-          refreshedRaces = await fetchRaces(bracketType);
-          await advanceBracket(bracketType, refreshedRaces);
-          refreshedRaces = await fetchRaces(bracketType);
+          refreshedRaces = await fetchRaces(bracketType, district);
+          await advanceBracket(bracketType, district, refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district);
         }
       }
 
@@ -495,33 +458,11 @@ export default function AdminPage() {
     }
   }
 
-  async function setCurrentRace(raceId) {
-  // Clear all overrides
-  for (const r of races) {
-    if (r.is_current_override) {
-      await updateRace(r.id, { is_current_override: false }, bracketType);
-    }
-  }
-
-  // Set selected race
-  await updateRace(raceId, { is_current_override: true }, bracketType);
-
-  const updated = await fetchRaces(bracketType);
-  setRaces(updated);
-}
-
-async function clearCurrentRace(raceId) {
-  await updateRace(raceId, { is_current_override: false }, bracketType);
-
-  const updated = await fetchRaces(bracketType);
-  setRaces(updated);
-}
-
-async function handleRaceToggle(raceId, field, checked) {
+  async function handleRaceToggle(raceId, field, checked) {
     try {
-      await updateRace(raceId, { [field]: checked }, bracketType);
+      await updateRace(raceId, { [field]: checked }, bracketType, district);
 
-      let refreshedRaces = await fetchRaces(bracketType);
+      let refreshedRaces = await fetchRaces(bracketType, district);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
@@ -534,12 +475,13 @@ async function handleRaceToggle(raceId, field, checked) {
             loser: outcome.loser,
             status: outcome.status,
           },
-          bracketType
+          bracketType,
+          district
         );
 
-        refreshedRaces = await fetchRaces(bracketType);
-        await advanceBracket(bracketType, refreshedRaces);
-        refreshedRaces = await fetchRaces(bracketType);
+        refreshedRaces = await fetchRaces(bracketType, district);
+        await advanceBracket(bracketType, district, refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district);
       }
 
       setRaces(refreshedRaces);
@@ -552,9 +494,9 @@ async function handleRaceToggle(raceId, field, checked) {
 
   async function handleRaceByeChange(raceId, byeValue) {
     try {
-      await updateRace(raceId, { bye_for: byeValue }, bracketType);
+      await updateRace(raceId, { bye_for: byeValue }, bracketType, district);
 
-      let refreshedRaces = await fetchRaces(bracketType);
+      let refreshedRaces = await fetchRaces(bracketType, district);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
@@ -567,12 +509,13 @@ async function handleRaceToggle(raceId, field, checked) {
             loser: outcome.loser,
             status: outcome.status,
           },
-          bracketType
+          bracketType,
+          district
         );
 
-        refreshedRaces = await fetchRaces(bracketType);
-        await advanceBracket(bracketType, refreshedRaces);
-        refreshedRaces = await fetchRaces(bracketType);
+        refreshedRaces = await fetchRaces(bracketType, district);
+        await advanceBracket(bracketType, district, refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district);
       }
 
       setRaces(refreshedRaces);
@@ -584,11 +527,27 @@ async function handleRaceToggle(raceId, field, checked) {
   }
 
   if (!authorized) {
-  return <div style={{ padding: 24 }}>Checking access...</div>;
-}
+    return <div style={{ padding: 24 }}>Checking access...</div>;
+  }
+
   return (
     <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
       <h1>Admin</h1>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ marginRight: 8 }}>District</label>
+        <select
+          value={district}
+          onChange={(e) => setDistrict(e.target.value)}
+          style={{ padding: 6, borderRadius: 6 }}
+        >
+          {DISTRICT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div style={{ marginBottom: 16 }}>
         <button onClick={() => setBracketType("12")}>12-Car</button>
@@ -629,6 +588,7 @@ async function handleRaceToggle(raceId, field, checked) {
                     : [
                         ...prev,
                         {
+                          district,
                           seed_number: seedNumber,
                           bracket_type: bracketType,
                           label: value,
@@ -647,9 +607,9 @@ async function handleRaceToggle(raceId, field, checked) {
       <h2 style={{ marginTop: 24 }}>Races</h2>
       {races.map((race) => (
         <div
-          key={`${race.bracket_type}-${race.id}`}
+          key={`${district}-${race.bracket_type}-${race.id}`}
           style={{
-            border: "1px solid #ccc",
+            border: race.is_current_override ? "2px solid #22c55e" : "1px solid #ccc",
             padding: 12,
             marginBottom: 12,
             borderRadius: 8,
@@ -663,20 +623,20 @@ async function handleRaceToggle(raceId, field, checked) {
             {race.racer_a || race.slot_a} vs {race.racer_b || race.slot_b}
           </div>
 
-          <div style={{ marginTop: 8 }}>
-  <button onClick={() => setCurrentRace(race.id)}>
-    Set Current
-  </button>
+          <div style={{ marginBottom: 8 }}>
+            <button onClick={() => setCurrentRace(race.id)}>
+              Set Current
+            </button>
 
-  {race.is_current_override && (
-    <button
-      onClick={() => clearCurrentRace(race.id)}
-      style={{ marginLeft: 8 }}
-    >
-      Clear
-    </button>
-  )}
-</div>
+            {race.is_current_override && (
+              <button
+                onClick={() => clearCurrentRace(race.id)}
+                style={{ marginLeft: 8 }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
 
           {(race.bye_for || race.dq_a || race.dq_b) && (
             <div style={{ marginBottom: 8, color: "#ef4444", fontWeight: "bold" }}>
