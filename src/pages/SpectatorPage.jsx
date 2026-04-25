@@ -295,48 +295,97 @@ function RaceRow({ race, current, currentRef }) {
 
 export default function SpectatorPage() {
   const { district = "d11" } = useParams();
-  const config = DISTRICT_CONFIG[district] || DISTRICT_CONFIG.d11;
 
-  const [division, setDivision] = useState(config.divisions[0]);
+  const config = DISTRICT_CONFIG[district] || DISTRICT_CONFIG.d11;
+  const districtDivisions = DISTRICT_CONFIG[district]?.divisions || ["stock"];
+
+  const [division, setDivision] = useState(districtDivisions[0]);
   const [bracketType, setBracketType] = useState("12");
   const [races, setRaces] = useState([]);
   const [tab, setTab] = useState("Races");
+  const [districtCurrentRace, setDistrictCurrentRace] = useState(null);
   const [filter, setFilter] = useState("Current");
   const [schoolFilter, setSchoolFilter] = useState("All Schools");
   const currentRef = useRef(null);
 
+  const activeDivision = districtDivisions.includes(division)
+    ? division
+    : districtDivisions[0];
+
+  const activeSchoolFilter =
+    schoolFilter === "All Schools" || config.schoolCodes.includes(schoolFilter)
+      ? schoolFilter
+      : "All Schools";
+
   useEffect(() => {
-    const nextDivision = config.divisions[0];
+    const nextDivision = DISTRICT_CONFIG[district]?.divisions?.[0] || "stock";
     setDivision(nextDivision);
     setSchoolFilter("All Schools");
-  }, [district, config.divisions]);
+  }, [district]);
 
   useEffect(() => {
     async function loadSetting() {
-      const setting = await fetchEventSetting(district, division);
+      const setting = await fetchEventSetting(district, activeDivision);
+
       if (setting?.active_bracket_type) {
         setBracketType(setting.active_bracket_type);
       } else {
-        setBracketType(division === "stock" ? "12" : "32");
+        setBracketType(activeDivision === "stock" ? "12" : "32");
       }
     }
 
     loadSetting();
-  }, [district, division]);
+  }, [district, activeDivision]);
+
+  useEffect(() => {
+    async function loadDistrictCurrentRace() {
+      const divisionOptions = DISTRICT_CONFIG[district]?.divisions || ["stock"];
+
+      for (const divisionOption of divisionOptions) {
+        const setting = await fetchEventSetting(district, divisionOption);
+        const activeBracket =
+          setting?.active_bracket_type || (divisionOption === "stock" ? "12" : "32");
+
+        const divisionRaces = await fetchRaces(
+          activeBracket,
+          district,
+          divisionOption
+        );
+
+        const current = divisionRaces.find((race) => race.is_current_override);
+
+        if (current) {
+          setDistrictCurrentRace({
+            ...current,
+            division: divisionOption,
+            bracket_type: activeBracket,
+          });
+          return;
+        }
+      }
+
+      setDistrictCurrentRace(null);
+    }
+
+    loadDistrictCurrentRace();
+    const intervalId = setInterval(loadDistrictCurrentRace, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [district]);
 
   useEffect(() => {
     async function loadRaces() {
-      const data = await fetchRaces(bracketType, district, division);
+      const data = await fetchRaces(bracketType, district, activeDivision);
       setRaces(data);
     }
 
-    if (!bracketType || !district || !division) return;
+    if (!bracketType || !district || !activeDivision) return;
 
     loadRaces();
     const intervalId = setInterval(loadRaces, 5000);
 
     return () => clearInterval(intervalId);
-  }, [bracketType, district, division]);
+  }, [bracketType, district, activeDivision]);
 
   const sorted = useMemo(
     () => [...races].sort((a, b) => a.id - b.id),
@@ -373,7 +422,10 @@ export default function SpectatorPage() {
 
   const visible = useMemo(() => {
     return sorted.filter((race) => {
-      if (config.schoolCodes.length > 0 && !raceMatchesSchool(race, schoolFilter)) {
+      if (
+        config.schoolCodes.length > 0 &&
+        !raceMatchesSchool(race, activeSchoolFilter)
+      ) {
         return false;
       }
 
@@ -395,7 +447,7 @@ export default function SpectatorPage() {
 
       return true;
     });
-  }, [sorted, filter, schoolFilter, currentRaceId, config.schoolCodes.length]);
+  }, [sorted, filter, activeSchoolFilter, currentRaceId, config.schoolCodes.length]);
 
   const orderedVisible = useMemo(() => {
     if (!currentRace) return visible;
@@ -445,7 +497,7 @@ export default function SpectatorPage() {
           </div>
         </div>
 
-        {currentRace && (
+        {districtCurrentRace && (
           <div
             style={{
               marginTop: 12,
@@ -459,8 +511,11 @@ export default function SpectatorPage() {
               lineHeight: 1.25,
             }}
           >
-            NOW RACING: {currentRace.racer_a || currentRace.slot_a} vs{" "}
-            {currentRace.racer_b || currentRace.slot_b}
+            NOW RACING: {DIVISION_LABELS[districtCurrentRace.division]} — Race{" "}
+            {districtCurrentRace.id}
+            <br />
+            {districtCurrentRace.racer_a || districtCurrentRace.slot_a} vs{" "}
+            {districtCurrentRace.racer_b || districtCurrentRace.slot_b}
           </div>
         )}
 
@@ -493,14 +548,17 @@ export default function SpectatorPage() {
             flexWrap: "wrap",
           }}
         >
-          {config.divisions.map((item) => (
+          {districtDivisions.map((item) => (
             <button
               key={item}
-              onClick={() => setDivision(item)}
+              onClick={() => {
+                setDivision(item);
+                setSchoolFilter("All Schools");
+              }}
               style={{
                 padding: "7px 12px",
                 borderRadius: 999,
-                background: division === item ? COLORS.accent : COLORS.chip,
+                background: activeDivision === item ? COLORS.accent : COLORS.chip,
                 color: "#fff",
                 border: "none",
                 whiteSpace: "nowrap",
@@ -512,7 +570,7 @@ export default function SpectatorPage() {
             </button>
           ))}
 
-          {division === "superstock" && (
+          {activeDivision === "superstock" && (
             <div
               style={{
                 padding: "7px 12px",
@@ -560,7 +618,7 @@ export default function SpectatorPage() {
 
             {config.schoolCodes.length > 0 && (
               <select
-                value={schoolFilter}
+                value={activeSchoolFilter}
                 onChange={(event) => setSchoolFilter(event.target.value)}
                 style={{
                   padding: "7px 12px",
@@ -591,7 +649,7 @@ export default function SpectatorPage() {
 
               return (
                 <RaceRow
-                  key={`${district}-${division}-${bracketType}-${race.id}`}
+                  key={`${district}-${activeDivision}-${bracketType}-${race.id}`}
                   race={race}
                   current={current}
                   currentRef={currentRef}
@@ -611,8 +669,8 @@ export default function SpectatorPage() {
                 marginBottom: 2,
               }}
             >
-              {DIVISION_LABELS[division]}{" "}
-              {division === "superstock" ? `— ${bracketType}-Car Bracket` : ""}
+              {DIVISION_LABELS[activeDivision]}{" "}
+              {activeDivision === "superstock" ? `— ${bracketType}-Car Bracket` : ""}
             </div>
 
             {getStandings(bracketType, sorted).map(([place, racer]) => (
