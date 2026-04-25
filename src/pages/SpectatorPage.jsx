@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchRaces } from "../lib/raceStore";
+import { fetchEventSetting, fetchRaces } from "../lib/raceStore";
 
 const DISTRICT_CONFIG = {
   d11: {
     title: "District 11 Soap Box Derby",
     logo: "/logo.png",
-    allowedBrackets: ["12", "64"],
-    defaultBracket: "12",
+    divisions: ["stock", "superstock"],
     schoolCodes: [
       "11X016","11X019","11X041","11X068","11X076","11X078","11X083","11X087",
       "11X089","11X096","11X097","11X103","11X105","11X106","11X108","11X111",
@@ -16,13 +15,17 @@ const DISTRICT_CONFIG = {
       "11X567",
     ],
   },
-  d12: {
-    title: "District 12 Soap Box Derby",
-    logo: "/logo-d12.png",
-    allowedBrackets: ["12"],
-    defaultBracket: "12",
+  southBronx: {
+    title: "South Bronx Soap Box Derby",
+    logo: "/logo.png",
+    divisions: ["superstock"],
     schoolCodes: [],
   },
+};
+
+const DIVISION_LABELS = {
+  stock: "Stock Division",
+  superstock: "Super Stock Division",
 };
 
 const COLORS = {
@@ -76,21 +79,22 @@ function isRaceMidRace(race) {
   return run1 && !run2;
 }
 
-function isRaceCurrent(race, nextRaceId) {
+function isRaceCurrent(race, currentRaceId) {
+  if (!currentRaceId) return false;
   if (race.status === "Complete") return false;
   if (race.status === "DQ Conflict") return false;
 
-  const isNext = race.id === nextRaceId;
+  const isSelectedCurrent = race.id === currentRaceId;
   const isMid = isRaceMidRace(race);
   const isTie = race.status === "Tiebreaker Needed";
 
-  return isNext || isMid || isTie;
+  return isSelectedCurrent || isMid || isTie;
 }
 
 function getStandings(bracketType, races) {
   const map = {};
-  races.forEach((r) => {
-    map[r.id] = r;
+  races.forEach((race) => {
+    map[race.id] = race;
   });
 
   if (bracketType === "12") {
@@ -103,6 +107,32 @@ function getStandings(bracketType, races) {
       ["6th", map[14]?.loser],
       ["7th", map[15]?.winner],
       ["8th", map[15]?.loser],
+    ];
+  }
+
+  if (bracketType === "32") {
+    return [
+      ["1st", map[31]?.winner],
+      ["2nd", map[31]?.loser],
+      ["3rd", map[36]?.winner],
+      ["4th", map[36]?.loser],
+      ["5th", map[34]?.winner],
+      ["6th", map[34]?.loser],
+      ["7th", map[35]?.winner],
+      ["8th", map[35]?.loser],
+    ];
+  }
+
+  if (bracketType === "48") {
+    return [
+      ["1st", map[47]?.winner],
+      ["2nd", map[47]?.loser],
+      ["3rd", map[52]?.winner],
+      ["4th", map[52]?.loser],
+      ["5th", map[50]?.winner],
+      ["6th", map[50]?.loser],
+      ["7th", map[51]?.winner],
+      ["8th", map[51]?.loser],
     ];
   }
 
@@ -128,7 +158,9 @@ function RaceRow({ race, current, currentRef }) {
       ref={current ? currentRef : null}
       style={{
         background: current ? "#12261a" : COLORS.row,
-        border: current ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+        border: current
+          ? `2px solid ${COLORS.accent}`
+          : `1px solid ${COLORS.border}`,
         borderRadius: 14,
         padding: 10,
         boxShadow: current ? "0 0 14px rgba(34,197,94,0.28)" : "none",
@@ -231,6 +263,7 @@ function RaceRow({ race, current, currentRef }) {
         >
           R1: {race.run1_lane1 ?? "--"} | {race.run1_lane2 ?? "--"}
         </div>
+
         <div
           style={{
             background: "#0f172a",
@@ -264,51 +297,69 @@ export default function SpectatorPage() {
   const { district = "d11" } = useParams();
   const config = DISTRICT_CONFIG[district] || DISTRICT_CONFIG.d11;
 
+  const [division, setDivision] = useState(config.divisions[0]);
+  const [bracketType, setBracketType] = useState("12");
   const [races, setRaces] = useState([]);
-  const [bracketType, setBracketType] = useState(config.defaultBracket);
   const [tab, setTab] = useState("Races");
   const [filter, setFilter] = useState("Current");
   const [schoolFilter, setSchoolFilter] = useState("All Schools");
   const currentRef = useRef(null);
 
   useEffect(() => {
-    setBracketType(config.defaultBracket);
+    const nextDivision = config.divisions[0];
+    setDivision(nextDivision);
     setSchoolFilter("All Schools");
-  }, [district, config.defaultBracket]);
+  }, [district, config.divisions]);
 
   useEffect(() => {
-    async function load() {
-      const data = await fetchRaces(bracketType, district);
+    async function loadSetting() {
+      const setting = await fetchEventSetting(district, division);
+      if (setting?.active_bracket_type) {
+        setBracketType(setting.active_bracket_type);
+      } else {
+        setBracketType(division === "stock" ? "12" : "32");
+      }
+    }
+
+    loadSetting();
+  }, [district, division]);
+
+  useEffect(() => {
+    async function loadRaces() {
+      const data = await fetchRaces(bracketType, district, division);
       setRaces(data);
     }
 
-    load();
-    const intervalId = setInterval(load, 5000);
+    if (!bracketType || !district || !division) return;
+
+    loadRaces();
+    const intervalId = setInterval(loadRaces, 5000);
+
     return () => clearInterval(intervalId);
-  }, [bracketType, district]);
+  }, [bracketType, district, division]);
 
   const sorted = useMemo(
     () => [...races].sort((a, b) => a.id - b.id),
     [races]
   );
 
-  const nextRaceId = useMemo(() => {
-    const override = sorted.find((r) => r.is_current_override);
+  const currentRaceId = useMemo(() => {
+    const override = sorted.find((race) => race.is_current_override);
     if (override) return override.id;
 
     const next = sorted.find(
-      (r) =>
-        !hasAnyRunData(r) &&
-        r.status !== "Complete" &&
-        r.status !== "DQ Conflict"
+      (race) =>
+        !hasAnyRunData(race) &&
+        race.status !== "Complete" &&
+        race.status !== "DQ Conflict"
     );
 
     return next?.id ?? null;
   }, [sorted]);
 
   const currentRace = useMemo(
-    () => sorted.find((r) => r.id === nextRaceId),
-    [sorted, nextRaceId]
+    () => sorted.find((race) => race.id === currentRaceId),
+    [sorted, currentRaceId]
   );
 
   useEffect(() => {
@@ -321,40 +372,40 @@ export default function SpectatorPage() {
   }, [currentRace, tab, filter]);
 
   const visible = useMemo(() => {
-    return sorted.filter((r) => {
-      if (config.schoolCodes.length > 0 && !raceMatchesSchool(r, schoolFilter)) {
+    return sorted.filter((race) => {
+      if (config.schoolCodes.length > 0 && !raceMatchesSchool(race, schoolFilter)) {
         return false;
       }
 
       if (filter === "All") return true;
 
       if (filter === "Completed") {
-        return r.status === "Complete";
+        return race.status === "Complete";
       }
 
       if (filter === "Pending") {
-        return !hasAnyRunData(r);
+        return !hasAnyRunData(race);
       }
 
       if (filter === "Current") {
-        if (r.status === "Complete") return false;
-        if (r.status === "DQ Conflict") return false;
-        return isRaceCurrent(r, nextRaceId);
+        if (race.status === "Complete") return false;
+        if (race.status === "DQ Conflict") return false;
+        return isRaceCurrent(race, currentRaceId);
       }
 
       return true;
     });
-  }, [sorted, filter, schoolFilter, nextRaceId, config.schoolCodes.length]);
+  }, [sorted, filter, schoolFilter, currentRaceId, config.schoolCodes.length]);
 
   const orderedVisible = useMemo(() => {
     if (!currentRace) return visible;
 
-    const currentInVisible = visible.find((r) => r.id === currentRace.id);
+    const currentInVisible = visible.find((race) => race.id === currentRace.id);
     if (!currentInVisible) return visible;
 
     return [
       currentInVisible,
-      ...visible.filter((r) => r.id !== currentRace.id),
+      ...visible.filter((race) => race.id !== currentRace.id),
     ];
   }, [visible, currentRace]);
 
@@ -378,7 +429,12 @@ export default function SpectatorPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img src={config.logo} alt={`${config.title} logo`} style={{ height: 42 }} />
+          <img
+            src={config.logo}
+            alt={`${config.title} logo`}
+            style={{ height: 42 }}
+          />
+
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: 18, lineHeight: 1.1 }}>
               {config.title}
@@ -409,46 +465,69 @@ export default function SpectatorPage() {
         )}
 
         <div style={{ display: "flex", gap: 20, marginTop: 16 }}>
-          {["Races", "Standings"].map((t) => (
+          {["Races", "Standings"].map((item) => (
             <div
-              key={t}
-              onClick={() => setTab(t)}
+              key={item}
+              onClick={() => setTab(item)}
               style={{
                 cursor: "pointer",
                 fontWeight: 700,
                 fontSize: 14,
-                color: tab === t ? COLORS.accent : COLORS.muted,
+                color: tab === item ? COLORS.accent : COLORS.muted,
                 borderBottom:
-                  tab === t ? `2px solid ${COLORS.accent}` : "none",
+                  tab === item ? `2px solid ${COLORS.accent}` : "none",
                 paddingBottom: 4,
               }}
             >
-              {t}
+              {item}
             </div>
           ))}
         </div>
 
-        {config.allowedBrackets.length > 1 && (
-          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            {config.allowedBrackets.map((b) => (
-              <button
-                key={b}
-                onClick={() => setBracketType(b)}
-                style={{
-                  padding: "7px 12px",
-                  borderRadius: 999,
-                  background: bracketType === b ? COLORS.accent : COLORS.chip,
-                  color: "#fff",
-                  border: "none",
-                  fontWeight: 700,
-                  fontSize: 13,
-                }}
-              >
-                {b}-Car
-              </button>
-            ))}
-          </div>
-        )}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            marginTop: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          {config.divisions.map((item) => (
+            <button
+              key={item}
+              onClick={() => setDivision(item)}
+              style={{
+                padding: "7px 12px",
+                borderRadius: 999,
+                background: division === item ? COLORS.accent : COLORS.chip,
+                color: "#fff",
+                border: "none",
+                whiteSpace: "nowrap",
+                fontWeight: 700,
+                fontSize: 13,
+              }}
+            >
+              {DIVISION_LABELS[item]}
+            </button>
+          ))}
+
+          {division === "superstock" && (
+            <div
+              style={{
+                padding: "7px 12px",
+                borderRadius: 999,
+                background: "#0f172a",
+                color: COLORS.muted,
+                border: `1px solid ${COLORS.border}`,
+                fontWeight: 700,
+                fontSize: 13,
+              }}
+            >
+              {bracketType}-Car Bracket
+            </div>
+          )}
+        </div>
 
         {tab === "Races" && (
           <div
@@ -460,14 +539,14 @@ export default function SpectatorPage() {
               flexWrap: "wrap",
             }}
           >
-            {["Current", "Pending", "Completed", "All"].map((f) => (
+            {["Current", "Pending", "Completed", "All"].map((item) => (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
+                key={item}
+                onClick={() => setFilter(item)}
                 style={{
                   padding: "7px 12px",
                   borderRadius: 999,
-                  background: filter === f ? COLORS.accent : COLORS.chip,
+                  background: filter === item ? COLORS.accent : COLORS.chip,
                   color: "#fff",
                   border: "none",
                   whiteSpace: "nowrap",
@@ -475,14 +554,14 @@ export default function SpectatorPage() {
                   fontSize: 13,
                 }}
               >
-                {f}
+                {item}
               </button>
             ))}
 
             {config.schoolCodes.length > 0 && (
               <select
                 value={schoolFilter}
-                onChange={(e) => setSchoolFilter(e.target.value)}
+                onChange={(event) => setSchoolFilter(event.target.value)}
                 style={{
                   padding: "7px 12px",
                   borderRadius: 999,
@@ -506,20 +585,14 @@ export default function SpectatorPage() {
         )}
 
         {tab === "Races" && (
-          <div
-            style={{
-              display: "grid",
-              gap: 10,
-              marginTop: 14,
-            }}
-          >
-            {orderedVisible.map((r) => {
-              const current = currentRace ? r.id === currentRace.id : false;
+          <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+            {orderedVisible.map((race) => {
+              const current = currentRace ? race.id === currentRace.id : false;
 
               return (
                 <RaceRow
-                  key={`${district}-${bracketType}-${r.id}`}
-                  race={r}
+                  key={`${district}-${division}-${bracketType}-${race.id}`}
+                  race={race}
                   current={current}
                   currentRef={currentRef}
                 />
@@ -530,6 +603,18 @@ export default function SpectatorPage() {
 
         {tab === "Standings" && (
           <div style={{ marginTop: 18, display: "grid", gap: 8 }}>
+            <div
+              style={{
+                color: COLORS.muted,
+                fontSize: 13,
+                fontWeight: 700,
+                marginBottom: 2,
+              }}
+            >
+              {DIVISION_LABELS[division]}{" "}
+              {division === "superstock" ? `— ${bracketType}-Car Bracket` : ""}
+            </div>
+
             {getStandings(bracketType, sorted).map(([place, racer]) => (
               <div
                 key={place}
