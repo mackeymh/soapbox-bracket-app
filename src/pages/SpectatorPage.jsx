@@ -166,15 +166,7 @@ function RaceRow({ race, current, currentRef }) {
         boxShadow: current ? "0 0 14px rgba(34,197,94,0.28)" : "none",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 8,
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 15 }}>Race {race.id}</div>
           <div style={{ color: COLORS.muted, fontSize: 12, lineHeight: 1.15 }}>
@@ -227,65 +219,24 @@ function RaceRow({ race, current, currentRef }) {
       </div>
 
       {(race.dq_a || race.dq_b) && (
-        <div
-          style={{
-            marginTop: 8,
-            background: COLORS.red,
-            padding: "6px 8px",
-            borderRadius: 8,
-            fontSize: 11,
-            lineHeight: 1.25,
-          }}
-        >
+        <div style={{ marginTop: 8, background: COLORS.red, padding: "6px 8px", borderRadius: 8, fontSize: 11, lineHeight: 1.25 }}>
           {race.dq_a && `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
           {race.dq_a && race.dq_b ? " | " : ""}
           {race.dq_b && `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: 8,
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 6,
-          fontSize: 11,
-          color: COLORS.muted,
-        }}
-      >
-        <div
-          style={{
-            background: "#0f172a",
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 8,
-            padding: 6,
-          }}
-        >
+      <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 11, color: COLORS.muted }}>
+        <div style={{ background: "#0f172a", border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 6 }}>
           R1: {race.run1_lane1 ?? "--"} | {race.run1_lane2 ?? "--"}
         </div>
 
-        <div
-          style={{
-            background: "#0f172a",
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 8,
-            padding: 6,
-          }}
-        >
+        <div style={{ background: "#0f172a", border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 6 }}>
           R2: {race.run2_lane1 ?? "--"} | {race.run2_lane2 ?? "--"}
         </div>
       </div>
 
-      <div
-        style={{
-          marginTop: 8,
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 8,
-          fontSize: 12,
-          color: COLORS.text,
-        }}
-      >
+      <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: COLORS.text }}>
         <div style={{ color: COLORS.muted }}>Winner</div>
         <div style={{ fontWeight: 800 }}>{winner}</div>
       </div>
@@ -335,6 +286,9 @@ export default function SpectatorPage() {
     }
 
     loadSetting();
+    const intervalId = setInterval(loadSetting, 5000);
+
+    return () => clearInterval(intervalId);
   }, [district, activeDivision]);
 
   useEffect(() => {
@@ -462,14 +416,7 @@ export default function SpectatorPage() {
   }, [visible, currentRace]);
 
   return (
-    <div
-      style={{
-        background: COLORS.bg,
-        minHeight: "100vh",
-        padding: 12,
-        color: COLORS.text,
-      }}
-    >
+    <div style={{ background: COLORS.bg, minHeight: "100vh", padding: 12, color: COLORS.text }}>
       <div
         style={{
           maxWidth: 760,
@@ -481,11 +428,7 @@ export default function SpectatorPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img
-            src={config.logo}
-            alt={`${config.title} logo`}
-            style={{ height: 42 }}
-          />
+          <img src={config.logo} alt={`${config.title} logo`} style={{ height: 42 }} />
 
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: 18, lineHeight: 1.1 }}>
@@ -529,8 +472,7 @@ export default function SpectatorPage() {
                 fontWeight: 700,
                 fontSize: 14,
                 color: tab === item ? COLORS.accent : COLORS.muted,
-                borderBottom:
-                  tab === item ? `2px solid ${COLORS.accent}` : "none",
+                borderBottom: tab === item ? `2px solid ${COLORS.accent}` : "none",
                 paddingBottom: 4,
               }}
             >
@@ -539,15 +481,7 @@ export default function SpectatorPage() {
           ))}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            overflowX: "auto",
-            marginTop: 12,
-            flexWrap: "wrap",
-          }}
-        >
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: 12, flexWrap: "wrap" }}>
           {districtDivisions.map((item) => (
             <button
               key={item}
@@ -588,15 +522,7 @@ export default function SpectatorPage() {
         </div>
 
         {tab === "Races" && (
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              overflowX: "auto",
-              marginTop: 12,
-              flexWrap: "wrap",
-            }}
-          >
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: 12, flexWrap: "wrap" }}>
             {["Current", "Pending", "Completed", "All"].map((item) => (
               <button
                 key={item}
@@ -661,14 +587,7 @@ export default function SpectatorPage() {
 
         {tab === "Standings" && (
           <div style={{ marginTop: 18, display: "grid", gap: 8 }}>
-            <div
-              style={{
-                color: COLORS.muted,
-                fontSize: 13,
-                fontWeight: 700,
-                marginBottom: 2,
-              }}
-            >
+            <div style={{ color: COLORS.muted, fontSize: 13, fontWeight: 700, marginBottom: 2 }}>
               {DIVISION_LABELS[activeDivision]}{" "}
               {activeDivision === "superstock" ? `— ${bracketType}-Car Bracket` : ""}
             </div>
@@ -688,14 +607,7 @@ export default function SpectatorPage() {
                 }}
               >
                 <div style={{ fontWeight: 800, fontSize: 14 }}>{place}</div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 14,
-                    textAlign: "right",
-                    lineHeight: 1.2,
-                  }}
-                >
+                <div style={{ fontWeight: 700, fontSize: 14, textAlign: "right", lineHeight: 1.2 }}>
                   {racer || "--"}
                 </div>
               </div>
