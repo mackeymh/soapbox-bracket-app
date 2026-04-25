@@ -8,31 +8,25 @@ import {
   upsertRace,
 } from "../lib/raceStore";
 
-function buildDefault12Races() {
-  return [
-    { id: 1, bracket_type: "12", round: "Play-In Round", slot_a: "Seed 1", slot_b: "Seed 2", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 2, bracket_type: "12", round: "Play-In Round", slot_a: "Seed 3", slot_b: "Seed 4", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 3, bracket_type: "12", round: "Play-In Round", slot_a: "Seed 5", slot_b: "Seed 6", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 4, bracket_type: "12", round: "Play-In Round", slot_a: "Seed 7", slot_b: "Seed 8", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 5, bracket_type: "12", round: "Quarterfinals", slot_a: "Seed 9", slot_b: "Winner Race 1", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 6, bracket_type: "12", round: "Quarterfinals", slot_a: "Seed 10", slot_b: "Winner Race 2", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 7, bracket_type: "12", round: "Quarterfinals", slot_a: "Seed 11", slot_b: "Winner Race 3", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 8, bracket_type: "12", round: "Quarterfinals", slot_a: "Seed 12", slot_b: "Winner Race 4", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 9, bracket_type: "12", round: "Semifinals", slot_a: "Winner Race 5", slot_b: "Winner Race 6", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 10, bracket_type: "12", round: "Semifinals", slot_a: "Winner Race 7", slot_b: "Winner Race 8", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 11, bracket_type: "12", round: "Final", slot_a: "Winner Race 9", slot_b: "Winner Race 10", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 12, bracket_type: "12", round: "Placement", slot_a: "Loser Race 5", slot_b: "Loser Race 6", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 13, bracket_type: "12", round: "Placement", slot_a: "Loser Race 7", slot_b: "Loser Race 8", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 14, bracket_type: "12", round: "5th / 6th", slot_a: "Winner Race 12", slot_b: "Winner Race 13", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 15, bracket_type: "12", round: "7th / 8th", slot_a: "Loser Race 12", slot_b: "Loser Race 13", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-    { id: 16, bracket_type: "12", round: "3rd / 4th", slot_a: "Loser Race 9", slot_b: "Loser Race 10", racer_a: "", racer_b: "", status: "Pending", dq_a: false, dq_b: false, dq_reason_a: "", dq_reason_b: "", bye_for: "", winner: "", loser: "" },
-  ];
-}
+const DISTRICT_OPTIONS = [
+  { value: "d11", label: "District 11" },
+  { value: "southBronx", label: "South Bronx" },
+];
 
-function buildDefault64Races() {
-  // keep your exact existing 64-race builder here
-  return [];
-}
+const DISTRICT_DIVISIONS = {
+  d11: ["stock", "superstock"],
+  southBronx: ["superstock"],
+};
+
+const DIVISION_LABELS = {
+  stock: "Stock Division",
+  superstock: "Super Stock Division",
+};
+
+const DIVISION_BRACKETS = {
+  stock: ["12"],
+  superstock: ["32", "48", "64"],
+};
 
 const DQ_REASONS = [
   "Crash into opponent",
@@ -43,30 +37,211 @@ const DQ_REASONS = [
   "Other official ruling",
 ];
 
-const DISTRICT_OPTIONS = [
-  { value: "d11", label: "District 11" },
-  { value: "southBronx", label: "South Bronx" },
-];
+const BYES_48 = [1, 9, 5, 13, 3, 11, 7, 15, 2, 10, 4, 14, 6, 12, 8, 16];
+
+function baseRace(id, bracketType, division, district, round, slot_a, slot_b) {
+  return {
+    id,
+    district,
+    division,
+    bracket_type: bracketType,
+    round,
+    slot_a,
+    slot_b,
+    racer_a: "",
+    racer_b: "",
+    run1_lane1: null,
+    run1_lane2: null,
+    run2_lane1: null,
+    run2_lane2: null,
+    total_a: null,
+    total_b: null,
+    note: "",
+    status: "Pending",
+    dq_a: false,
+    dq_b: false,
+    dq_reason_a: "",
+    dq_reason_b: "",
+    bye_for: "",
+    winner: "",
+    loser: "",
+    is_current_override: false,
+  };
+}
+
+function buildDefault12Races(district, division) {
+  const b = "12";
+  return [
+    baseRace(1, b, division, district, "Play-In Round", "Seed 1", "Seed 2"),
+    baseRace(2, b, division, district, "Play-In Round", "Seed 3", "Seed 4"),
+    baseRace(3, b, division, district, "Play-In Round", "Seed 5", "Seed 6"),
+    baseRace(4, b, division, district, "Play-In Round", "Seed 7", "Seed 8"),
+    baseRace(5, b, division, district, "Quarterfinals", "Seed 9", "Winner Race 1"),
+    baseRace(6, b, division, district, "Quarterfinals", "Seed 10", "Winner Race 2"),
+    baseRace(7, b, division, district, "Quarterfinals", "Seed 11", "Winner Race 3"),
+    baseRace(8, b, division, district, "Quarterfinals", "Seed 12", "Winner Race 4"),
+    baseRace(9, b, division, district, "Semifinals", "Winner Race 5", "Winner Race 6"),
+    baseRace(10, b, division, district, "Semifinals", "Winner Race 7", "Winner Race 8"),
+    baseRace(11, b, division, district, "Final", "Winner Race 9", "Winner Race 10"),
+    baseRace(12, b, division, district, "Placement", "Loser Race 5", "Loser Race 6"),
+    baseRace(13, b, division, district, "Placement", "Loser Race 7", "Loser Race 8"),
+    baseRace(14, b, division, district, "5th / 6th", "Winner Race 12", "Winner Race 13"),
+    baseRace(15, b, division, district, "7th / 8th", "Loser Race 12", "Loser Race 13"),
+    baseRace(16, b, division, district, "3rd / 4th", "Loser Race 9", "Loser Race 10"),
+  ];
+}
+
+function buildDefault32Races(district, division) {
+  const races = [];
+  const b = "32";
+
+  for (let i = 1; i <= 16; i++) {
+    races.push(baseRace(i, b, division, district, "Opening Round", `Seed ${i * 2 - 1}`, `Seed ${i * 2}`));
+  }
+
+  for (let i = 17; i <= 24; i++) {
+    const source = (i - 17) * 2 + 1;
+    races.push(baseRace(i, b, division, district, "Round of 16", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  for (let i = 25; i <= 28; i++) {
+    const source = (i - 25) * 2 + 17;
+    races.push(baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  races.push(baseRace(29, b, division, district, "Semifinals", "Winner Race 25", "Winner Race 26"));
+  races.push(baseRace(30, b, division, district, "Semifinals", "Winner Race 27", "Winner Race 28"));
+  races.push(baseRace(31, b, division, district, "Final", "Winner Race 29", "Winner Race 30"));
+
+  races.push(baseRace(32, b, division, district, "Placement", "Loser Race 25", "Loser Race 26"));
+  races.push(baseRace(33, b, division, district, "Placement", "Loser Race 27", "Loser Race 28"));
+  races.push(baseRace(34, b, division, district, "5th / 6th", "Winner Race 32", "Winner Race 33"));
+  races.push(baseRace(35, b, division, district, "7th / 8th", "Loser Race 32", "Loser Race 33"));
+  races.push(baseRace(36, b, division, district, "3rd / 4th", "Loser Race 29", "Loser Race 30"));
+
+  return races;
+}
+
+function buildDefault48Races(district, division) {
+  const races = [];
+  const b = "48";
+
+  for (let i = 1; i <= 16; i++) {
+    const seedA = 17 + (i - 1) * 2;
+    const seedB = seedA + 1;
+    races.push(baseRace(i, b, division, district, "Play-In Round", `Seed ${seedA}`, `Seed ${seedB}`));
+  }
+
+  for (let i = 17; i <= 32; i++) {
+    const byeSeed = BYES_48[i - 17];
+    const playInRace = i - 16;
+    races.push(baseRace(i, b, division, district, "Round of 32", `Seed ${byeSeed}`, `Winner Race ${playInRace}`));
+  }
+
+  for (let i = 33; i <= 40; i++) {
+    const source = (i - 33) * 2 + 17;
+    races.push(baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  for (let i = 41; i <= 44; i++) {
+    const source = (i - 41) * 2 + 33;
+    races.push(baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  races.push(baseRace(45, b, division, district, "Semifinals", "Winner Race 41", "Winner Race 42"));
+  races.push(baseRace(46, b, division, district, "Semifinals", "Winner Race 43", "Winner Race 44"));
+  races.push(baseRace(47, b, division, district, "Final", "Winner Race 45", "Winner Race 46"));
+
+  races.push(baseRace(48, b, division, district, "Placement", "Loser Race 41", "Loser Race 42"));
+  races.push(baseRace(49, b, division, district, "Placement", "Loser Race 43", "Loser Race 44"));
+  races.push(baseRace(50, b, division, district, "5th / 6th", "Winner Race 48", "Winner Race 49"));
+  races.push(baseRace(51, b, division, district, "7th / 8th", "Loser Race 48", "Loser Race 49"));
+  races.push(baseRace(52, b, division, district, "3rd / 4th", "Loser Race 45", "Loser Race 46"));
+
+  return races;
+}
+
+function buildDefault64Races(district, division) {
+  const races = [];
+  const b = "64";
+
+  for (let i = 1; i <= 32; i++) {
+    races.push(baseRace(i, b, division, district, "Opening Round", `Seed ${i * 2 - 1}`, `Seed ${i * 2}`));
+  }
+
+  for (let i = 33; i <= 48; i++) {
+    const source = (i - 33) * 2 + 1;
+    races.push(baseRace(i, b, division, district, "Round of 32", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  for (let i = 49; i <= 56; i++) {
+    const source = (i - 49) * 2 + 33;
+    races.push(baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  for (let i = 57; i <= 60; i++) {
+    const source = (i - 57) * 2 + 49;
+    races.push(baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`));
+  }
+
+  races.push(baseRace(61, b, division, district, "Semifinals", "Winner Race 57", "Winner Race 58"));
+  races.push(baseRace(62, b, division, district, "Semifinals", "Winner Race 59", "Winner Race 60"));
+  races.push(baseRace(63, b, division, district, "Final", "Winner Race 61", "Winner Race 62"));
+
+  races.push(baseRace(64, b, division, district, "Placement", "Loser Race 57", "Loser Race 59"));
+  races.push(baseRace(65, b, division, district, "Placement", "Loser Race 58", "Loser Race 60"));
+  races.push(baseRace(66, b, division, district, "5th / 6th", "Winner Race 64", "Winner Race 65"));
+  races.push(baseRace(67, b, division, district, "7th / 8th", "Loser Race 64", "Loser Race 65"));
+  races.push(baseRace(68, b, division, district, "3rd / 4th", "Loser Race 61", "Loser Race 62"));
+
+  return races;
+}
+
+function buildDefaults(bracketType, district, division) {
+  if (bracketType === "12") return buildDefault12Races(district, division);
+  if (bracketType === "32") return buildDefault32Races(district, division);
+  if (bracketType === "48") return buildDefault48Races(district, division);
+  if (bracketType === "64") return buildDefault64Races(district, division);
+  return [];
+}
 
 export default function AdminPage() {
   const navigate = useNavigate();
+
   const [authorized, setAuthorized] = useState(false);
   const [district, setDistrict] = useState("d11");
+  const [division, setDivision] = useState("stock");
   const [bracketType, setBracketType] = useState("12");
   const [seeds, setSeeds] = useState([]);
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  const allowedDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
+  const allowedBrackets = DIVISION_BRACKETS[division] || ["32"];
+  const seedCount = Number(bracketType);
+
   useEffect(() => {
     const access = sessionStorage.getItem("admin_access");
-
-    if (access !== "granted") {
-      navigate("/admin-login");
-    } else {
-      setAuthorized(true);
-    }
+    if (access !== "granted") navigate("/admin-login");
+    else setAuthorized(true);
   }, [navigate]);
+
+  useEffect(() => {
+    const nextDivision = allowedDivisions.includes(division)
+      ? division
+      : allowedDivisions[0];
+
+    if (nextDivision !== division) {
+      setDivision(nextDivision);
+      return;
+    }
+
+    const nextBracket = (DIVISION_BRACKETS[nextDivision] || ["32"])[0];
+    if (!(DIVISION_BRACKETS[nextDivision] || []).includes(bracketType)) {
+      setBracketType(nextBracket);
+    }
+  }, [district, division, bracketType, allowedDivisions]);
 
   useEffect(() => {
     if (!authorized) return;
@@ -79,8 +254,8 @@ export default function AdminPage() {
 
       try {
         const [seedRows, raceRows] = await Promise.all([
-          fetchSeeds(bracketType, district),
-          fetchRaces(bracketType, district),
+          fetchSeeds(bracketType, district, division),
+          fetchRaces(bracketType, district, division),
         ]);
 
         if (cancelled) return;
@@ -90,35 +265,30 @@ export default function AdminPage() {
         let workingRaces = raceRows;
 
         if (raceRows.length === 0) {
-          const defaults =
-            bracketType === "12" ? buildDefault12Races() : buildDefault64Races();
+          const defaults = buildDefaults(bracketType, district, division);
 
           for (const race of defaults) {
-            await upsertRace({ ...race, district });
+            await upsertRace(race);
           }
 
-          workingRaces = await fetchRaces(bracketType, district);
+          workingRaces = await fetchRaces(bracketType, district, division);
         }
 
         if (seedRows.length > 0) {
-          await syncSeedsToRaces(bracketType, district, seedRows);
-          workingRaces = await fetchRaces(bracketType, district);
-          await advanceBracket(bracketType, district, workingRaces);
-          workingRaces = await fetchRaces(bracketType, district);
+          await syncSeedsToRaces(seedRows);
+          workingRaces = await fetchRaces(bracketType, district, division);
+          await advanceBracket(workingRaces);
+          workingRaces = await fetchRaces(bracketType, district, division);
         }
 
-        if (!cancelled) {
-          setRaces(workingRaces);
-        }
+        if (!cancelled) setRaces(workingRaces);
       } catch (error) {
         if (!cancelled) {
           console.error("ADMIN LOAD ERROR:", error);
           setMessage(`Failed to load admin data: ${error.message || "Unknown error"}`);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -127,20 +297,18 @@ export default function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [authorized, bracketType, district]);
+  }, [authorized, district, division, bracketType]);
 
   async function setCurrentRace(raceId) {
     try {
       for (const r of races) {
         if (r.is_current_override) {
-          await updateRace(r.id, { is_current_override: false }, bracketType, district);
+          await updateRace(r.id, { is_current_override: false }, bracketType, district, division);
         }
       }
 
-      await updateRace(raceId, { is_current_override: true }, bracketType, district);
-
-      const updated = await fetchRaces(bracketType, district);
-      setRaces(updated);
+      await updateRace(raceId, { is_current_override: true }, bracketType, district, division);
+      setRaces(await fetchRaces(bracketType, district, division));
       setMessage(`Race ${raceId} set as current`);
     } catch (error) {
       console.error("SET CURRENT ERROR:", error);
@@ -149,15 +317,8 @@ export default function AdminPage() {
   }
 
   async function clearCurrentRace(raceId) {
-    try {
-      await updateRace(raceId, { is_current_override: false }, bracketType, district);
-      const updated = await fetchRaces(bracketType, district);
-      setRaces(updated);
-      setMessage(`Cleared current race override for Race ${raceId}`);
-    } catch (error) {
-      console.error("CLEAR CURRENT ERROR:", error);
-      setMessage(`Failed to clear Race ${raceId} override`);
-    }
+    await updateRace(raceId, { is_current_override: false }, bracketType, district, division);
+    setRaces(await fetchRaces(bracketType, district, division));
   }
 
   async function handleSeedBlur(seedNumber, label) {
@@ -169,6 +330,7 @@ export default function AdminPage() {
 
       await upsertSeed({
         district,
+        division,
         bracket_type: bracketType,
         seed_number: seedNumber,
         label: trimmed,
@@ -176,15 +338,15 @@ export default function AdminPage() {
         car_number: carNumber,
       });
 
-      const refreshedSeeds = await fetchSeeds(bracketType, district);
-      await syncSeedsToRaces(bracketType, district, refreshedSeeds);
-      let refreshedRaces = await fetchRaces(bracketType, district);
-      await advanceBracket(bracketType, district, refreshedRaces);
-      refreshedRaces = await fetchRaces(bracketType, district);
+      const refreshedSeeds = await fetchSeeds(bracketType, district, division);
+      await syncSeedsToRaces(refreshedSeeds);
+
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
+      await advanceBracket(refreshedRaces);
+      refreshedRaces = await fetchRaces(bracketType, district, division);
 
       setSeeds(refreshedSeeds);
       setRaces(refreshedRaces);
-
       setMessage(`Saved Seed ${seedNumber}`);
     } catch (error) {
       console.error("SEED SAVE ERROR:", error);
@@ -192,13 +354,13 @@ export default function AdminPage() {
     }
   }
 
-  async function syncSeedsToRaces(type, districtValue, seedRows) {
+  async function syncSeedsToRaces(seedRows) {
     const seedMap = {};
     seedRows.forEach((seed) => {
       seedMap[seed.seed_number] = seed.label || "";
     });
 
-    if (type === "12") {
+    if (bracketType === "12") {
       const updates = [
         { id: 1, racer_a: seedMap[1] || "", racer_b: seedMap[2] || "" },
         { id: 2, racer_a: seedMap[3] || "", racer_b: seedMap[4] || "" },
@@ -212,25 +374,158 @@ export default function AdminPage() {
 
       for (const update of updates) {
         const { id, ...fields } = update;
-        await updateRace(id, fields, type, districtValue);
+        await updateRace(id, fields, bracketType, district, division);
       }
     }
 
-    if (type === "64") {
-      for (let i = 1; i <= 32; i++) {
-        const seedA = i * 2 - 1;
-        const seedB = i * 2;
-
+    if (bracketType === "32") {
+      for (let i = 1; i <= 16; i++) {
         await updateRace(
           i,
-          {
-            racer_a: seedMap[seedA] || "",
-            racer_b: seedMap[seedB] || "",
-          },
-          type,
-          districtValue
+          { racer_a: seedMap[i * 2 - 1] || "", racer_b: seedMap[i * 2] || "" },
+          bracketType,
+          district,
+          division
         );
       }
+    }
+
+    if (bracketType === "48") {
+      for (let i = 1; i <= 16; i++) {
+        const seedA = 17 + (i - 1) * 2;
+        const seedB = seedA + 1;
+        await updateRace(
+          i,
+          { racer_a: seedMap[seedA] || "", racer_b: seedMap[seedB] || "" },
+          bracketType,
+          district,
+          division
+        );
+
+        await updateRace(
+          i + 16,
+          { racer_a: seedMap[BYES_48[i - 1]] || "" },
+          bracketType,
+          district,
+          division
+        );
+      }
+    }
+
+    if (bracketType === "64") {
+      for (let i = 1; i <= 32; i++) {
+        await updateRace(
+          i,
+          { racer_a: seedMap[i * 2 - 1] || "", racer_b: seedMap[i * 2] || "" },
+          bracketType,
+          district,
+          division
+        );
+      }
+    }
+  }
+
+  function winnerOf(map, id) {
+    return map[id]?.winner || "";
+  }
+
+  function loserOf(map, id) {
+    return map[id]?.loser || "";
+  }
+
+  async function advanceBracket(raceRows) {
+    const map = {};
+    raceRows.forEach((race) => {
+      map[race.id] = race;
+    });
+
+    const updates = [];
+
+    function q(id, fields) {
+      updates.push({ id, fields });
+    }
+
+    if (bracketType === "12") {
+      q(5, { racer_b: winnerOf(map, 1) });
+      q(6, { racer_b: winnerOf(map, 2) });
+      q(7, { racer_b: winnerOf(map, 3) });
+      q(8, { racer_b: winnerOf(map, 4) });
+      q(9, { racer_a: winnerOf(map, 5), racer_b: winnerOf(map, 6) });
+      q(10, { racer_a: winnerOf(map, 7), racer_b: winnerOf(map, 8) });
+      q(11, { racer_a: winnerOf(map, 9), racer_b: winnerOf(map, 10) });
+      q(12, { racer_a: loserOf(map, 5), racer_b: loserOf(map, 6) });
+      q(13, { racer_a: loserOf(map, 7), racer_b: loserOf(map, 8) });
+      q(14, { racer_a: winnerOf(map, 12), racer_b: winnerOf(map, 13) });
+      q(15, { racer_a: loserOf(map, 12), racer_b: loserOf(map, 13) });
+      q(16, { racer_a: loserOf(map, 9), racer_b: loserOf(map, 10) });
+    }
+
+    if (bracketType === "32") {
+      for (let i = 17; i <= 24; i++) {
+        const s = (i - 17) * 2 + 1;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      for (let i = 25; i <= 28; i++) {
+        const s = (i - 25) * 2 + 17;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      q(29, { racer_a: winnerOf(map, 25), racer_b: winnerOf(map, 26) });
+      q(30, { racer_a: winnerOf(map, 27), racer_b: winnerOf(map, 28) });
+      q(31, { racer_a: winnerOf(map, 29), racer_b: winnerOf(map, 30) });
+      q(32, { racer_a: loserOf(map, 25), racer_b: loserOf(map, 26) });
+      q(33, { racer_a: loserOf(map, 27), racer_b: loserOf(map, 28) });
+      q(34, { racer_a: winnerOf(map, 32), racer_b: winnerOf(map, 33) });
+      q(35, { racer_a: loserOf(map, 32), racer_b: loserOf(map, 33) });
+      q(36, { racer_a: loserOf(map, 29), racer_b: loserOf(map, 30) });
+    }
+
+    if (bracketType === "48") {
+      for (let i = 17; i <= 32; i++) {
+        q(i, { racer_b: winnerOf(map, i - 16) });
+      }
+      for (let i = 33; i <= 40; i++) {
+        const s = (i - 33) * 2 + 17;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      for (let i = 41; i <= 44; i++) {
+        const s = (i - 41) * 2 + 33;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      q(45, { racer_a: winnerOf(map, 41), racer_b: winnerOf(map, 42) });
+      q(46, { racer_a: winnerOf(map, 43), racer_b: winnerOf(map, 44) });
+      q(47, { racer_a: winnerOf(map, 45), racer_b: winnerOf(map, 46) });
+      q(48, { racer_a: loserOf(map, 41), racer_b: loserOf(map, 42) });
+      q(49, { racer_a: loserOf(map, 43), racer_b: loserOf(map, 44) });
+      q(50, { racer_a: winnerOf(map, 48), racer_b: winnerOf(map, 49) });
+      q(51, { racer_a: loserOf(map, 48), racer_b: loserOf(map, 49) });
+      q(52, { racer_a: loserOf(map, 45), racer_b: loserOf(map, 46) });
+    }
+
+    if (bracketType === "64") {
+      for (let i = 33; i <= 48; i++) {
+        const s = (i - 33) * 2 + 1;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      for (let i = 49; i <= 56; i++) {
+        const s = (i - 49) * 2 + 33;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      for (let i = 57; i <= 60; i++) {
+        const s = (i - 57) * 2 + 49;
+        q(i, { racer_a: winnerOf(map, s), racer_b: winnerOf(map, s + 1) });
+      }
+      q(61, { racer_a: winnerOf(map, 57), racer_b: winnerOf(map, 58) });
+      q(62, { racer_a: winnerOf(map, 59), racer_b: winnerOf(map, 60) });
+      q(63, { racer_a: winnerOf(map, 61), racer_b: winnerOf(map, 62) });
+      q(64, { racer_a: loserOf(map, 57), racer_b: loserOf(map, 59) });
+      q(65, { racer_a: loserOf(map, 58), racer_b: loserOf(map, 60) });
+      q(66, { racer_a: winnerOf(map, 64), racer_b: winnerOf(map, 65) });
+      q(67, { racer_a: loserOf(map, 64), racer_b: loserOf(map, 65) });
+      q(68, { racer_a: loserOf(map, 61), racer_b: loserOf(map, 62) });
+    }
+
+    for (const update of updates) {
+      await updateRace(update.id, update.fields, bracketType, district, division);
     }
   }
 
@@ -239,43 +534,23 @@ export default function AdminPage() {
       changedField !== null ? { ...race, [changedField]: changedValue } : race;
 
     if (nextRace.bye_for === "A") {
-      return {
-        winner: nextRace.racer_a || "",
-        loser: nextRace.racer_b || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_a || "", loser: nextRace.racer_b || "", status: "Complete" };
     }
 
     if (nextRace.bye_for === "B") {
-      return {
-        winner: nextRace.racer_b || "",
-        loser: nextRace.racer_a || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_b || "", loser: nextRace.racer_a || "", status: "Complete" };
     }
 
     if (nextRace.dq_a && !nextRace.dq_b) {
-      return {
-        winner: nextRace.racer_b || "",
-        loser: nextRace.racer_a || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_b || "", loser: nextRace.racer_a || "", status: "Complete" };
     }
 
     if (nextRace.dq_b && !nextRace.dq_a) {
-      return {
-        winner: nextRace.racer_a || "",
-        loser: nextRace.racer_b || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_a || "", loser: nextRace.racer_b || "", status: "Complete" };
     }
 
     if (nextRace.dq_a && nextRace.dq_b) {
-      return {
-        winner: "",
-        loser: "",
-        status: "DQ Conflict",
-      };
+      return { winner: "", loser: "", status: "DQ Conflict" };
     }
 
     return {
@@ -283,93 +558,6 @@ export default function AdminPage() {
       loser: nextRace.loser || "",
       status: nextRace.status || "Pending",
     };
-  }
-
-  async function advanceBracket(type, districtValue, raceRows) {
-    const raceMap = {};
-    raceRows.forEach((race) => {
-      raceMap[race.id] = race;
-    });
-
-    const updates = [];
-
-    function winnerOf(id) {
-      return raceMap[id]?.winner || "";
-    }
-
-    function loserOf(id) {
-      return raceMap[id]?.loser || "";
-    }
-
-    function queueRaceUpdate(id, fields) {
-      updates.push({ id, fields });
-    }
-
-    if (type === "12") {
-      queueRaceUpdate(5, { racer_b: winnerOf(1) });
-      queueRaceUpdate(6, { racer_b: winnerOf(2) });
-      queueRaceUpdate(7, { racer_b: winnerOf(3) });
-      queueRaceUpdate(8, { racer_b: winnerOf(4) });
-
-      queueRaceUpdate(9, { racer_a: winnerOf(5), racer_b: winnerOf(6) });
-      queueRaceUpdate(10, { racer_a: winnerOf(7), racer_b: winnerOf(8) });
-
-      queueRaceUpdate(11, { racer_a: winnerOf(9), racer_b: winnerOf(10) });
-
-      queueRaceUpdate(12, { racer_a: loserOf(5), racer_b: loserOf(6) });
-      queueRaceUpdate(13, { racer_a: loserOf(7), racer_b: loserOf(8) });
-      queueRaceUpdate(14, { racer_a: winnerOf(12), racer_b: winnerOf(13) });
-      queueRaceUpdate(15, { racer_a: loserOf(12), racer_b: loserOf(13) });
-      queueRaceUpdate(16, { racer_a: loserOf(9), racer_b: loserOf(10) });
-    }
-
-    if (type === "64") {
-      queueRaceUpdate(33, { racer_a: winnerOf(1), racer_b: winnerOf(2) });
-      queueRaceUpdate(34, { racer_a: winnerOf(3), racer_b: winnerOf(4) });
-      queueRaceUpdate(35, { racer_a: winnerOf(5), racer_b: winnerOf(6) });
-      queueRaceUpdate(36, { racer_a: winnerOf(7), racer_b: winnerOf(8) });
-      queueRaceUpdate(37, { racer_a: winnerOf(9), racer_b: winnerOf(10) });
-      queueRaceUpdate(38, { racer_a: winnerOf(11), racer_b: winnerOf(12) });
-      queueRaceUpdate(39, { racer_a: winnerOf(13), racer_b: winnerOf(14) });
-      queueRaceUpdate(40, { racer_a: winnerOf(15), racer_b: winnerOf(16) });
-      queueRaceUpdate(41, { racer_a: winnerOf(17), racer_b: winnerOf(18) });
-      queueRaceUpdate(42, { racer_a: winnerOf(19), racer_b: winnerOf(20) });
-      queueRaceUpdate(43, { racer_a: winnerOf(21), racer_b: winnerOf(22) });
-      queueRaceUpdate(44, { racer_a: winnerOf(23), racer_b: winnerOf(24) });
-      queueRaceUpdate(45, { racer_a: winnerOf(25), racer_b: winnerOf(26) });
-      queueRaceUpdate(46, { racer_a: winnerOf(27), racer_b: winnerOf(28) });
-      queueRaceUpdate(47, { racer_a: winnerOf(29), racer_b: winnerOf(30) });
-      queueRaceUpdate(48, { racer_a: winnerOf(31), racer_b: winnerOf(32) });
-
-      queueRaceUpdate(49, { racer_a: winnerOf(33), racer_b: winnerOf(34) });
-      queueRaceUpdate(50, { racer_a: winnerOf(35), racer_b: winnerOf(36) });
-      queueRaceUpdate(51, { racer_a: winnerOf(37), racer_b: winnerOf(38) });
-      queueRaceUpdate(52, { racer_a: winnerOf(39), racer_b: winnerOf(40) });
-      queueRaceUpdate(53, { racer_a: winnerOf(41), racer_b: winnerOf(42) });
-      queueRaceUpdate(54, { racer_a: winnerOf(43), racer_b: winnerOf(44) });
-      queueRaceUpdate(55, { racer_a: winnerOf(45), racer_b: winnerOf(46) });
-      queueRaceUpdate(56, { racer_a: winnerOf(47), racer_b: winnerOf(48) });
-
-      queueRaceUpdate(57, { racer_a: winnerOf(49), racer_b: winnerOf(50) });
-      queueRaceUpdate(58, { racer_a: winnerOf(51), racer_b: winnerOf(52) });
-      queueRaceUpdate(59, { racer_a: winnerOf(53), racer_b: winnerOf(54) });
-      queueRaceUpdate(60, { racer_a: winnerOf(55), racer_b: winnerOf(56) });
-
-      queueRaceUpdate(61, { racer_a: winnerOf(57), racer_b: winnerOf(58) });
-      queueRaceUpdate(62, { racer_a: winnerOf(59), racer_b: winnerOf(60) });
-
-      queueRaceUpdate(63, { racer_a: winnerOf(61), racer_b: winnerOf(62) });
-
-      queueRaceUpdate(64, { racer_a: loserOf(57), racer_b: loserOf(59) });
-      queueRaceUpdate(65, { racer_a: loserOf(58), racer_b: loserOf(60) });
-      queueRaceUpdate(66, { racer_a: winnerOf(64), racer_b: winnerOf(65) });
-      queueRaceUpdate(67, { racer_a: loserOf(64), racer_b: loserOf(65) });
-      queueRaceUpdate(68, { racer_a: loserOf(61), racer_b: loserOf(62) });
-    }
-
-    for (const update of updates) {
-      await updateRace(update.id, update.fields, type, districtValue);
-    }
   }
 
   function getOutcomeFromTimes(race) {
@@ -386,32 +574,14 @@ export default function AdminPage() {
     const totalB = Number(race.run1_lane2) + Number(race.run2_lane1);
 
     if (totalA < totalB) {
-      return {
-        winner: race.racer_a || "",
-        loser: race.racer_b || "",
-        status: "Complete",
-        total_a: totalA,
-        total_b: totalB,
-      };
+      return { winner: race.racer_a || "", loser: race.racer_b || "", status: "Complete", total_a: totalA, total_b: totalB };
     }
 
     if (totalB < totalA) {
-      return {
-        winner: race.racer_b || "",
-        loser: race.racer_a || "",
-        status: "Complete",
-        total_a: totalA,
-        total_b: totalB,
-      };
+      return { winner: race.racer_b || "", loser: race.racer_a || "", status: "Complete", total_a: totalA, total_b: totalB };
     }
 
-    return {
-      winner: "",
-      loser: "",
-      status: "Tiebreaker Needed",
-      total_a: totalA,
-      total_b: totalB,
-    };
+    return { winner: "", loser: "", status: "Tiebreaker Needed", total_a: totalA, total_b: totalB };
   }
 
   async function handleRaceBlur(raceId, field, value) {
@@ -419,16 +589,13 @@ export default function AdminPage() {
       const parsedValue =
         field.includes("lane") && value !== "" ? Number(value) : value;
 
-      await updateRace(raceId, { [field]: parsedValue }, bracketType, district);
+      await updateRace(raceId, { [field]: parsedValue }, bracketType, district, division);
 
-      let refreshedRaces = await fetchRaces(bracketType, district);
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
-        const outcome = getOutcomeFromTimes({
-          ...race,
-          [field]: parsedValue,
-        });
+        const outcome = getOutcomeFromTimes({ ...race, [field]: parsedValue });
 
         if (outcome) {
           await updateRace(
@@ -441,12 +608,13 @@ export default function AdminPage() {
               total_b: outcome.total_b,
             },
             bracketType,
-            district
+            district,
+            division
           );
 
-          refreshedRaces = await fetchRaces(bracketType, district);
-          await advanceBracket(bracketType, district, refreshedRaces);
-          refreshedRaces = await fetchRaces(bracketType, district);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await advanceBracket(refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
         }
       }
 
@@ -460,9 +628,9 @@ export default function AdminPage() {
 
   async function handleRaceToggle(raceId, field, checked) {
     try {
-      await updateRace(raceId, { [field]: checked }, bracketType, district);
+      await updateRace(raceId, { [field]: checked }, bracketType, district, division);
 
-      let refreshedRaces = await fetchRaces(bracketType, district);
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
@@ -470,18 +638,15 @@ export default function AdminPage() {
 
         await updateRace(
           raceId,
-          {
-            winner: outcome.winner,
-            loser: outcome.loser,
-            status: outcome.status,
-          },
+          { winner: outcome.winner, loser: outcome.loser, status: outcome.status },
           bracketType,
-          district
+          district,
+          division
         );
 
-        refreshedRaces = await fetchRaces(bracketType, district);
-        await advanceBracket(bracketType, district, refreshedRaces);
-        refreshedRaces = await fetchRaces(bracketType, district);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
+        await advanceBracket(refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
       }
 
       setRaces(refreshedRaces);
@@ -494,9 +659,9 @@ export default function AdminPage() {
 
   async function handleRaceByeChange(raceId, byeValue) {
     try {
-      await updateRace(raceId, { bye_for: byeValue }, bracketType, district);
+      await updateRace(raceId, { bye_for: byeValue }, bracketType, district, division);
 
-      let refreshedRaces = await fetchRaces(bracketType, district);
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
@@ -504,18 +669,15 @@ export default function AdminPage() {
 
         await updateRace(
           raceId,
-          {
-            winner: outcome.winner,
-            loser: outcome.loser,
-            status: outcome.status,
-          },
+          { winner: outcome.winner, loser: outcome.loser, status: outcome.status },
           bracketType,
-          district
+          district,
+          division
         );
 
-        refreshedRaces = await fetchRaces(bracketType, district);
-        await advanceBracket(bracketType, district, refreshedRaces);
-        refreshedRaces = await fetchRaces(bracketType, district);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
+        await advanceBracket(refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
       }
 
       setRaces(refreshedRaces);
@@ -536,24 +698,36 @@ export default function AdminPage() {
 
       <div style={{ marginBottom: 16 }}>
         <label style={{ marginRight: 8 }}>District</label>
-        <select
-          value={district}
-          onChange={(e) => setDistrict(e.target.value)}
-          style={{ padding: 6, borderRadius: 6 }}
-        >
+        <select value={district} onChange={(e) => setDistrict(e.target.value)}>
           {DISTRICT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+            <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <button onClick={() => setBracketType("12")}>12-Car</button>
-        <button onClick={() => setBracketType("64")} style={{ marginLeft: 8 }}>
-          64-Car
-        </button>
+        <label style={{ marginRight: 8 }}>Division</label>
+        <select value={division} onChange={(e) => setDivision(e.target.value)}>
+          {allowedDivisions.map((d) => (
+            <option key={d} value={d}>{DIVISION_LABELS[d]}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ marginRight: 8 }}>Bracket</label>
+        {allowedBrackets.map((b) => (
+          <button
+            key={b}
+            onClick={() => setBracketType(b)}
+            style={{
+              marginRight: 8,
+              fontWeight: bracketType === b ? "bold" : "normal",
+            }}
+          >
+            {division === "stock" ? "Stock Division" : `${b}-Car Super Stock`}
+          </button>
+        ))}
       </div>
 
       {message && (
@@ -565,7 +739,7 @@ export default function AdminPage() {
       {loading && <div style={{ marginBottom: 16 }}>Loading bracket data...</div>}
 
       <h2>Seeds</h2>
-      {Array.from({ length: bracketType === "12" ? 12 : 64 }).map((_, i) => {
+      {Array.from({ length: seedCount }).map((_, i) => {
         const seedNumber = i + 1;
         const existing = seeds.find((s) => s.seed_number === seedNumber);
 
@@ -589,6 +763,7 @@ export default function AdminPage() {
                         ...prev,
                         {
                           district,
+                          division,
                           seed_number: seedNumber,
                           bracket_type: bracketType,
                           label: value,
@@ -605,9 +780,10 @@ export default function AdminPage() {
       })}
 
       <h2 style={{ marginTop: 24 }}>Races</h2>
+
       {races.map((race) => (
         <div
-          key={`${district}-${race.bracket_type}-${race.id}`}
+          key={`${district}-${division}-${bracketType}-${race.id}`}
           style={{
             border: race.is_current_override ? "2px solid #22c55e" : "1px solid #ccc",
             padding: 12,
@@ -624,15 +800,9 @@ export default function AdminPage() {
           </div>
 
           <div style={{ marginBottom: 8 }}>
-            <button onClick={() => setCurrentRace(race.id)}>
-              Set Current
-            </button>
-
+            <button onClick={() => setCurrentRace(race.id)}>Set Current</button>
             {race.is_current_override && (
-              <button
-                onClick={() => clearCurrentRace(race.id)}
-                style={{ marginLeft: 8 }}
-              >
+              <button onClick={() => clearCurrentRace(race.id)} style={{ marginLeft: 8 }}>
                 Clear
               </button>
             )}
@@ -642,7 +812,7 @@ export default function AdminPage() {
             <div style={{ marginBottom: 8, color: "#ef4444", fontWeight: "bold" }}>
               {race.bye_for === "A" && "Racer A advances by BYE"}
               {race.bye_for === "B" && "Racer B advances by BYE"}
-              {(race.bye_for && (race.dq_a || race.dq_b)) && " | "}
+              {race.bye_for && (race.dq_a || race.dq_b) && " | "}
               {race.dq_a && `Racer A DQ${race.dq_reason_a ? ` — ${race.dq_reason_a}` : ""}`}
               {race.dq_a && race.dq_b && " | "}
               {race.dq_b && `Racer B DQ${race.dq_reason_b ? ` — ${race.dq_reason_b}` : ""}`}
@@ -650,62 +820,23 @@ export default function AdminPage() {
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input
-              type="number"
-              step="0.001"
-              value={race.run1_lane1 ?? ""}
-              placeholder="Run1 Lane1"
-              onChange={(e) =>
-                setRaces((prev) =>
-                  prev.map((r) =>
-                    r.id === race.id ? { ...r, run1_lane1: e.target.value } : r
+            {["run1_lane1", "run1_lane2", "run2_lane1", "run2_lane2"].map((field) => (
+              <input
+                key={field}
+                type="number"
+                step="0.001"
+                value={race[field] ?? ""}
+                placeholder={field}
+                onChange={(e) =>
+                  setRaces((prev) =>
+                    prev.map((r) =>
+                      r.id === race.id ? { ...r, [field]: e.target.value } : r
+                    )
                   )
-                )
-              }
-              onBlur={(e) => handleRaceBlur(race.id, "run1_lane1", e.target.value)}
-            />
-            <input
-              type="number"
-              step="0.001"
-              value={race.run1_lane2 ?? ""}
-              placeholder="Run1 Lane2"
-              onChange={(e) =>
-                setRaces((prev) =>
-                  prev.map((r) =>
-                    r.id === race.id ? { ...r, run1_lane2: e.target.value } : r
-                  )
-                )
-              }
-              onBlur={(e) => handleRaceBlur(race.id, "run1_lane2", e.target.value)}
-            />
-            <input
-              type="number"
-              step="0.001"
-              value={race.run2_lane1 ?? ""}
-              placeholder="Run2 Lane1"
-              onChange={(e) =>
-                setRaces((prev) =>
-                  prev.map((r) =>
-                    r.id === race.id ? { ...r, run2_lane1: e.target.value } : r
-                  )
-                )
-              }
-              onBlur={(e) => handleRaceBlur(race.id, "run2_lane1", e.target.value)}
-            />
-            <input
-              type="number"
-              step="0.001"
-              value={race.run2_lane2 ?? ""}
-              placeholder="Run2 Lane2"
-              onChange={(e) =>
-                setRaces((prev) =>
-                  prev.map((r) =>
-                    r.id === race.id ? { ...r, run2_lane2: e.target.value } : r
-                  )
-                )
-              }
-              onBlur={(e) => handleRaceBlur(race.id, "run2_lane2", e.target.value)}
-            />
+                }
+                onBlur={(e) => handleRaceBlur(race.id, field, e.target.value)}
+              />
+            ))}
           </div>
 
           <div style={{ marginTop: 12 }}>
@@ -752,9 +883,7 @@ export default function AdminPage() {
               >
                 <option value="">Select DQ reason for Racer A</option>
                 {DQ_REASONS.map((reason) => (
-                  <option key={reason} value={reason}>
-                    {reason}
-                  </option>
+                  <option key={reason} value={reason}>{reason}</option>
                 ))}
               </select>
 
@@ -765,9 +894,7 @@ export default function AdminPage() {
               >
                 <option value="">Select DQ reason for Racer B</option>
                 {DQ_REASONS.map((reason) => (
-                  <option key={reason} value={reason}>
-                    {reason}
-                  </option>
+                  <option key={reason} value={reason}>{reason}</option>
                 ))}
               </select>
             </div>
