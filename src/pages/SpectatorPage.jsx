@@ -23,6 +23,19 @@ const DISTRICT_CONFIG = {
   },
 };
 
+const southBronx_CONFIG = {
+  title: "South Bronx Soap Box Derby",
+  logo: "/logo.png",
+  divisions: ["superstock"],
+  schoolCodes: [
+    "07X018","07X025","07X029","07X043","07X065","07X224","07X277","07X296",
+    "07X298","07X369","08X036","08X062","08X071","08X072","08X075","08X107",
+    "08X130","08X131","08X140","08X269","08X302","08X333","08X367","08X371",
+    "08X392","08X562","09X035","09X042","09X055","09X110","09X219","09X229",
+    "09X285","09X361","10X094","10X118","75X176","84X718"
+  ]
+};
+
 const DIVISION_LABELS = {
   stock: "Stock Division",
   superstock: "Super Stock Division",
