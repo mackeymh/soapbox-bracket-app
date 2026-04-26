@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   fetchRaces,
@@ -6,6 +6,10 @@ import {
   upsertRace,
   upsertEventSetting,
 } from "../lib/raceStore";
+
+/* =========================================================
+   CONFIG
+========================================================= */
 
 const DISTRICT_OPTIONS = [
   { value: "d11", label: "District 11" },
@@ -35,6 +39,28 @@ const DQ_REASONS = [
   "Mechanical issue",
   "Other official ruling",
 ];
+
+const COLORS = {
+  bg: "#0f172a",
+  panel: "#111827",
+  panel2: "#1e293b",
+  card: "#111827",
+  cardSoft: "#1e293b",
+  border: "#334155",
+  text: "#f8fafc",
+  muted: "#cbd5e1",
+  muted2: "#94a3b8",
+  accent: "#22c55e",
+  accentDark: "#14532d",
+  red: "#ef4444",
+  redDark: "#7f1d1d",
+  yellow: "#facc15",
+  input: "#020617",
+};
+
+/* =========================================================
+   BASE RACE
+========================================================= */
 
 function baseRace(id, bracketType, division, district, round, slot_a, slot_b) {
   return {
@@ -66,11 +92,10 @@ function baseRace(id, bracketType, division, district, round, slot_a, slot_b) {
   };
 }
 
-/**
- * 12-car Stock model:
- * Race 1-4: draw races, both racers entered.
- * Race 5-8: automatic qualifier in racer_a, winner of Race 1-4 fills racer_b.
- */
+/* =========================================================
+   BRACKET BUILDERS
+========================================================= */
+
 function buildDefault12Races(district, division) {
   const b = "12";
 
@@ -97,10 +122,6 @@ function buildDefault12Races(district, division) {
   ];
 }
 
-/**
- * 32-car Super Stock model:
- * Race 1-16: draw races, both racers entered.
- */
 function buildDefault32Races(district, division) {
   const races = [];
   const b = "32";
@@ -114,30 +135,14 @@ function buildDefault32Races(district, division) {
   for (let i = 17; i <= 24; i++) {
     const source = (i - 17) * 2 + 1;
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Round of 16",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Round of 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
   for (let i = 25; i <= 28; i++) {
     const source = (i - 25) * 2 + 17;
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Quarterfinals",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
@@ -154,13 +159,6 @@ function buildDefault32Races(district, division) {
   return races;
 }
 
-/**
- * 48-car Super Stock model:
- * Race 1-16: preliminary draw races, both racers entered.
- * Race 17-32: automatic qualifier entered in racer_a;
- *             winner of Race 1-16 fills racer_b.
- * Race 33+ advance automatically.
- */
 function buildDefault48Races(district, division) {
   const races = [];
   const b = "48";
@@ -173,49 +171,22 @@ function buildDefault48Races(district, division) {
 
   for (let i = 17; i <= 32; i++) {
     const playInRace = i - 16;
-
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Round of 32",
-        "Automatic Qualifier",
-        `Winner Race ${playInRace}`
-      )
+      baseRace(i, b, division, district, "Round of 32", "Automatic Qualifier", `Winner Race ${playInRace}`)
     );
   }
 
   for (let i = 33; i <= 40; i++) {
     const source = (i - 33) * 2 + 17;
-
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Sweet 16",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
   for (let i = 41; i <= 44; i++) {
     const source = (i - 41) * 2 + 33;
-
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Quarterfinals",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
@@ -232,10 +203,6 @@ function buildDefault48Races(district, division) {
   return races;
 }
 
-/**
- * 64-car Super Stock model:
- * Race 1-32: draw races, both racers entered.
- */
 function buildDefault64Races(district, division) {
   const races = [];
   const b = "64";
@@ -249,45 +216,21 @@ function buildDefault64Races(district, division) {
   for (let i = 33; i <= 48; i++) {
     const source = (i - 33) * 2 + 1;
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Round of 32",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Round of 32", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
   for (let i = 49; i <= 56; i++) {
     const source = (i - 49) * 2 + 33;
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Sweet 16",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
   for (let i = 57; i <= 60; i++) {
     const source = (i - 57) * 2 + 49;
     races.push(
-      baseRace(
-        i,
-        b,
-        division,
-        district,
-        "Quarterfinals",
-        `Winner Race ${source}`,
-        `Winner Race ${source + 1}`
-      )
+      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
     );
   }
 
@@ -311,6 +254,10 @@ function buildDefaults(bracketType, district, division) {
   if (bracketType === "64") return buildDefault64Races(district, division);
   return [];
 }
+
+/* =========================================================
+   DRAW ASSIGNMENT HELPERS
+========================================================= */
 
 function getAssignmentFields(race, bracketType) {
   if (bracketType === "12") {
@@ -342,6 +289,18 @@ function isAssignmentRace(race, bracketType) {
   return getAssignmentFields(race, bracketType).length > 0;
 }
 
+function formatDivisionLabel(division) {
+  return DIVISION_LABELS[division] || division;
+}
+
+function getRaceDisplayName(race) {
+  return `${race.racer_a || race.slot_a || "--"} vs ${race.racer_b || race.slot_b || "--"}`;
+}
+
+/* =========================================================
+   ADMIN PAGE
+========================================================= */
+
 export default function AdminPage() {
   const navigate = useNavigate();
 
@@ -355,6 +314,11 @@ export default function AdminPage() {
 
   const allowedDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
   const allowedBrackets = DIVISION_BRACKETS[division] || ["32"];
+
+  const assignmentRaces = useMemo(
+    () => races.filter((race) => isAssignmentRace(race, bracketType)),
+    [races, bracketType]
+  );
 
   useEffect(() => {
     const access = sessionStorage.getItem("admin_access");
@@ -443,6 +407,12 @@ export default function AdminPage() {
     };
   }, [authorized, district, division, bracketType]);
 
+  async function reloadRaces() {
+    const refreshed = await fetchRaces(bracketType, district, division);
+    setRaces(refreshed);
+    return refreshed;
+  }
+
   async function handleBracketChange(newBracketType) {
     setBracketType(newBracketType);
 
@@ -452,7 +422,7 @@ export default function AdminPage() {
       active_bracket_type: newBracketType,
     });
 
-    setMessage(`${DIVISION_LABELS[division]} active bracket set to ${newBracketType}`);
+    setMessage(`${formatDivisionLabel(division)} active bracket set to ${newBracketType}`);
   }
 
   async function setCurrentRace(raceId) {
@@ -483,8 +453,8 @@ export default function AdminPage() {
         division
       );
 
-      setRaces(await fetchRaces(bracketType, district, division));
-      setMessage(`${DIVISION_LABELS[division]} Race ${raceId} set as NOW RACING`);
+      await reloadRaces();
+      setMessage(`${formatDivisionLabel(division)} Race ${raceId} set as NOW RACING`);
     } catch (error) {
       console.error("SET CURRENT ERROR:", error);
       setMessage(`Failed to set Race ${raceId} as current`);
@@ -492,16 +462,21 @@ export default function AdminPage() {
   }
 
   async function clearCurrentRace(raceId) {
-    await updateRace(
-      raceId,
-      { is_current_override: false },
-      bracketType,
-      district,
-      division
-    );
+    try {
+      await updateRace(
+        raceId,
+        { is_current_override: false },
+        bracketType,
+        district,
+        division
+      );
 
-    setRaces(await fetchRaces(bracketType, district, division));
-    setMessage(`Cleared NOW RACING override for Race ${raceId}`);
+      await reloadRaces();
+      setMessage(`Cleared NOW RACING override for Race ${raceId}`);
+    } catch (error) {
+      console.error("CLEAR CURRENT ERROR:", error);
+      setMessage(`Failed to clear NOW RACING for Race ${raceId}`);
+    }
   }
 
   async function clearRaceEntries(raceId) {
@@ -986,326 +961,745 @@ export default function AdminPage() {
   }
 
   if (!authorized) {
-    return <div style={{ padding: 24 }}>Checking access...</div>;
+    return (
+      <div style={pageStyle}>
+        <div style={panelStyle}>Checking access...</div>
+      </div>
+    );
   }
 
-  const assignmentRaces = races.filter((race) =>
-    isAssignmentRace(race, bracketType)
+  return (
+    <div style={pageStyle}>
+      <style>
+        {`
+          @media (max-width: 900px) {
+            .admin-top-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .race-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+
+          @media (max-width: 560px) {
+            .admin-page {
+              padding: 12px !important;
+            }
+            .race-card {
+              padding: 12px !important;
+            }
+            .row-wrap {
+              flex-direction: column !important;
+              align-items: stretch !important;
+            }
+            .row-wrap > * {
+              width: 100% !important;
+            }
+            .score-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .button-row {
+              flex-direction: column !important;
+            }
+            .button-row button {
+              width: 100% !important;
+            }
+          }
+        `}
+      </style>
+
+      <div className="admin-page" style={{ maxWidth: 1320, margin: "0 auto", padding: 20 }}>
+        <header style={{ marginBottom: 18 }}>
+          <div style={{ color: COLORS.accent, fontWeight: 900, letterSpacing: 0.6 }}>
+            SOAP BOX DERBY
+          </div>
+          <h1 style={{ margin: "4px 0", fontSize: 34, lineHeight: 1.05 }}>
+            Race Control Dashboard
+          </h1>
+          <div style={{ color: COLORS.muted }}>
+            Manage divisions, brackets, draws, race timing, BYEs, DQs, and live race status.
+          </div>
+        </header>
+
+        {message && (
+          <div style={messageStyle}>
+            {message}
+          </div>
+        )}
+
+        <section className="admin-top-grid" style={topGridStyle}>
+          <div style={panelStyle}>
+            <div style={sectionTitleStyle}>Event Setup</div>
+
+            <div style={fieldGroupStyle}>
+              <label style={labelStyle}>District</label>
+              <select
+                value={district}
+                onChange={(event) => setDistrict(event.target.value)}
+                style={selectStyle}
+              >
+                {DISTRICT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={fieldGroupStyle}>
+              <label style={labelStyle}>Division</label>
+              <div style={buttonWrapStyle}>
+                {allowedDivisions.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setDivision(item)}
+                    style={division === item ? activeButtonStyle : secondaryButtonStyle}
+                  >
+                    {DIVISION_LABELS[item]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={fieldGroupStyle}>
+              <label style={labelStyle}>Bracket</label>
+              <div style={buttonWrapStyle}>
+                {allowedBrackets.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => handleBracketChange(item)}
+                    style={bracketType === item ? activeButtonStyle : secondaryButtonStyle}
+                  >
+                    {division === "stock" ? "12-Car Stock" : `${item}-Car Super Stock`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div style={panelStyle}>
+            <div style={sectionTitleStyle}>Current Context</div>
+            <div style={contextLineStyle}>
+              <span>District</span>
+              <strong>{DISTRICT_OPTIONS.find((d) => d.value === district)?.label}</strong>
+            </div>
+            <div style={contextLineStyle}>
+              <span>Division</span>
+              <strong>{formatDivisionLabel(division)}</strong>
+            </div>
+            <div style={contextLineStyle}>
+              <span>Bracket</span>
+              <strong>{bracketType}-Car</strong>
+            </div>
+            <div style={contextLineStyle}>
+              <span>Total Races</span>
+              <strong>{races.length}</strong>
+            </div>
+            <div style={contextLineStyle}>
+              <span>Assignment Races</span>
+              <strong>{assignmentRaces.length}</strong>
+            </div>
+          </div>
+        </section>
+
+        {loading && (
+          <div style={panelStyle}>Loading bracket data...</div>
+        )}
+
+        <section style={{ marginTop: 18 }}>
+          <div style={sectionHeaderStyle}>
+            <div>
+              <h2 style={h2Style}>Draw / Race Assignments</h2>
+              <div style={subTextStyle}>
+                Enter cars in the order they are drawn. Use BYE when one side advances automatically.
+              </div>
+            </div>
+          </div>
+
+          <div className="race-grid" style={cardGridStyle}>
+            {assignmentRaces.map((race) => {
+              const editableFields = getAssignmentFields(race, bracketType);
+
+              return (
+                <div className="race-card" key={`assignment-${race.id}`} style={raceCardStyle}>
+                  <RaceHeader race={race} compact />
+
+                  <div className="row-wrap" style={rowWrapStyle}>
+                    <input
+                      value={race.racer_a || ""}
+                      placeholder={race.slot_a || "Racer A"}
+                      disabled={!editableFields.includes("racer_a")}
+                      onChange={(event) =>
+                        setRaces((previous) =>
+                          previous.map((item) =>
+                            item.id === race.id
+                              ? { ...item, racer_a: event.target.value }
+                              : item
+                          )
+                        )
+                      }
+                      onBlur={(event) =>
+                        handleAssignmentBlur(race.id, "racer_a", event.target.value)
+                      }
+                      style={inputStyle}
+                    />
+
+                    <div style={vsStyle}>VS</div>
+
+                    <input
+                      value={race.racer_b || ""}
+                      placeholder={race.slot_b || "Racer B"}
+                      disabled={!editableFields.includes("racer_b")}
+                      onChange={(event) =>
+                        setRaces((previous) =>
+                          previous.map((item) =>
+                            item.id === race.id
+                              ? { ...item, racer_b: event.target.value }
+                              : item
+                          )
+                        )
+                      }
+                      onBlur={(event) =>
+                        handleAssignmentBlur(race.id, "racer_b", event.target.value)
+                      }
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div className="button-row" style={buttonRowStyle}>
+                    <select
+                      value={race.bye_for ?? ""}
+                      onChange={(event) =>
+                        handleRaceByeChange(race.id, event.target.value)
+                      }
+                      style={selectStyle}
+                    >
+                      <option value="">No BYE</option>
+                      <option value="A">Racer A advances by BYE</option>
+                      <option value="B">Racer B advances by BYE</option>
+                    </select>
+
+                    <button
+                      onClick={() => clearRaceEntries(race.id)}
+                      style={dangerButtonStyle}
+                    >
+                      Clear Race
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section style={{ marginTop: 26 }}>
+          <div style={sectionHeaderStyle}>
+            <div>
+              <h2 style={h2Style}>Race Control</h2>
+              <div style={subTextStyle}>
+                Enter run times, set NOW RACING, manage BYEs/DQs, and monitor advancement.
+              </div>
+            </div>
+          </div>
+
+          <div className="race-grid" style={cardGridStyle}>
+            {races.map((race) => (
+              <div
+                className="race-card"
+                key={`${district}-${division}-${bracketType}-${race.id}`}
+                style={{
+                  ...raceCardStyle,
+                  border: race.is_current_override
+                    ? `2px solid ${COLORS.accent}`
+                    : `1px solid ${COLORS.border}`,
+                  boxShadow: race.is_current_override
+                    ? "0 0 18px rgba(34,197,94,0.22)"
+                    : "none",
+                }}
+              >
+                <RaceHeader race={race} />
+
+                <div style={matchupStyle}>
+                  {getRaceDisplayName(race)}
+                </div>
+
+                <div className="button-row" style={buttonRowStyle}>
+                  <button
+                    onClick={() => setCurrentRace(race.id)}
+                    style={primaryButtonStyle}
+                  >
+                    Set NOW RACING
+                  </button>
+
+                  {race.is_current_override && (
+                    <button
+                      onClick={() => clearCurrentRace(race.id)}
+                      style={secondaryButtonStyle}
+                    >
+                      Clear LIVE
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => clearRaceEntries(race.id)}
+                    style={dangerButtonStyle}
+                  >
+                    Clear Race
+                  </button>
+                </div>
+
+                <ScoreboardInputs
+                  race={race}
+                  setRaces={setRaces}
+                  handleRaceBlur={handleRaceBlur}
+                />
+
+                <div style={statusBoxStyle}>
+                  <div><span style={mutedLabelStyle}>Status:</span> {race.status || "Pending"}</div>
+                  <div><span style={mutedLabelStyle}>Winner:</span> {race.winner || "--"}</div>
+                  <div><span style={mutedLabelStyle}>Loser:</span> {race.loser || "--"}</div>
+                  <div><span style={mutedLabelStyle}>Total A:</span> {race.total_a ?? "--"}</div>
+                  <div><span style={mutedLabelStyle}>Total B:</span> {race.total_b ?? "--"}</div>
+                </div>
+
+                <div style={dividerStyle} />
+
+                <div style={fieldGroupStyle}>
+                  <label style={labelStyle}>BYE</label>
+                  <select
+                    value={race.bye_for ?? ""}
+                    onChange={(event) =>
+                      handleRaceByeChange(race.id, event.target.value)
+                    }
+                    style={selectStyle}
+                  >
+                    <option value="">No BYE</option>
+                    <option value="A">Racer A advances by BYE</option>
+                    <option value="B">Racer B advances by BYE</option>
+                  </select>
+                </div>
+
+                <div className="row-wrap" style={rowWrapStyle}>
+                  <label style={checkboxLabelStyle}>
+                    <input
+                      type="checkbox"
+                      checked={!!race.dq_a}
+                      onChange={(event) =>
+                        handleRaceToggle(race.id, "dq_a", event.target.checked)
+                      }
+                    />
+                    DQ Racer A
+                  </label>
+
+                  <label style={checkboxLabelStyle}>
+                    <input
+                      type="checkbox"
+                      checked={!!race.dq_b}
+                      onChange={(event) =>
+                        handleRaceToggle(race.id, "dq_b", event.target.checked)
+                      }
+                    />
+                    DQ Racer B
+                  </label>
+                </div>
+
+                <div className="row-wrap" style={rowWrapStyle}>
+                  <select
+                    value={race.dq_reason_a ?? ""}
+                    onChange={(event) =>
+                      handleRaceBlur(race.id, "dq_reason_a", event.target.value)
+                    }
+                    style={selectStyle}
+                  >
+                    <option value="">DQ reason for Racer A</option>
+                    {DQ_REASONS.map((reason) => (
+                      <option key={reason} value={reason}>
+                        {reason}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={race.dq_reason_b ?? ""}
+                    onChange={(event) =>
+                      handleRaceBlur(race.id, "dq_reason_b", event.target.value)
+                    }
+                    style={selectStyle}
+                  >
+                    <option value="">DQ reason for Racer B</option>
+                    {DQ_REASONS.map((reason) => (
+                      <option key={reason} value={reason}>
+                        {reason}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={fieldGroupStyle}>
+                  <label style={labelStyle}>Note</label>
+                  <input
+                    type="text"
+                    value={race.note ?? ""}
+                    onChange={(event) =>
+                      setRaces((previous) =>
+                        previous.map((item) =>
+                          item.id === race.id
+                            ? { ...item, note: event.target.value }
+                            : item
+                        )
+                      )
+                    }
+                    onBlur={(event) =>
+                      handleRaceBlur(race.id, "note", event.target.value)
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
   );
+}
+
+/* =========================================================
+   CHILD COMPONENTS
+========================================================= */
+
+function RaceHeader({ race, compact = false }) {
+  return (
+    <div style={raceHeaderStyle}>
+      <div>
+        <div style={{ fontWeight: 900, fontSize: compact ? 15 : 17 }}>
+          Race {race.id}
+        </div>
+        <div style={{ color: COLORS.muted2, fontSize: 12 }}>
+          {race.round}
+        </div>
+      </div>
+
+      <div
+        style={{
+          ...pillStyle,
+          background: race.is_current_override ? COLORS.accentDark : COLORS.panel2,
+          color: race.is_current_override ? "#bbf7d0" : COLORS.muted,
+          border: race.is_current_override ? `1px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+        }}
+      >
+        {race.is_current_override ? "● LIVE" : race.status || "Pending"}
+      </div>
+    </div>
+  );
+}
+
+function ScoreboardInputs({ race, setRaces, handleRaceBlur }) {
+  const fields = [
+    ["run1_lane1", "Run 1 Lane 1"],
+    ["run1_lane2", "Run 1 Lane 2"],
+    ["run2_lane1", "Run 2 Lane 1"],
+    ["run2_lane2", "Run 2 Lane 2"],
+  ];
 
   return (
-    <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
-      <h1>Admin Panel</h1>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ marginRight: 8 }}>District</label>
-        <select value={district} onChange={(event) => setDistrict(event.target.value)}>
-          {DISTRICT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+    <div style={scorePanelStyle}>
+      <div style={scoreHeaderStyle}>
+        <span>Run Times</span>
+        <span style={{ color: COLORS.muted2 }}>Lane swap format</span>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ marginRight: 8 }}>Division</label>
-        {allowedDivisions.map((item) => (
-          <button
-            key={item}
-            onClick={() => setDivision(item)}
-            style={{
-              marginRight: 8,
-              fontWeight: division === item ? "bold" : "normal",
-            }}
-          >
-            {DIVISION_LABELS[item]}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ marginRight: 8 }}>Bracket</label>
-        {allowedBrackets.map((item) => (
-          <button
-            key={item}
-            onClick={() => handleBracketChange(item)}
-            style={{
-              marginRight: 8,
-              fontWeight: bracketType === item ? "bold" : "normal",
-            }}
-          >
-            {division === "stock" ? "12-Car Stock" : `${item}-Car Super Stock`}
-          </button>
-        ))}
-      </div>
-
-      {message && (
-        <div style={{ marginBottom: 16, color: "#2563eb", fontWeight: "bold" }}>
-          {message}
-        </div>
-      )}
-
-      {loading && <div style={{ marginBottom: 16 }}>Loading bracket data...</div>}
-
-      <h2>Draw / Race Assignments</h2>
-
-      <div style={{ marginBottom: 24 }}>
-        {assignmentRaces.map((race) => {
-          const editableFields = getAssignmentFields(race, bracketType);
-
-          return (
-            <div
-              key={`assignment-${race.id}`}
-              style={{
-                border: "1px solid #ddd",
-                padding: 12,
-                marginBottom: 10,
-                borderRadius: 8,
-                background: "#fafafa",
-              }}
-            >
-              <div style={{ fontWeight: "bold", marginBottom: 8 }}>
-                Race {race.id} — {race.round}
-              </div>
-
-              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                <input
-                  value={race.racer_a || ""}
-                  placeholder={race.slot_a || "Racer A"}
-                  disabled={!editableFields.includes("racer_a")}
-                  onChange={(event) =>
-                    setRaces((previous) =>
-                      previous.map((item) =>
-                        item.id === race.id
-                          ? { ...item, racer_a: event.target.value }
-                          : item
-                      )
-                    )
-                  }
-                  onBlur={(event) =>
-                    handleAssignmentBlur(race.id, "racer_a", event.target.value)
-                  }
-                />
-
-                <span>vs</span>
-
-                <input
-                  value={race.racer_b || ""}
-                  placeholder={race.slot_b || "Racer B"}
-                  disabled={!editableFields.includes("racer_b")}
-                  onChange={(event) =>
-                    setRaces((previous) =>
-                      previous.map((item) =>
-                        item.id === race.id
-                          ? { ...item, racer_b: event.target.value }
-                          : item
-                      )
-                    )
-                  }
-                  onBlur={(event) =>
-                    handleAssignmentBlur(race.id, "racer_b", event.target.value)
-                  }
-                />
-
-                <select
-                  value={race.bye_for ?? ""}
-                  onChange={(event) =>
-                    handleRaceByeChange(race.id, event.target.value)
-                  }
-                >
-                  <option value="">No BYE</option>
-                  <option value="A">Racer A advances by BYE</option>
-                  <option value="B">Racer B advances by BYE</option>
-                </select>
-
-                <button
-                  onClick={() => clearRaceEntries(race.id)}
-                  style={{ color: "#b91c1c" }}
-                >
-                  Clear Race Entries
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <h2 style={{ marginTop: 24 }}>Races</h2>
-
-      {races.map((race) => (
-        <div
-          key={`${district}-${division}-${bracketType}-${race.id}`}
-          style={{
-            border: race.is_current_override
-              ? "2px solid #22c55e"
-              : "1px solid #ccc",
-            padding: 12,
-            marginBottom: 12,
-            borderRadius: 8,
-          }}
-        >
-          <div>
-            <strong>Race {race.id}</strong> — {race.round}
-          </div>
-
-          <div style={{ marginBottom: 8 }}>
-            {race.racer_a || race.slot_a} vs {race.racer_b || race.slot_b}
-          </div>
-
-          <div style={{ marginBottom: 8 }}>
-            <button onClick={() => setCurrentRace(race.id)}>
-              Set NOW RACING
-            </button>
-
-            {race.is_current_override && (
-              <button
-                onClick={() => clearCurrentRace(race.id)}
-                style={{ marginLeft: 8 }}
-              >
-                Clear NOW RACING
-              </button>
-            )}
-
-            <button
-              onClick={() => clearRaceEntries(race.id)}
-              style={{ marginLeft: 8, color: "#b91c1c" }}
-            >
-              Clear Race Entries
-            </button>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {["run1_lane1", "run1_lane2", "run2_lane1", "run2_lane2"].map(
-              (field) => (
-                <input
-                  key={field}
-                  type="number"
-                  step="0.001"
-                  value={race[field] ?? ""}
-                  placeholder={field}
-                  onChange={(event) =>
-                    setRaces((previous) =>
-                      previous.map((item) =>
-                        item.id === race.id
-                          ? { ...item, [field]: event.target.value }
-                          : item
-                      )
-                    )
-                  }
-                  onBlur={(event) =>
-                    handleRaceBlur(race.id, field, event.target.value)
-                  }
-                />
-              )
-            )}
-          </div>
-
-          <div style={{ marginTop: 12 }}>
-            <strong>BYE / Disqualification</strong>
-
-            <div style={{ marginTop: 8 }}>
-              <label style={{ marginRight: 8 }}>BYE</label>
-              <select
-                value={race.bye_for ?? ""}
-                onChange={(event) =>
-                  handleRaceByeChange(race.id, event.target.value)
-                }
-              >
-                <option value="">No BYE</option>
-                <option value="A">Racer A advances by BYE</option>
-                <option value="B">Racer B advances by BYE</option>
-              </select>
-            </div>
-
-            <div style={{ marginTop: 8, display: "flex", gap: 16 }}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={!!race.dq_a}
-                  onChange={(event) =>
-                    handleRaceToggle(race.id, "dq_a", event.target.checked)
-                  }
-                />{" "}
-                DQ Racer A
-              </label>
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={!!race.dq_b}
-                  onChange={(event) =>
-                    handleRaceToggle(race.id, "dq_b", event.target.checked)
-                  }
-                />{" "}
-                DQ Racer B
-              </label>
-            </div>
-
-            <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <select
-                value={race.dq_reason_a ?? ""}
-                onChange={(event) =>
-                  handleRaceBlur(race.id, "dq_reason_a", event.target.value)
-                }
-              >
-                <option value="">DQ reason for Racer A</option>
-                {DQ_REASONS.map((reason) => (
-                  <option key={reason} value={reason}>
-                    {reason}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={race.dq_reason_b ?? ""}
-                onChange={(event) =>
-                  handleRaceBlur(race.id, "dq_reason_b", event.target.value)
-                }
-              >
-                <option value="">DQ reason for Racer B</option>
-                {DQ_REASONS.map((reason) => (
-                  <option key={reason} value={reason}>
-                    {reason}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 8 }}>
-            <label style={{ marginRight: 8 }}>Note</label>
+      <div className="score-grid" style={scoreGridStyle}>
+        {fields.map(([field, label]) => (
+          <label key={field} style={scoreInputWrapStyle}>
+            <span style={smallLabelStyle}>{label}</span>
             <input
-              type="text"
-              value={race.note ?? ""}
+              type="number"
+              step="0.001"
+              value={race[field] ?? ""}
+              placeholder="--"
               onChange={(event) =>
                 setRaces((previous) =>
                   previous.map((item) =>
                     item.id === race.id
-                      ? { ...item, note: event.target.value }
+                      ? { ...item, [field]: event.target.value }
                       : item
                   )
                 )
               }
               onBlur={(event) =>
-                handleRaceBlur(race.id, "note", event.target.value)
+                handleRaceBlur(race.id, field, event.target.value)
               }
+              style={inputStyle}
             />
-          </div>
-
-          <div style={{ marginTop: 10 }}>
-            <div>
-              <strong>Status:</strong> {race.status || "Pending"}
-            </div>
-            <div>
-              <strong>Winner:</strong> {race.winner || "--"}
-            </div>
-            <div>
-              <strong>Loser:</strong> {race.loser || "--"}
-            </div>
-          </div>
-        </div>
-      ))}
+          </label>
+        ))}
+      </div>
     </div>
   );
 }
+
+/* =========================================================
+   STYLES
+========================================================= */
+
+const pageStyle = {
+  background: COLORS.bg,
+  minHeight: "100vh",
+  color: COLORS.text,
+};
+
+const topGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "1.25fr 0.75fr",
+  gap: 16,
+};
+
+const panelStyle = {
+  background: COLORS.panel,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 18,
+  padding: 16,
+};
+
+const messageStyle = {
+  background: COLORS.accent,
+  color: "#022c22",
+  padding: 12,
+  borderRadius: 12,
+  marginBottom: 16,
+  fontWeight: 900,
+};
+
+const sectionTitleStyle = {
+  fontSize: 17,
+  fontWeight: 900,
+  marginBottom: 12,
+};
+
+const fieldGroupStyle = {
+  display: "grid",
+  gap: 6,
+  marginBottom: 12,
+};
+
+const labelStyle = {
+  color: COLORS.muted,
+  fontSize: 13,
+  fontWeight: 800,
+};
+
+const selectStyle = {
+  background: COLORS.input,
+  color: COLORS.text,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 10,
+  padding: "9px 10px",
+  minHeight: 38,
+};
+
+const inputStyle = {
+  background: COLORS.input,
+  color: COLORS.text,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 10,
+  padding: "9px 10px",
+  minHeight: 38,
+  flex: 1,
+};
+
+const buttonWrapStyle = {
+  display: "flex",
+  gap: 8,
+  flexWrap: "wrap",
+};
+
+const activeButtonStyle = {
+  background: COLORS.accent,
+  color: "#022c22",
+  border: "none",
+  borderRadius: 999,
+  padding: "9px 13px",
+  fontWeight: 900,
+  cursor: "pointer",
+};
+
+const secondaryButtonStyle = {
+  background: COLORS.panel2,
+  color: COLORS.text,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 999,
+  padding: "9px 13px",
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const primaryButtonStyle = {
+  background: COLORS.accent,
+  color: "#022c22",
+  border: "none",
+  borderRadius: 10,
+  padding: "9px 12px",
+  fontWeight: 900,
+  cursor: "pointer",
+};
+
+const dangerButtonStyle = {
+  background: COLORS.redDark,
+  color: "#fecaca",
+  border: "1px solid #991b1b",
+  borderRadius: 10,
+  padding: "9px 12px",
+  fontWeight: 900,
+  cursor: "pointer",
+};
+
+const contextLineStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 14,
+  padding: "8px 0",
+  borderBottom: `1px solid ${COLORS.border}`,
+  color: COLORS.muted,
+};
+
+const sectionHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "end",
+  marginBottom: 12,
+};
+
+const h2Style = {
+  fontSize: 23,
+  margin: 0,
+};
+
+const subTextStyle = {
+  color: COLORS.muted2,
+  fontSize: 13,
+  marginTop: 4,
+};
+
+const cardGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+  gap: 14,
+};
+
+const raceCardStyle = {
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 18,
+  padding: 16,
+};
+
+const raceHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "start",
+  gap: 10,
+  marginBottom: 12,
+};
+
+const pillStyle = {
+  borderRadius: 999,
+  padding: "5px 9px",
+  fontSize: 11,
+  fontWeight: 900,
+  whiteSpace: "nowrap",
+};
+
+const rowWrapStyle = {
+  display: "flex",
+  gap: 8,
+  alignItems: "center",
+  flexWrap: "wrap",
+};
+
+const vsStyle = {
+  color: COLORS.muted2,
+  fontSize: 12,
+  fontWeight: 900,
+};
+
+const buttonRowStyle = {
+  display: "flex",
+  gap: 8,
+  flexWrap: "wrap",
+  marginTop: 10,
+};
+
+const matchupStyle = {
+  background: COLORS.panel2,
+  border: `1px solid ${COLORS.border}`,
+  padding: 10,
+  borderRadius: 12,
+  fontWeight: 900,
+  marginBottom: 10,
+};
+
+const scorePanelStyle = {
+  background: "#020617",
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 10,
+  marginTop: 10,
+};
+
+const scoreHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 10,
+  fontSize: 12,
+  fontWeight: 900,
+  marginBottom: 8,
+};
+
+const scoreGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: 8,
+};
+
+const scoreInputWrapStyle = {
+  display: "grid",
+  gap: 4,
+};
+
+const smallLabelStyle = {
+  fontSize: 11,
+  color: COLORS.muted2,
+  fontWeight: 800,
+};
+
+const statusBoxStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: 6,
+  background: COLORS.panel2,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 10,
+  marginTop: 10,
+  fontSize: 13,
+};
+
+const mutedLabelStyle = {
+  color: COLORS.muted2,
+  fontWeight: 800,
+};
+
+const dividerStyle = {
+  height: 1,
+  background: COLORS.border,
+  margin: "12px 0",
+};
+
+const checkboxLabelStyle = {
+  color: COLORS.muted,
+  fontWeight: 800,
+  display: "flex",
+  gap: 6,
+  alignItems: "center",
+};
