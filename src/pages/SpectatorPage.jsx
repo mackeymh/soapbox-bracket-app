@@ -987,9 +987,6 @@ function BracketView({ races }) {
             <h2 style={styles.bracketRoundTitle}>{round}</h2>
 
             {roundRaces.map((race, index) => {
-              const showVerticalConnector =
-                !isLastRound && index % 2 === 0 && index + 1 < roundRaces.length;
-
               return (
                 <div
                   key={`${race.division}-${race.bracket_type}-${race.id}`}
@@ -1032,10 +1029,6 @@ function BracketView({ races }) {
                   </div>
 
                   {!isLastRound && <div style={styles.connectorHorizontal} />}
-
-                  {showVerticalConnector && (
-                    <div style={styles.connectorVertical} />
-                  )}
                 </div>
               );
             })}
@@ -1572,17 +1565,7 @@ connectorHorizontal: {
   top: "50%",
   width: 36,
   height: 2,
-  background: COLORS.border,
-  zIndex: 1,
-},
-
-connectorVertical: {
-  position: "absolute",
-  right: -36,
-  top: "50%",
-  width: 2,
-  height: 44,
-  background: COLORS.border,
+  background: "rgba(148,163,184,0.45)",
   zIndex: 1,
 },
 
