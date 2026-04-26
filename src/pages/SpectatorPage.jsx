@@ -8,10 +8,38 @@ const DISTRICT_CONFIG = {
     logo: "/logo.png",
     divisions: ["stock", "superstock"],
     schoolCodes: [
-      "11X016","11X019","11X041","11X068","11X076","11X078","11X083","11X087",
-      "11X089","11X096","11X097","11X103","11X105","11X106","11X108","11X111",
-      "11X121","11X127","11X144","11X153","11X160","11X169","11X175","11X180",
-      "11X181","11X194","11X370","11X462","11X483","11X498","11X529","11X566",
+      "11X016",
+      "11X019",
+      "11X041",
+      "11X068",
+      "11X076",
+      "11X078",
+      "11X083",
+      "11X087",
+      "11X089",
+      "11X096",
+      "11X097",
+      "11X103",
+      "11X105",
+      "11X106",
+      "11X108",
+      "11X111",
+      "11X121",
+      "11X127",
+      "11X144",
+      "11X153",
+      "11X160",
+      "11X169",
+      "11X175",
+      "11X180",
+      "11X181",
+      "11X194",
+      "11X370",
+      "11X462",
+      "11X483",
+      "11X498",
+      "11X529",
+      "11X566",
       "11X567",
     ],
   },
@@ -21,11 +49,44 @@ const DISTRICT_CONFIG = {
     logo: "/logo.png",
     divisions: ["superstock"],
     schoolCodes: [
-      "07X018","07X025","07X029","07X043","07X065","07X224","07X277","07X296",
-      "07X298","07X369","08X036","08X062","08X071","08X072","08X075","08X107",
-      "08X130","08X131","08X140","08X269","08X302","08X333","08X367","08X371",
-      "08X392","08X562","09X035","09X042","09X055","09X110","09X219","09X229",
-      "09X285","09X361","10X094","10X118","75X176","84X718",
+      "07X018",
+      "07X025",
+      "07X029",
+      "07X043",
+      "07X065",
+      "07X224",
+      "07X277",
+      "07X296",
+      "07X298",
+      "07X369",
+      "08X036",
+      "08X062",
+      "08X071",
+      "08X072",
+      "08X075",
+      "08X107",
+      "08X130",
+      "08X131",
+      "08X140",
+      "08X269",
+      "08X302",
+      "08X333",
+      "08X367",
+      "08X371",
+      "08X392",
+      "08X562",
+      "09X035",
+      "09X042",
+      "09X055",
+      "09X110",
+      "09X219",
+      "09X229",
+      "09X285",
+      "09X361",
+      "10X094",
+      "10X118",
+      "75X176",
+      "84X718",
     ],
   },
 };
@@ -73,8 +134,7 @@ function raceMatchesSchool(race, selectedSchool) {
   const racerB = normalizeCarLabel(race.racer_b || "");
 
   return (
-    racerA.startsWith(`${shortCode}-`) ||
-    racerB.startsWith(`${shortCode}-`)
+    racerA.startsWith(`${shortCode}-`) || racerB.startsWith(`${shortCode}-`)
   );
 }
 
@@ -128,15 +188,15 @@ function getRaceTimes(race) {
     race.total_a != null
       ? toNumber(race.total_a)
       : aRun1 != null && aRun2 != null
-      ? aRun1 + aRun2
-      : null;
+        ? aRun1 + aRun2
+        : null;
 
   const totalB =
     race.total_b != null
       ? toNumber(race.total_b)
       : bRun1 != null && bRun2 != null
-      ? bRun1 + bRun2
-      : null;
+        ? bRun1 + bRun2
+        : null;
 
   return { aRun1, bRun1, aRun2, bRun2, totalA, totalB };
 }
@@ -304,16 +364,17 @@ export default function SpectatorPage() {
       for (const divisionOption of divisionOptions) {
         const setting = await fetchEventSetting(district, divisionOption);
         const activeBracket =
-          setting?.active_bracket_type || (divisionOption === "stock" ? "12" : "32");
+          setting?.active_bracket_type ||
+          (divisionOption === "stock" ? "12" : "32");
 
         const divisionRaces = await fetchRaces(
           activeBracket,
           district,
-          divisionOption
+          divisionOption,
         );
 
         const current = (divisionRaces || []).find(
-          (race) => race.is_current_override
+          (race) => race.is_current_override,
         );
 
         if (current) {
@@ -335,19 +396,16 @@ export default function SpectatorPage() {
     return () => clearInterval(intervalId);
   }, [district]);
 
-  const sorted = useMemo(
-    () => [...races].sort((a, b) => a.id - b.id),
-    [races]
-  );
+  const sorted = useMemo(() => [...races].sort((a, b) => a.id - b.id), [races]);
 
   const currentRace = useMemo(
     () => sorted.find((race) => race.is_current_override) || null,
-    [sorted]
+    [sorted],
   );
 
   const currentRaceIndex = useMemo(
     () => sorted.findIndex((race) => race.is_current_override),
-    [sorted]
+    [sorted],
   );
 
   const nextRace = useMemo(() => {
@@ -357,9 +415,7 @@ export default function SpectatorPage() {
       sorted
         .slice(currentRaceIndex + 1)
         .find(
-          (race) =>
-            race.status !== "Complete" &&
-            race.status !== "DQ Conflict"
+          (race) => race.status !== "Complete" && race.status !== "DQ Conflict",
         ) || null
     );
   }, [sorted, currentRaceIndex]);
@@ -374,14 +430,16 @@ export default function SpectatorPage() {
   }, [currentRace, tab]);
 
   const stats = useMemo(() => {
-    const completed = sorted.filter((race) => race.status === "Complete").length;
+    const completed = sorted.filter(
+      (race) => race.status === "Complete",
+    ).length;
     const inProgress = sorted.filter(
       (race) =>
         race.status !== "Complete" &&
-        (isRaceMidRace(race) || race.is_current_override)
+        (isRaceMidRace(race) || race.is_current_override),
     ).length;
     const pending = sorted.filter(
-      (race) => !hasAnyRunData(race) && race.status !== "Complete"
+      (race) => !hasAnyRunData(race) && race.status !== "Complete",
     ).length;
 
     return {
@@ -429,7 +487,7 @@ export default function SpectatorPage() {
     ];
   }, [visible, currentRace]);
 
-    const currentBannerRace = districtCurrentRace || currentRace;
+  const currentBannerRace = districtCurrentRace || currentRace;
 
   return (
     <div style={styles.page}>
@@ -528,10 +586,15 @@ export default function SpectatorPage() {
               <>
                 <div className="on-track-title" style={styles.onTrackTitle}>
                   Race {currentBannerRace.id} —{" "}
-                  {DIVISION_LABELS[currentBannerRace.division || activeDivision]}
+                  {
+                    DIVISION_LABELS[
+                      currentBannerRace.division || activeDivision
+                    ]
+                  }
                 </div>
                 <div className="on-track-matchup" style={styles.onTrackMatchup}>
-                  {getRacerA(currentBannerRace)} vs {getRacerB(currentBannerRace)}
+                  {getRacerA(currentBannerRace)} vs{" "}
+                  {getRacerB(currentBannerRace)}
                 </div>
                 <div style={styles.heroSubText}>
                   Cars currently coming down the track
@@ -596,9 +659,7 @@ export default function SpectatorPage() {
                     setSchoolFilter("All Schools");
                   }}
                   style={
-                    activeDivision === item
-                      ? styles.activeChip
-                      : styles.chip
+                    activeDivision === item ? styles.activeChip : styles.chip
                   }
                 >
                   {DIVISION_LABELS[item]}
@@ -701,16 +762,16 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
       ? totalA < totalB
         ? "A"
         : totalB < totalA
-        ? "B"
-        : null
+          ? "B"
+          : null
       : null;
 
   const winner =
     race.winner === getRacerA(race)
       ? "A"
       : race.winner === getRacerB(race)
-      ? "B"
-      : calculatedWinner;
+        ? "B"
+        : calculatedWinner;
 
   const winnerA = winner === "A";
   const winnerB = winner === "B";
@@ -730,13 +791,13 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
         border: isOnTrack
           ? `2px solid ${COLORS.accent}`
           : isUpNext
-          ? `2px solid ${COLORS.yellow}`
-          : `1px solid ${COLORS.border}`,
+            ? `2px solid ${COLORS.yellow}`
+            : `1px solid ${COLORS.border}`,
         boxShadow: isOnTrack
           ? "0 0 22px rgba(34,197,94,0.35)"
           : isUpNext
-          ? "0 0 16px rgba(250,204,21,0.25)"
-          : "none",
+            ? "0 0 16px rgba(250,204,21,0.25)"
+            : "none",
       }}
     >
       <div style={styles.raceCardHeader}>
@@ -811,9 +872,11 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
         <div style={styles.alertBox}>
           {race.bye_for && `BYE: Racer ${race.bye_for} advances`}
           {race.bye_for && (race.dq_a || race.dq_b) ? " · " : ""}
-          {race.dq_a && `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
+          {race.dq_a &&
+            `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
           {race.dq_a && race.dq_b ? " · " : ""}
-          {race.dq_b && `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
+          {race.dq_b &&
+            `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
         </div>
       )}
     </article>
@@ -1241,31 +1304,31 @@ const styles = {
   },
 
   winnerTag: {
-  color: COLORS.accent,
-  fontWeight: 950,
-  marginLeft: 6,
-  fontSize: 12,
-},
+    color: COLORS.accent,
+    fontWeight: 950,
+    marginLeft: 6,
+    fontSize: 12,
+  },
 
-tieBanner: {
-  marginTop: 10,
-  background: COLORS.yellowDark,
-  color: "#fef3c7",
-  border: `1px solid ${COLORS.yellow}`,
-  borderRadius: 12,
-  padding: 8,
-  fontWeight: 950,
-  textAlign: "center",
-},
+  tieBanner: {
+    marginTop: 10,
+    background: COLORS.yellowDark,
+    color: "#fef3c7",
+    border: `1px solid ${COLORS.yellow}`,
+    borderRadius: 12,
+    padding: 8,
+    fontWeight: 950,
+    textAlign: "center",
+  },
 
-photoFinishBanner: {
-  marginTop: 8,
-  background: "#1e293b",
-  color: "#fde68a",
-  border: `1px solid ${COLORS.yellow}`,
-  borderRadius: 12,
-  padding: 8,
-  fontWeight: 900,
-  textAlign: "center",
-},
+  photoFinishBanner: {
+    marginTop: 8,
+    background: "#1e293b",
+    color: "#fde68a",
+    border: `1px solid ${COLORS.yellow}`,
+    borderRadius: 12,
+    padding: 8,
+    fontWeight: 900,
+    textAlign: "center",
+  },
 };
