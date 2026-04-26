@@ -518,6 +518,9 @@ export default function AdminPage() {
       await advanceBracket(refreshedRaces);
       refreshedRaces = await fetchRaces(bracketType, district, division);
 
+      await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
+refreshedRaces = await fetchRaces(bracketType, district, division);
+
       setRaces(refreshedRaces);
       setMessage(`Cleared Race ${raceId}`);
     } catch (error) {
@@ -919,7 +922,36 @@ export default function AdminPage() {
     }
   }
 
-  async function handleRaceByeChange(raceId, byeValue) {
+  async function autoAdvanceCurrentRaceIfComplete(completedRaceId, raceRows) {
+  const completedRace = raceRows.find(r => r.id === completedRaceId);
+
+  if (!completedRace?.is_current_override) return;
+  if (completedRace.status !== "Complete") return;
+
+  const nextRace = raceRows
+    .filter(r => r.id > completedRaceId)
+    .find(r => r.status !== "Complete" && r.status !== "DQ Conflict");
+
+  if (!nextRace) return;
+
+  await updateRace(
+    completedRaceId,
+    { is_current_override: false },
+    bracketType,
+    district,
+    division
+  );
+
+  await updateRace(
+    nextRace.id,
+    { is_current_override: true },
+    bracketType,
+    district,
+    division
+  );
+}
+
+async function handleRaceByeChange(raceId, byeValue) {
     try {
       await updateRace(
         raceId,
