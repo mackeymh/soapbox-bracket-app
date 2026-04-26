@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchEventSetting, fetchRaces } from "../lib/raceStore";
 
@@ -322,7 +322,7 @@ export default function SpectatorPage() {
   const [districtCurrentRace, setDistrictCurrentRace] = useState(null);
   const currentRef = useRef(null);
 
-  async function loadAllDivisionRaces() {
+  const loadAllDivisionRaces = useCallback(async () => {
     const divisions = DISTRICT_CONFIG[district]?.divisions || ["stock"];
 
     let allRaces = [];
@@ -345,7 +345,7 @@ export default function SpectatorPage() {
     }
 
     return allRaces;
-  }
+  }, [district]);
 
   const activeDivision = districtDivisions.includes(division)
     ? division
@@ -360,10 +360,6 @@ export default function SpectatorPage() {
     schoolFilter === "All Schools" || config.schoolCodes.includes(schoolFilter)
       ? schoolFilter
       : "All Schools";
-
-  useEffect(() => {
-    setSchoolFilter("All Schools");
-  }, [district]);
 
   useEffect(() => {
     async function loadSetting() {
@@ -394,7 +390,7 @@ export default function SpectatorPage() {
     const intervalId = setInterval(loadRaces, 5000);
 
     return () => clearInterval(intervalId);
-  }, [bracketType, district, activeDivision]);
+  }, [bracketType, district, activeDivision, loadAllDivisionRaces]);
 
   useEffect(() => {
     async function loadDistrictCurrentRace() {
@@ -442,15 +438,7 @@ export default function SpectatorPage() {
     [sorted],
   );
 
-  const divisionRaces = useMemo(
-    () => sorted.filter((race) => race.division === activeDivision),
-    [sorted, activeDivision],
-  );
-
-  const currentRaceIndex = useMemo(
-    () => sorted.findIndex((race) => race.is_current_override),
-    [sorted],
-  );
+  const divisionRaces = sorted.filter((race) => race.division === activeDivision);
 
   const nextRace = useMemo(() => {
     return (
@@ -984,24 +972,76 @@ function BracketView({ races }) {
     rounds[round].push(race);
   });
 
+  const orderedRounds = Object.entries(rounds).map(([round, roundRaces]) => [
+    round,
+    [...roundRaces].sort((a, b) => a.id - b.id),
+  ]);
+
   return (
     <section style={styles.bracketPanel}>
-      {Object.entries(rounds).map(([round, roundRaces]) => (
-        <div key={round} style={styles.bracketColumn}>
-          <h2 style={styles.bracketRoundTitle}>{round}</h2>
+      {orderedRounds.map(([round, roundRaces], roundIndex) => {
+        const isLastRound = roundIndex === orderedRounds.length - 1;
 
-          {roundRaces.map((race) => (
-            <div key={`${race.division}-${race.bracket_type}-${race.id}`} style={styles.bracketMatch}>
-              <div style={styles.bracketRaceLabel}>Race {race.id}</div>
-              <div>{getRacerA(race)}</div>
-              <div>{getRacerB(race)}</div>
-              {race.winner && (
-                <div style={styles.bracketWinner}>Winner: {race.winner}</div>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
+        return (
+          <div key={round} style={styles.bracketColumn}>
+            <h2 style={styles.bracketRoundTitle}>{round}</h2>
+
+            {roundRaces.map((race, index) => {
+              const showVerticalConnector =
+                !isLastRound && index % 2 === 0 && index + 1 < roundRaces.length;
+
+              return (
+                <div
+                  key={`${race.division}-${race.bracket_type}-${race.id}`}
+                  style={styles.bracketNodeWrapper}
+                >
+                  <div style={styles.bracketMatch}>
+                    <div style={styles.bracketRaceLabel}>
+                      Race {race.id}
+                    </div>
+
+                    <div
+                      style={{
+                        ...styles.bracketCompetitor,
+                        ...(race.winner === getRacerA(race)
+                          ? styles.bracketWinnerRow
+                          : {}),
+                      }}
+                    >
+                      {race.winner === getRacerA(race) ? "🏎️🏁 " : ""}
+                      {getRacerA(race)}
+                    </div>
+
+                    <div
+                      style={{
+                        ...styles.bracketCompetitor,
+                        ...(race.winner === getRacerB(race)
+                          ? styles.bracketWinnerRow
+                          : {}),
+                      }}
+                    >
+                      {race.winner === getRacerB(race) ? "🏎️🏁 " : ""}
+                      {getRacerB(race)}
+                    </div>
+
+                    {race.winner && (
+                      <div style={styles.bracketWinner}>
+                        Winner: {race.winner}
+                      </div>
+                    )}
+                  </div>
+
+                  {!isLastRound && <div style={styles.connectorHorizontal} />}
+
+                  {showVerticalConnector && (
+                    <div style={styles.connectorVertical} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </section>
   );
 }
@@ -1455,11 +1495,12 @@ const styles = {
     fontWeight: 900,
     textAlign: "center",
   },
+
   bracketPanel: {
   display: "flex",
-  gap: 16,
+  gap: 36,
   overflowX: "auto",
-  padding: 12,
+  padding: 16,
   background: COLORS.panel,
   border: `1px solid ${COLORS.border}`,
   borderRadius: 18,
@@ -1467,8 +1508,10 @@ const styles = {
 
 bracketColumn: {
   minWidth: 260,
-  display: "grid",
-  gap: 12,
+  display: "flex",
+  flexDirection: "column",
+  gap: 18,
+  position: "relative",
 },
 
 bracketRoundTitle: {
@@ -1476,25 +1519,71 @@ bracketRoundTitle: {
   fontSize: 20,
   margin: 0,
   textAlign: "center",
+  whiteSpace: "nowrap",
 },
 
 bracketMatch: {
+  width: "100%",
   background: COLORS.card,
   border: `1px solid ${COLORS.border}`,
   borderRadius: 14,
   padding: 12,
   color: COLORS.text,
+  zIndex: 2,
 },
 
 bracketRaceLabel: {
   color: COLORS.muted,
   fontSize: 12,
   marginBottom: 6,
+  fontWeight: 900,
+},
+
+bracketCompetitor: {
+  padding: "6px 8px",
+  borderRadius: 8,
+  background: "#06101f",
+  marginTop: 5,
+  fontWeight: 850,
+},
+
+bracketWinnerRow: {
+  background: "rgba(34,197,94,0.18)",
+  color: "#dcfce7",
+  border: `1px solid ${COLORS.accent}`,
 },
 
 bracketWinner: {
   marginTop: 8,
   color: COLORS.accent,
   fontWeight: 900,
+  fontSize: 12,
 },
+
+bracketNodeWrapper: {
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+},
+
+connectorHorizontal: {
+  position: "absolute",
+  right: -36,
+  top: "50%",
+  width: 36,
+  height: 2,
+  background: COLORS.border,
+  zIndex: 1,
+},
+
+connectorVertical: {
+  position: "absolute",
+  right: -36,
+  top: "50%",
+  width: 2,
+  height: 44,
+  background: COLORS.border,
+  zIndex: 1,
+},
+
 };
