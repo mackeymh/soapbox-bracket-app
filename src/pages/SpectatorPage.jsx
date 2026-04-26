@@ -711,7 +711,7 @@ export default function SpectatorPage() {
         <section style={styles.controlsPanel}>
           <div className="control-row" style={styles.controlRow}>
             <div style={styles.tabRow}>
-              {["Races", "Standings"].map((item) => (
+              {["Races", "Bracket", "Standings"].map((item) => (
                 <button
                   key={item}
                   onClick={() => setTab(item)}
@@ -820,6 +820,13 @@ export default function SpectatorPage() {
             </div>
           </section>
         )}
+
+        {tab === "Bracket" && (
+  <BracketView
+    races={visible}
+    viewMode={viewMode}
+  />
+)}
       </div>
     </div>
   );
@@ -965,6 +972,37 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
         </div>
       )}
     </article>
+  );
+}
+
+function BracketView({ races }) {
+  const rounds = {};
+
+  races.forEach((race) => {
+    const round = race.round || "Round";
+    if (!rounds[round]) rounds[round] = [];
+    rounds[round].push(race);
+  });
+
+  return (
+    <section style={styles.bracketPanel}>
+      {Object.entries(rounds).map(([round, roundRaces]) => (
+        <div key={round} style={styles.bracketColumn}>
+          <h2 style={styles.bracketRoundTitle}>{round}</h2>
+
+          {roundRaces.map((race) => (
+            <div key={`${race.division}-${race.bracket_type}-${race.id}`} style={styles.bracketMatch}>
+              <div style={styles.bracketRaceLabel}>Race {race.id}</div>
+              <div>{getRacerA(race)}</div>
+              <div>{getRacerB(race)}</div>
+              {race.winner && (
+                <div style={styles.bracketWinner}>Winner: {race.winner}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+    </section>
   );
 }
 
@@ -1417,4 +1455,46 @@ const styles = {
     fontWeight: 900,
     textAlign: "center",
   },
+  bracketPanel: {
+  display: "flex",
+  gap: 16,
+  overflowX: "auto",
+  padding: 12,
+  background: COLORS.panel,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 18,
+},
+
+bracketColumn: {
+  minWidth: 260,
+  display: "grid",
+  gap: 12,
+},
+
+bracketRoundTitle: {
+  color: COLORS.text,
+  fontSize: 20,
+  margin: 0,
+  textAlign: "center",
+},
+
+bracketMatch: {
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 12,
+  color: COLORS.text,
+},
+
+bracketRaceLabel: {
+  color: COLORS.muted,
+  fontSize: 12,
+  marginBottom: 6,
+},
+
+bracketWinner: {
+  marginTop: 8,
+  color: COLORS.accent,
+  fontWeight: 900,
+},
 };
