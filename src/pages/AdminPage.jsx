@@ -114,14 +114,30 @@ function buildDefault32Races(district, division) {
   for (let i = 17; i <= 24; i++) {
     const source = (i - 17) * 2 + 1;
     races.push(
-      baseRace(i, b, division, district, "Round of 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Round of 16",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
   for (let i = 25; i <= 28; i++) {
     const source = (i - 25) * 2 + 17;
     races.push(
-      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Quarterfinals",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
@@ -175,7 +191,15 @@ function buildDefault48Races(district, division) {
     const source = (i - 33) * 2 + 17;
 
     races.push(
-      baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Sweet 16",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
@@ -183,7 +207,15 @@ function buildDefault48Races(district, division) {
     const source = (i - 41) * 2 + 33;
 
     races.push(
-      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Quarterfinals",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
@@ -217,21 +249,45 @@ function buildDefault64Races(district, division) {
   for (let i = 33; i <= 48; i++) {
     const source = (i - 33) * 2 + 1;
     races.push(
-      baseRace(i, b, division, district, "Round of 32", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Round of 32",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
   for (let i = 49; i <= 56; i++) {
     const source = (i - 49) * 2 + 33;
     races.push(
-      baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Sweet 16",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
   for (let i = 57; i <= 60; i++) {
     const source = (i - 57) * 2 + 49;
     races.push(
-      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
+      baseRace(
+        i,
+        b,
+        division,
+        district,
+        "Quarterfinals",
+        `Winner Race ${source}`,
+        `Winner Race ${source + 1}`
+      )
     );
   }
 
@@ -446,6 +502,53 @@ export default function AdminPage() {
 
     setRaces(await fetchRaces(bracketType, district, division));
     setMessage(`Cleared NOW RACING override for Race ${raceId}`);
+  }
+
+  async function clearRaceEntries(raceId) {
+    const confirmed = window.confirm(
+      `Clear all entries, times, DQ, BYE, winner, and status for Race ${raceId}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await updateRace(
+        raceId,
+        {
+          racer_a: "",
+          racer_b: "",
+          run1_lane1: null,
+          run1_lane2: null,
+          run2_lane1: null,
+          run2_lane2: null,
+          total_a: null,
+          total_b: null,
+          dq_a: false,
+          dq_b: false,
+          dq_reason_a: "",
+          dq_reason_b: "",
+          bye_for: "",
+          winner: "",
+          loser: "",
+          status: "Pending",
+          note: "",
+          is_current_override: false,
+        },
+        bracketType,
+        district,
+        division
+      );
+
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
+      await advanceBracket(refreshedRaces);
+      refreshedRaces = await fetchRaces(bracketType, district, division);
+
+      setRaces(refreshedRaces);
+      setMessage(`Cleared Race ${raceId}`);
+    } catch (error) {
+      console.error("CLEAR RACE ERROR:", error);
+      setMessage(`Failed to clear Race ${raceId}`);
+    }
   }
 
   async function handleAssignmentBlur(raceId, field, value) {
@@ -1015,6 +1118,13 @@ export default function AdminPage() {
                   <option value="A">Racer A advances by BYE</option>
                   <option value="B">Racer B advances by BYE</option>
                 </select>
+
+                <button
+                  onClick={() => clearRaceEntries(race.id)}
+                  style={{ color: "#b91c1c" }}
+                >
+                  Clear Race Entries
+                </button>
               </div>
             </div>
           );
@@ -1053,9 +1163,16 @@ export default function AdminPage() {
                 onClick={() => clearCurrentRace(race.id)}
                 style={{ marginLeft: 8 }}
               >
-                Clear
+                Clear NOW RACING
               </button>
             )}
+
+            <button
+              onClick={() => clearRaceEntries(race.id)}
+              style={{ marginLeft: 8, color: "#b91c1c" }}
+            >
+              Clear Race Entries
+            </button>
           </div>
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
