@@ -297,6 +297,15 @@ function getRaceDisplayName(race) {
   return `${race.racer_a || race.slot_a || "--"} vs ${race.racer_b || race.slot_b || "--"}`;
 }
 
+function hasAnyRunData(race) {
+  return (
+    race.run1_lane1 != null ||
+    race.run1_lane2 != null ||
+    race.run2_lane1 != null ||
+    race.run2_lane2 != null
+  );
+}
+
 /* =========================================================
    ADMIN PAGE
 ========================================================= */
@@ -923,14 +932,21 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
   }
 
   async function autoAdvanceCurrentRaceIfComplete(completedRaceId, raceRows) {
-  const completedRace = raceRows.find(r => r.id === completedRaceId);
+  const completedRace = raceRows.find((r) => r.id === completedRaceId);
 
   if (!completedRace?.is_current_override) return;
   if (completedRace.status !== "Complete") return;
 
-  const nextRace = raceRows
-    .filter(r => r.id > completedRaceId)
-    .find(r => r.status !== "Complete" && r.status !== "DQ Conflict");
+  const nextRace = [...raceRows]
+    .filter(
+      (r) =>
+        r.id !== completedRaceId &&
+        !r.is_current_override &&
+        r.status !== "Complete" &&
+        r.status !== "DQ Conflict" &&
+        !hasAnyRunData(r)
+    )
+    .sort((a, b) => a.id - b.id)[0];
 
   if (!nextRace) return;
 
