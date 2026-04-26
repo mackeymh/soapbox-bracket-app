@@ -861,6 +861,7 @@ const styles = {
     margin: "3px 0",
     fontSize: 30,
     lineHeight: 1.05,
+    color: COLORS.text,
   },
 
   subtitle: {
