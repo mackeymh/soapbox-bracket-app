@@ -145,6 +145,14 @@ function getRunWinner(race, runNumber) {
   if (isComplete(race)) return null;
 
   const { aRun1, bRun1, aRun2, bRun2 } = getRaceTimes(race);
+  const winner =
+    totalA != null && totalB != null
+      ? totalA < totalB
+        ? "A"
+        : totalB < totalA
+        ? "B"
+        : null
+      : null;
 
   if (runNumber === 1 && aRun1 != null && bRun1 != null) {
     if (aRun1 < bRun1) return "A";
@@ -691,12 +699,33 @@ function Stat({ label, value }) {
 
 function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
   const { aRun1, bRun1, aRun2, bRun2, totalA, totalB } = getRaceTimes(race);
+
   const run1Winner = getRunWinner(race, 1);
   const run2Winner = getRunWinner(race, 2);
   const complete = isComplete(race);
 
-  const winnerA = complete && race.winner === (race.racer_a || race.slot_a);
-  const winnerB = complete && race.winner === (race.racer_b || race.slot_b);
+  const calculatedWinner =
+    totalA != null && totalB != null
+      ? totalA < totalB
+        ? "A"
+        : totalB < totalA
+        ? "B"
+        : null
+      : null;
+
+  const winner =
+    race.winner === getRacerA(race)
+      ? "A"
+      : race.winner === getRacerB(race)
+      ? "B"
+      : calculatedWinner;
+
+  const winnerA = winner === "A";
+  const winnerB = winner === "B";
+  const isTie = totalA != null && totalB != null && totalA === totalB;
+  const margin =
+    totalA != null && totalB != null ? Math.abs(totalA - totalB) : null;
+  const isPhotoFinish = margin != null && margin > 0 && margin <= 0.01;
 
   const statusText = getStatusText(race, isOnTrack, isUpNext);
   const statusColor = getStatusColor(race, isOnTrack, isUpNext);
@@ -753,7 +782,7 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
           run1Winner={run1Winner === "A"}
           run2Winner={run2Winner === "A"}
           overallWinner={winnerA}
-          complete={complete}
+          complete={complete || !!winner}
         />
 
         <ScoreRow
@@ -764,9 +793,27 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
           run1Winner={run1Winner === "B"}
           run2Winner={run2Winner === "B"}
           overallWinner={winnerB}
-          complete={complete}
+          complete={complete || !!winner}
         />
       </div>
+
+      {isTie && (
+        <div style={styles.tieBanner}>
+          ⚠️ Tiebreaker Needed — both racers are tied at {formatTime(totalA)}
+        </div>
+      )}
+
+      {!isTie && winner && (
+        <div style={styles.winnerBanner}>
+          🏁 Winner: {winner === "A" ? getRacerA(race) : getRacerB(race)}
+        </div>
+      )}
+
+      {isPhotoFinish && winner && (
+        <div style={styles.photoFinishBanner}>
+          📸 Photo Finish — margin: {margin.toFixed(3)} seconds
+        </div>
+      )}
 
       {(race.dq_a || race.dq_b || race.bye_for) && (
         <div style={styles.alertBox}>
@@ -776,10 +823,6 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
           {race.dq_a && race.dq_b ? " · " : ""}
           {race.dq_b && `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
         </div>
-      )}
-
-      {complete && race.winner && (
-        <div style={styles.winnerBanner}>🏁 Winner: {race.winner}</div>
       )}
     </article>
   );
@@ -803,7 +846,11 @@ function ScoreRow({
       }}
     >
       <div style={styles.competitorCell}>
-        <span>{overallWinner ? "🏁 " : ""}{name}</span>
+        <span>
+          {overallWinner ? "🏁 " : ""}
+          {name}
+          {overallWinner && <span style={styles.winnerTag}> WINNER</span>}
+        </span>
       </div>
 
       <div style={styles.timeCell}>
@@ -1200,4 +1247,33 @@ const styles = {
     fontWeight: 900,
     textAlign: "right",
   },
+
+  winnerTag: {
+  color: COLORS.accent,
+  fontWeight: 950,
+  marginLeft: 6,
+  fontSize: 12,
+},
+
+tieBanner: {
+  marginTop: 10,
+  background: COLORS.yellowDark,
+  color: "#fef3c7",
+  border: `1px solid ${COLORS.yellow}`,
+  borderRadius: 12,
+  padding: 8,
+  fontWeight: 950,
+  textAlign: "center",
+},
+
+photoFinishBanner: {
+  marginTop: 8,
+  background: "#1e293b",
+  color: "#fde68a",
+  border: `1px solid ${COLORS.yellow}`,
+  borderRadius: 12,
+  padding: 8,
+  fontWeight: 900,
+  textAlign: "center",
+},
 };
