@@ -1009,13 +1009,22 @@ export default function AdminPage() {
       </style>
 
       <div className="admin-page" style={{ maxWidth: 1320, margin: "0 auto", padding: 20 }}>
-        <header style={{ marginBottom: 18, display: "flex", alignItems: "center", gap: 14 }}>
+        <header
+          style={{
+            marginBottom: 18,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 10,
+          }}
+        >
           <img
             src="/logo.png"
             alt="Soap Box Derby logo"
             style={{
-              width: 56,
-              height: 56,
+              width: 64,
+              height: 64,
               objectFit: "contain",
               background: "#fff",
               borderRadius: 12,
@@ -1027,9 +1036,18 @@ export default function AdminPage() {
             <div style={{ color: COLORS.accent, fontWeight: 900, letterSpacing: 0.6 }}>
               SOAP BOX DERBY
             </div>
-            <h1 style={{ margin: "4px 0", fontSize: 34, lineHeight: 1.05, color: COLORS.text }}>
+
+            <h1
+              style={{
+                margin: "4px 0",
+                fontSize: 34,
+                lineHeight: 1.05,
+                color: COLORS.text,
+              }}
+            >
               Race Control Dashboard
             </h1>
+
             <div style={{ color: COLORS.muted }}>
               Manage divisions, brackets, draws, race timing, BYEs, DQs, and live race status.
             </div>
