@@ -78,6 +78,16 @@ function raceMatchesSchool(race, selectedSchool) {
   );
 }
 
+function sameRace(a, b) {
+  return (
+    !!a &&
+    !!b &&
+    a.id === b.id &&
+    a.division === b.division &&
+    a.bracket_type === b.bracket_type
+  );
+}
+
 function hasAnyRunData(race) {
   return (
     race.run1_lane1 != null ||
@@ -281,14 +291,17 @@ export default function SpectatorPage() {
       ? division
       : districtDivisions[0];
 
+  const activeViewMode =
+    viewMode === "All" || districtDivisions.includes(viewMode)
+      ? viewMode
+      : "All";
+
   const activeSchoolFilter =
     schoolFilter === "All Schools" || config.schoolCodes.includes(schoolFilter)
       ? schoolFilter
       : "All Schools";
 
   useEffect(() => {
-    const nextDivision = DISTRICT_CONFIG[district]?.divisions?.[0] || "stock";
-    setDivision(nextDivision);
     setSchoolFilter("All Schools");
   }, [district]);
 
@@ -371,6 +384,11 @@ setRaces(data);
     [sorted]
   );
 
+  const divisionRaces = useMemo(
+    () => sorted.filter((race) => race.division === activeDivision),
+    [sorted, activeDivision]
+  );
+
   const currentRaceIndex = useMemo(
     () => sorted.findIndex((race) => race.is_current_override),
     [sorted]
@@ -432,31 +450,32 @@ setRaces(data);
   }, [sorted]);
 
   const visible = useMemo(() => {
-  return sorted.filter(race => {
+    return sorted.filter((race) => {
+      if (activeViewMode !== "All" && race.division !== activeViewMode) {
+        return false;
+      }
 
-    // NEW: division filter
-    if (viewMode !== "All" && race.division !== viewMode) {
-      return false;
-    }
+      if (!raceMatchesSchool(race, activeSchoolFilter)) {
+        return false;
+      }
 
-    // existing filters
-    if (filter === "Completed") return race.status === "Complete";
-    if (filter === "Pending") return !hasAnyRunData(race);
-    if (filter === "Current") return race.is_current_override;
+      if (filter === "Completed") return race.status === "Complete";
+      if (filter === "Pending") return !hasAnyRunData(race);
+      if (filter === "Current") return race.is_current_override;
 
-    return true;
-  });
-}, [sorted, filter, viewMode]);
+      return true;
+    });
+  }, [sorted, filter, activeViewMode, activeSchoolFilter]);
 
   const orderedVisible = useMemo(() => {
     if (!currentRace) return visible;
 
-    const currentInVisible = visible.find((race) => race.id === currentRace.id);
+    const currentInVisible = visible.find((race) => sameRace(race, currentRace));
     if (!currentInVisible) return visible;
 
     return [
       currentInVisible,
-      ...visible.filter((race) => race.id !== currentRace.id),
+      ...visible.filter((race) => !sameRace(race, currentRace)),
     ];
   }, [visible, currentRace]);
 
@@ -529,165 +548,170 @@ setRaces(data);
 
       <div className="spectator-shell" style={styles.shell}>
         <header className="header-wrap" style={styles.header}>
-          <img
-            src={config.logo}
-            alt={`${config.title} logo`}
-            style={styles.logo}
-          />
+  <img
+    src={config.logo}
+    alt={`${config.title} logo`}
+    style={styles.logo}
+  />
 
-          <div>
-            <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
-            <h1 style={styles.title}>{config.title}</h1>
-            <div style={styles.subtitle}>
-              {DIVISION_LABELS[activeDivision]} · {bracketType}-Car Bracket
-            </div>
-          </div>
-        </header>
+  <div>
+    <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
+    <h1 style={styles.title}>{config.title}</h1>
+    <div style={styles.subtitle}>
+      {currentBannerRace
+        ? `${DIVISION_LABELS[currentBannerRace.division]} · ${currentBannerRace.bracket_type}-Car Bracket`
+        : activeViewMode === "All"
+        ? "All Divisions"
+        : `${DIVISION_LABELS[activeViewMode]} · ${bracketType}-Car Bracket`}
+    </div>
+  </div>
+</header>
 
-        <section className="hero-grid" style={styles.heroGrid}>
-          <div
-            style={{
-              ...styles.onTrackBanner,
-              animation: currentBannerRace
-                ? "onTrackFlash 0.85s infinite alternate"
-                : "none",
+<section className="hero-grid" style={styles.heroGrid}>
+  <div
+    style={{
+      ...styles.onTrackBanner,
+      animation: currentBannerRace
+        ? "onTrackFlash 0.85s infinite alternate"
+        : "none",
+    }}
+  >
+    <div style={styles.heroLabel}>🟢 ON THE TRACK</div>
+
+    {currentBannerRace ? (
+      <>
+        <div className="on-track-title" style={styles.onTrackTitle}>
+          Race {currentBannerRace.id} — {DIVISION_LABELS[currentBannerRace.division]}
+        </div>
+
+        <div className="on-track-matchup" style={styles.onTrackMatchup}>
+          {getRacerA(currentBannerRace)} vs {getRacerB(currentBannerRace)}
+        </div>
+
+        <div style={styles.heroSubText}>
+          {currentBannerRace.bracket_type}-Car Bracket · Cars currently coming down the track
+        </div>
+      </>
+    ) : (
+      <>
+        <div className="on-track-title" style={styles.onTrackTitle}>
+          Waiting for race control
+        </div>
+        <div style={styles.heroSubText}>
+          The admin will mark the next race as ON THE TRACK.
+        </div>
+      </>
+    )}
+  </div>
+
+  <div style={styles.sidePanel}>
+    <div style={styles.sidePanelTitle}>🟡 UP NEXT</div>
+
+    {nextRace ? (
+      <>
+        <div style={styles.nextRaceTitle}>
+          Race {nextRace.id}
+        </div>
+
+        <div style={styles.nextRaceMatchup}>
+          {getRacerA(nextRace)} vs {getRacerB(nextRace)}
+        </div>
+
+        <div style={styles.nextRaceRound}>
+          {DIVISION_LABELS[nextRace.division]} · {nextRace.bracket_type}-Car · {nextRace.round}
+        </div>
+      </>
+    ) : (
+      <div style={styles.emptyText}>No next race selected yet.</div>
+    )}
+
+    <div style={styles.statsGrid}>
+      <Stat label="Total" value={stats.total} />
+      <Stat label="Done" value={stats.completed} />
+      <Stat label="Live" value={stats.inProgress} />
+      <Stat label="Pending" value={stats.pending} />
+    </div>
+  </div>
+</section>
+
+<section style={styles.controlsPanel}>
+  <div className="control-row" style={styles.controlRow}>
+    <div style={styles.tabRow}>
+      {["Races", "Standings"].map((item) => (
+        <button
+          key={item}
+          onClick={() => setTab(item)}
+          style={tab === item ? styles.activeTab : styles.tab}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+
+    {districtDivisions.length > 1 && (
+      <div style={styles.tabRow}>
+        {["All", ...districtDivisions].map((mode) => (
+          <button
+            key={mode}
+            onClick={() => {
+              setViewMode(mode);
+              if (mode !== "All") setDivision(mode);
+              setSchoolFilter("All Schools");
             }}
+            style={activeViewMode === mode ? styles.activeChip : styles.chip}
           >
-            <div style={styles.heroLabel}>🟢 ON THE TRACK</div>
+            {mode === "All" ? "All Divisions" : DIVISION_LABELS[mode]}
+          </button>
+        ))}
+      </div>
+    )}
 
-            {currentBannerRace ? (
-              <>
-                <div className="on-track-title" style={styles.onTrackTitle}>
-                  Race {currentBannerRace.id} —{" "}
-                  {DIVISION_LABELS[currentBannerRace.division || activeDivision]}
-                </div>
-                <div className="on-track-matchup" style={styles.onTrackMatchup}>
-                  {getRacerA(currentBannerRace)} vs {getRacerB(currentBannerRace)}
-                </div>
-                <div style={styles.heroSubText}>
-                  Cars currently coming down the track
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="on-track-title" style={styles.onTrackTitle}>
-                  Waiting for race control
-                </div>
-                <div style={styles.heroSubText}>
-                  The admin will mark the next race as ON THE TRACK.
-                </div>
-              </>
-            )}
-          </div>
+    {districtDivisions.length === 1 && (
+      <div style={styles.tabRow}>
+        <button style={styles.activeChip}>
+          {DIVISION_LABELS[districtDivisions[0]]}
+        </button>
+      </div>
+    )}
+  </div>
 
-          <div style={styles.sidePanel}>
-            <div style={styles.sidePanelTitle}>🟡 UP NEXT</div>
+  {tab === "Races" && (
+    <div className="control-row" style={styles.controlRow}>
+      <div style={styles.tabRow}>
+        {["All", "Current", "Pending", "Completed"].map((item) => (
+          <button
+            key={item}
+            onClick={() => setFilter(item)}
+            style={filter === item ? styles.activeChip : styles.chip}
+          >
+            {item === "Current" ? "On Track" : item}
+          </button>
+        ))}
+      </div>
 
-            {nextRace ? (
-              <>
-                <div style={styles.nextRaceTitle}>Race {nextRace.id}</div>
-                <div style={styles.nextRaceMatchup}>
-                  {getRacerA(nextRace)} vs {getRacerB(nextRace)}
-                </div>
-                <div style={styles.nextRaceRound}>{nextRace.round}</div>
-              </>
-            ) : (
-              <div style={styles.emptyText}>No next race selected yet.</div>
-            )}
-
-            <div style={styles.statsGrid}>
-              <Stat label="Total" value={stats.total} />
-              <Stat label="Done" value={stats.completed} />
-              <Stat label="Live" value={stats.inProgress} />
-              <Stat label="Pending" value={stats.pending} />
-            </div>
-          </div>
-        </section>
-
-        <section style={styles.controlsPanel}>
-          <div className="control-row" style={styles.controlRow}>
-            <div style={styles.tabRow}>
-              {["Races", "Standings"].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setTab(item)}
-                  style={tab === item ? styles.activeTab : styles.tab}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-
-            <div style={styles.tabRow}>
-  {["All", "stock", "superstock"].map(mode => (
-    <button
-      key={mode}
-      onClick={() => setViewMode(mode)}
-      style={viewMode === mode ? styles.activeChip : styles.chip}
-    >
-      {mode === "All" ? "All Divisions" : DIVISION_LABELS[mode]}
-    </button>
-  ))}
-</div>
-
-            <div style={styles.tabRow}>
-              {districtDivisions.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => {
-  setDivision(item);
-  setViewMode(item); // 👈 sync view with selection
-  setSchoolFilter("All Schools");
-}}
-                  style={
-                    activeDivision === item
-                      ? styles.activeChip
-                      : styles.chip
-                  }
-                >
-                  {DIVISION_LABELS[item]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {tab === "Races" && (
-            <div className="control-row" style={styles.controlRow}>
-              <div style={styles.tabRow}>
-                {["All", "Current", "Pending", "Completed"].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setFilter(item)}
-                    style={filter === item ? styles.activeChip : styles.chip}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-
-              {config.schoolCodes.length > 0 && (
-                <select
-                  value={activeSchoolFilter}
-                  onChange={(event) => setSchoolFilter(event.target.value)}
-                  style={styles.select}
-                >
-                  <option value="All Schools">All Schools</option>
-                  {config.schoolCodes.map((school) => (
-                    <option key={school} value={school}>
-                      {school}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          )}
-        </section>
+      {config.schoolCodes.length > 0 && (
+        <select
+          value={activeSchoolFilter}
+          onChange={(event) => setSchoolFilter(event.target.value)}
+          style={styles.select}
+        >
+          <option value="All Schools">All Schools</option>
+          {config.schoolCodes.map((school) => (
+            <option key={school} value={school}>
+              {school}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
+  )}
+</section>
 
         {tab === "Races" && (
           <section className="race-grid" style={styles.raceGrid}>
             {orderedVisible.map((race) => {
-              const isOnTrack = currentRace?.id === race.id;
-              const isUpNext = nextRace?.id === race.id;
+              const isOnTrack = sameRace(currentRace, race);
+              const isUpNext = sameRace(nextRace, race);
 
               return (
                 <RaceCard
@@ -709,7 +733,7 @@ setRaces(data);
             </h2>
 
             <div style={styles.standingsGrid}>
-              {getStandings(bracketType, sorted).map(([place, racer]) => (
+              {getStandings(bracketType, divisionRaces).map(([place, racer]) => (
                 <div key={place} style={styles.standingRow}>
                   <div style={styles.place}>{place}</div>
                   <div style={styles.standingName}>{racer || "--"}</div>
