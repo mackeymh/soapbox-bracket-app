@@ -145,14 +145,6 @@ function getRunWinner(race, runNumber) {
   if (isComplete(race)) return null;
 
   const { aRun1, bRun1, aRun2, bRun2 } = getRaceTimes(race);
-  const winner =
-    totalA != null && totalB != null
-      ? totalA < totalB
-        ? "A"
-        : totalB < totalA
-        ? "B"
-        : null
-      : null;
 
   if (runNumber === 1 && aRun1 != null && bRun1 != null) {
     if (aRun1 < bRun1) return "A";
