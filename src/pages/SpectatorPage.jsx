@@ -8,10 +8,38 @@ const DISTRICT_CONFIG = {
     logo: "/logo.png",
     divisions: ["stock", "superstock"],
     schoolCodes: [
-      "11X016","11X019","11X041","11X068","11X076","11X078","11X083","11X087",
-      "11X089","11X096","11X097","11X103","11X105","11X106","11X108","11X111",
-      "11X121","11X127","11X144","11X153","11X160","11X169","11X175","11X180",
-      "11X181","11X194","11X370","11X462","11X483","11X498","11X529","11X566",
+      "11X016",
+      "11X019",
+      "11X041",
+      "11X068",
+      "11X076",
+      "11X078",
+      "11X083",
+      "11X087",
+      "11X089",
+      "11X096",
+      "11X097",
+      "11X103",
+      "11X105",
+      "11X106",
+      "11X108",
+      "11X111",
+      "11X121",
+      "11X127",
+      "11X144",
+      "11X153",
+      "11X160",
+      "11X169",
+      "11X175",
+      "11X180",
+      "11X181",
+      "11X194",
+      "11X370",
+      "11X462",
+      "11X483",
+      "11X498",
+      "11X529",
+      "11X566",
       "11X567",
     ],
   },
@@ -21,11 +49,44 @@ const DISTRICT_CONFIG = {
     logo: "/logo.png",
     divisions: ["superstock"],
     schoolCodes: [
-      "07X018","07X025","07X029","07X043","07X065","07X224","07X277","07X296",
-      "07X298","07X369","08X036","08X062","08X071","08X072","08X075","08X107",
-      "08X130","08X131","08X140","08X269","08X302","08X333","08X367","08X371",
-      "08X392","08X562","09X035","09X042","09X055","09X110","09X219","09X229",
-      "09X285","09X361","10X094","10X118","75X176","84X718",
+      "07X018",
+      "07X025",
+      "07X029",
+      "07X043",
+      "07X065",
+      "07X224",
+      "07X277",
+      "07X296",
+      "07X298",
+      "07X369",
+      "08X036",
+      "08X062",
+      "08X071",
+      "08X072",
+      "08X075",
+      "08X107",
+      "08X130",
+      "08X131",
+      "08X140",
+      "08X269",
+      "08X302",
+      "08X333",
+      "08X367",
+      "08X371",
+      "08X392",
+      "08X562",
+      "09X035",
+      "09X042",
+      "09X055",
+      "09X110",
+      "09X219",
+      "09X229",
+      "09X285",
+      "09X361",
+      "10X094",
+      "10X118",
+      "75X176",
+      "84X718",
     ],
   },
 };
@@ -73,8 +134,7 @@ function raceMatchesSchool(race, selectedSchool) {
   const racerB = normalizeCarLabel(race.racer_b || "");
 
   return (
-    racerA.startsWith(`${shortCode}-`) ||
-    racerB.startsWith(`${shortCode}-`)
+    racerA.startsWith(`${shortCode}-`) || racerB.startsWith(`${shortCode}-`)
   );
 }
 
@@ -138,15 +198,15 @@ function getRaceTimes(race) {
     race.total_a != null
       ? toNumber(race.total_a)
       : aRun1 != null && aRun2 != null
-      ? aRun1 + aRun2
-      : null;
+        ? aRun1 + aRun2
+        : null;
 
   const totalB =
     race.total_b != null
       ? toNumber(race.total_b)
       : bRun1 != null && bRun2 != null
-      ? bRun1 + bRun2
-      : null;
+        ? bRun1 + bRun2
+        : null;
 
   return { aRun1, bRun1, aRun2, bRun2, totalA, totalB };
 }
@@ -261,35 +321,35 @@ export default function SpectatorPage() {
   const [schoolFilter, setSchoolFilter] = useState("All Schools");
   const [districtCurrentRace, setDistrictCurrentRace] = useState(null);
   const currentRef = useRef(null);
-  
+
   async function loadAllDivisionRaces() {
-  const divisions = DISTRICT_CONFIG[district]?.divisions || ["stock"];
+    const divisions = DISTRICT_CONFIG[district]?.divisions || ["stock"];
 
-  let allRaces = [];
+    let allRaces = [];
 
-  for (const div of divisions) {
-    const setting = await fetchEventSetting(district, div);
+    for (const div of divisions) {
+      const setting = await fetchEventSetting(district, div);
 
-    const bracket =
-      setting?.active_bracket_type || (div === "stock" ? "12" : "32");
+      const bracket =
+        setting?.active_bracket_type || (div === "stock" ? "12" : "32");
 
-    const data = await fetchRaces(bracket, district, div);
+      const data = await fetchRaces(bracket, district, div);
 
-    const tagged = (data || []).map(r => ({
-      ...r,
-      division: div,
-      bracket_type: bracket,
-    }));
+      const tagged = (data || []).map((r) => ({
+        ...r,
+        division: div,
+        bracket_type: bracket,
+      }));
 
-    allRaces = [...allRaces, ...tagged];
+      allRaces = [...allRaces, ...tagged];
+    }
+
+    return allRaces;
   }
 
-  return allRaces;
-}
-
   const activeDivision = districtDivisions.includes(division)
-      ? division
-      : districtDivisions[0];
+    ? division
+    : districtDivisions[0];
 
   const activeViewMode =
     viewMode === "All" || districtDivisions.includes(viewMode)
@@ -325,7 +385,7 @@ export default function SpectatorPage() {
   useEffect(() => {
     async function loadRaces() {
       const data = await loadAllDivisionRaces();
-setRaces(data);
+      setRaces(data);
     }
 
     if (!bracketType || !district || !activeDivision) return;
@@ -343,16 +403,17 @@ setRaces(data);
       for (const divisionOption of divisionOptions) {
         const setting = await fetchEventSetting(district, divisionOption);
         const activeBracket =
-          setting?.active_bracket_type || (divisionOption === "stock" ? "12" : "32");
+          setting?.active_bracket_type ||
+          (divisionOption === "stock" ? "12" : "32");
 
         const divisionRaces = await fetchRaces(
           activeBracket,
           district,
-          divisionOption
+          divisionOption,
         );
 
         const current = (divisionRaces || []).find(
-          (race) => race.is_current_override
+          (race) => race.is_current_override,
         );
 
         if (current) {
@@ -374,52 +435,49 @@ setRaces(data);
     return () => clearInterval(intervalId);
   }, [district]);
 
-  const sorted = useMemo(
-    () => [...races].sort((a, b) => a.id - b.id),
-    [races]
-  );
+  const sorted = useMemo(() => [...races].sort((a, b) => a.id - b.id), [races]);
 
   const currentRace = useMemo(
     () => sorted.find((race) => race.is_current_override) || null,
-    [sorted]
+    [sorted],
   );
 
   const divisionRaces = useMemo(
     () => sorted.filter((race) => race.division === activeDivision),
-    [sorted, activeDivision]
+    [sorted, activeDivision],
   );
 
   const currentRaceIndex = useMemo(
     () => sorted.findIndex((race) => race.is_current_override),
-    [sorted]
+    [sorted],
   );
 
   const nextRace = useMemo(() => {
-  return (
-    sorted
-      .filter((race) => {
-        const isCurrent =
-          districtCurrentRace &&
-          race.id === districtCurrentRace.id &&
-          race.division === districtCurrentRace.division &&
-          race.bracket_type === districtCurrentRace.bracket_type;
+    return (
+      sorted
+        .filter((race) => {
+          const isCurrent =
+            districtCurrentRace &&
+            race.id === districtCurrentRace.id &&
+            race.division === districtCurrentRace.division &&
+            race.bracket_type === districtCurrentRace.bracket_type;
 
-        return (
-          !isCurrent &&
-          race.status !== "Complete" &&
-          race.status !== "DQ Conflict" &&
-          !hasAnyRunData(race)
-        );
-      })
-      .sort((a, b) => {
-        if (a.division !== b.division) {
-          return a.division.localeCompare(b.division);
-        }
+          return (
+            !isCurrent &&
+            race.status !== "Complete" &&
+            race.status !== "DQ Conflict" &&
+            !hasAnyRunData(race)
+          );
+        })
+        .sort((a, b) => {
+          if (a.division !== b.division) {
+            return a.division.localeCompare(b.division);
+          }
 
-        return a.id - b.id;
-      })[0] || null
-  );
-}, [sorted, districtCurrentRace]);
+          return a.id - b.id;
+        })[0] || null
+    );
+  }, [sorted, districtCurrentRace]);
 
   useEffect(() => {
     if (currentRef.current && tab === "Races") {
@@ -431,23 +489,35 @@ setRaces(data);
   }, [currentRace, tab]);
 
   const stats = useMemo(() => {
-    const completed = sorted.filter((race) => race.status === "Complete").length;
-    const inProgress = sorted.filter(
+    const base =
+      viewMode === "All"
+        ? sorted
+        : sorted.filter((race) => race.division === viewMode);
+
+    const completed = base.filter((race) => race.status === "Complete").length;
+
+    const inProgress = base.filter(
       (race) =>
         race.status !== "Complete" &&
-        (isRaceMidRace(race) || race.is_current_override)
+        race.status !== "DQ Conflict" &&
+        (isRaceMidRace(race) || race.is_current_override),
     ).length;
-    const pending = sorted.filter(
-      (race) => !hasAnyRunData(race) && race.status !== "Complete"
+
+    const pending = base.filter(
+      (race) =>
+        race.status !== "Complete" &&
+        race.status !== "DQ Conflict" &&
+        !isRaceMidRace(race) &&
+        !race.is_current_override,
     ).length;
 
     return {
-      total: sorted.length,
+      total: base.length,
       completed,
       inProgress,
       pending,
     };
-  }, [sorted]);
+  }, [sorted, viewMode]);
 
   const visible = useMemo(() => {
     return sorted.filter((race) => {
@@ -470,7 +540,9 @@ setRaces(data);
   const orderedVisible = useMemo(() => {
     if (!currentRace) return visible;
 
-    const currentInVisible = visible.find((race) => sameRace(race, currentRace));
+    const currentInVisible = visible.find((race) =>
+      sameRace(race, currentRace),
+    );
     if (!currentInVisible) return visible;
 
     return [
@@ -479,7 +551,7 @@ setRaces(data);
     ];
   }, [visible, currentRace]);
 
-    const currentBannerRace = districtCurrentRace || currentRace;
+  const currentBannerRace = districtCurrentRace || currentRace;
 
   return (
     <div style={styles.page}>
@@ -548,164 +620,168 @@ setRaces(data);
 
       <div className="spectator-shell" style={styles.shell}>
         <header className="header-wrap" style={styles.header}>
-  <img
-    src={config.logo}
-    alt={`${config.title} logo`}
-    style={styles.logo}
-  />
+          <img
+            src={config.logo}
+            alt={`${config.title} logo`}
+            style={styles.logo}
+          />
 
-  <div>
-    <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
-    <h1 style={styles.title}>{config.title}</h1>
-    <div style={styles.subtitle}>
-      {currentBannerRace
-        ? `${DIVISION_LABELS[currentBannerRace.division]} · ${currentBannerRace.bracket_type}-Car Bracket`
-        : activeViewMode === "All"
-        ? "All Divisions"
-        : `${DIVISION_LABELS[activeViewMode]} · ${bracketType}-Car Bracket`}
-    </div>
-  </div>
-</header>
+          <div>
+            <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
+            <h1 style={styles.title}>{config.title}</h1>
+            <div style={styles.subtitle}>
+              {currentBannerRace
+                ? `${DIVISION_LABELS[currentBannerRace.division]} · ${currentBannerRace.bracket_type}-Car Bracket`
+                : activeViewMode === "All"
+                  ? "All Divisions"
+                  : `${DIVISION_LABELS[activeViewMode]} · ${bracketType}-Car Bracket`}
+            </div>
+          </div>
+        </header>
 
-<section className="hero-grid" style={styles.heroGrid}>
-  <div
-    style={{
-      ...styles.onTrackBanner,
-      animation: currentBannerRace
-        ? "onTrackFlash 0.85s infinite alternate"
-        : "none",
-    }}
-  >
-    <div style={styles.heroLabel}>🟢 ON THE TRACK</div>
-
-    {currentBannerRace ? (
-      <>
-        <div className="on-track-title" style={styles.onTrackTitle}>
-          Race {currentBannerRace.id} — {DIVISION_LABELS[currentBannerRace.division]}
-        </div>
-
-        <div className="on-track-matchup" style={styles.onTrackMatchup}>
-          {getRacerA(currentBannerRace)} vs {getRacerB(currentBannerRace)}
-        </div>
-
-        <div style={styles.heroSubText}>
-          {currentBannerRace.bracket_type}-Car Bracket · Cars currently coming down the track
-        </div>
-      </>
-    ) : (
-      <>
-        <div className="on-track-title" style={styles.onTrackTitle}>
-          Waiting for race control
-        </div>
-        <div style={styles.heroSubText}>
-          The admin will mark the next race as ON THE TRACK.
-        </div>
-      </>
-    )}
-  </div>
-
-  <div style={styles.sidePanel}>
-    <div style={styles.sidePanelTitle}>🟡 UP NEXT</div>
-
-    {nextRace ? (
-      <>
-        <div style={styles.nextRaceTitle}>
-          Race {nextRace.id}
-        </div>
-
-        <div style={styles.nextRaceMatchup}>
-          {getRacerA(nextRace)} vs {getRacerB(nextRace)}
-        </div>
-
-        <div style={styles.nextRaceRound}>
-          {DIVISION_LABELS[nextRace.division]} · {nextRace.bracket_type}-Car · {nextRace.round}
-        </div>
-      </>
-    ) : (
-      <div style={styles.emptyText}>No next race selected yet.</div>
-    )}
-
-    <div style={styles.statsGrid}>
-      <Stat label="Total" value={stats.total} />
-      <Stat label="Done" value={stats.completed} />
-      <Stat label="Live" value={stats.inProgress} />
-      <Stat label="Pending" value={stats.pending} />
-    </div>
-  </div>
-</section>
-
-<section style={styles.controlsPanel}>
-  <div className="control-row" style={styles.controlRow}>
-    <div style={styles.tabRow}>
-      {["Races", "Standings"].map((item) => (
-        <button
-          key={item}
-          onClick={() => setTab(item)}
-          style={tab === item ? styles.activeTab : styles.tab}
-        >
-          {item}
-        </button>
-      ))}
-    </div>
-
-    {districtDivisions.length > 1 && (
-      <div style={styles.tabRow}>
-        {["All", ...districtDivisions].map((mode) => (
-          <button
-            key={mode}
-            onClick={() => {
-              setViewMode(mode);
-              if (mode !== "All") setDivision(mode);
-              setSchoolFilter("All Schools");
+        <section className="hero-grid" style={styles.heroGrid}>
+          <div
+            style={{
+              ...styles.onTrackBanner,
+              animation: currentBannerRace
+                ? "onTrackFlash 0.85s infinite alternate"
+                : "none",
             }}
-            style={activeViewMode === mode ? styles.activeChip : styles.chip}
           >
-            {mode === "All" ? "All Divisions" : DIVISION_LABELS[mode]}
-          </button>
-        ))}
-      </div>
-    )}
+            <div style={styles.heroLabel}>🟢 ON THE TRACK</div>
 
-    {districtDivisions.length === 1 && (
-      <div style={styles.tabRow}>
-        <button style={styles.activeChip}>
-          {DIVISION_LABELS[districtDivisions[0]]}
-        </button>
-      </div>
-    )}
-  </div>
+            {currentBannerRace ? (
+              <>
+                <div className="on-track-title" style={styles.onTrackTitle}>
+                  Race {currentBannerRace.id} —{" "}
+                  {DIVISION_LABELS[currentBannerRace.division]}
+                </div>
 
-  {tab === "Races" && (
-    <div className="control-row" style={styles.controlRow}>
-      <div style={styles.tabRow}>
-        {["All", "Current", "Pending", "Completed"].map((item) => (
-          <button
-            key={item}
-            onClick={() => setFilter(item)}
-            style={filter === item ? styles.activeChip : styles.chip}
-          >
-            {item === "Current" ? "On Track" : item}
-          </button>
-        ))}
-      </div>
+                <div className="on-track-matchup" style={styles.onTrackMatchup}>
+                  {getRacerA(currentBannerRace)} vs{" "}
+                  {getRacerB(currentBannerRace)}
+                </div>
 
-      {config.schoolCodes.length > 0 && (
-        <select
-          value={activeSchoolFilter}
-          onChange={(event) => setSchoolFilter(event.target.value)}
-          style={styles.select}
-        >
-          <option value="All Schools">All Schools</option>
-          {config.schoolCodes.map((school) => (
-            <option key={school} value={school}>
-              {school}
-            </option>
-          ))}
-        </select>
-      )}
-    </div>
-  )}
-</section>
+                <div style={styles.heroSubText}>
+                  {currentBannerRace.bracket_type}-Car Bracket · Cars currently
+                  coming down the track
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="on-track-title" style={styles.onTrackTitle}>
+                  Waiting for race control
+                </div>
+                <div style={styles.heroSubText}>
+                  The admin will mark the next race as ON THE TRACK.
+                </div>
+              </>
+            )}
+          </div>
+
+          <div style={styles.sidePanel}>
+            <div style={styles.sidePanelTitle}>🟡 UP NEXT</div>
+
+            {nextRace ? (
+              <>
+                <div style={styles.nextRaceTitle}>Race {nextRace.id}</div>
+
+                <div style={styles.nextRaceMatchup}>
+                  {getRacerA(nextRace)} vs {getRacerB(nextRace)}
+                </div>
+
+                <div style={styles.nextRaceRound}>
+                  {DIVISION_LABELS[nextRace.division]} · {nextRace.bracket_type}
+                  -Car · {nextRace.round}
+                </div>
+              </>
+            ) : (
+              <div style={styles.emptyText}>No next race selected yet.</div>
+            )}
+
+            <div style={styles.statsGrid}>
+              <Stat label="Total" value={stats.total} />
+              <Stat label="Done" value={stats.completed} />
+              <Stat label="Live" value={stats.inProgress} />
+              <Stat label="Pending" value={stats.pending} />
+            </div>
+          </div>
+        </section>
+
+        <section style={styles.controlsPanel}>
+          <div className="control-row" style={styles.controlRow}>
+            <div style={styles.tabRow}>
+              {["Races", "Standings"].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setTab(item)}
+                  style={tab === item ? styles.activeTab : styles.tab}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            {districtDivisions.length > 1 && (
+              <div style={styles.tabRow}>
+                {["All", ...districtDivisions].map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => {
+                      setViewMode(mode);
+                      if (mode !== "All") setDivision(mode);
+                      setSchoolFilter("All Schools");
+                    }}
+                    style={
+                      activeViewMode === mode ? styles.activeChip : styles.chip
+                    }
+                  >
+                    {mode === "All" ? "All Divisions" : DIVISION_LABELS[mode]}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {districtDivisions.length === 1 && (
+              <div style={styles.tabRow}>
+                <button style={styles.activeChip}>
+                  {DIVISION_LABELS[districtDivisions[0]]}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {tab === "Races" && (
+            <div className="control-row" style={styles.controlRow}>
+              <div style={styles.tabRow}>
+                {["All", "Current", "Pending", "Completed"].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setFilter(item)}
+                    style={filter === item ? styles.activeChip : styles.chip}
+                  >
+                    {item === "Current" ? "On Track" : item}
+                  </button>
+                ))}
+              </div>
+
+              {config.schoolCodes.length > 0 && (
+                <select
+                  value={activeSchoolFilter}
+                  onChange={(event) => setSchoolFilter(event.target.value)}
+                  style={styles.select}
+                >
+                  <option value="All Schools">All Schools</option>
+                  {config.schoolCodes.map((school) => (
+                    <option key={school} value={school}>
+                      {school}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+        </section>
 
         {tab === "Races" && (
           <section className="race-grid" style={styles.raceGrid}>
@@ -715,12 +791,12 @@ setRaces(data);
 
               return (
                 <RaceCard
-  key={`${district}-${race.division}-${race.bracket_type}-${race.id}`}
-  race={race}
-  isOnTrack={isOnTrack}
-  isUpNext={isUpNext}
-  currentRef={isOnTrack ? currentRef : null}
-/>
+                  key={`${district}-${race.division}-${race.bracket_type}-${race.id}`}
+                  race={race}
+                  isOnTrack={isOnTrack}
+                  isUpNext={isUpNext}
+                  currentRef={isOnTrack ? currentRef : null}
+                />
               );
             })}
           </section>
@@ -733,12 +809,14 @@ setRaces(data);
             </h2>
 
             <div style={styles.standingsGrid}>
-              {getStandings(bracketType, divisionRaces).map(([place, racer]) => (
-                <div key={place} style={styles.standingRow}>
-                  <div style={styles.place}>{place}</div>
-                  <div style={styles.standingName}>{racer || "--"}</div>
-                </div>
-              ))}
+              {getStandings(bracketType, divisionRaces).map(
+                ([place, racer]) => (
+                  <div key={place} style={styles.standingRow}>
+                    <div style={styles.place}>{place}</div>
+                    <div style={styles.standingName}>{racer || "--"}</div>
+                  </div>
+                ),
+              )}
             </div>
           </section>
         )}
@@ -756,7 +834,7 @@ function Stat({ label, value }) {
   );
 }
 
-function RaceCard({ race, isOnTrack, isUpNext, currentRef}) {
+function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
   const { aRun1, bRun1, aRun2, bRun2, totalA, totalB } = getRaceTimes(race);
 
   const run1Winner = getRunWinner(race, 1);
@@ -768,16 +846,16 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef}) {
       ? totalA < totalB
         ? "A"
         : totalB < totalA
-        ? "B"
-        : null
+          ? "B"
+          : null
       : null;
 
   const winner =
     race.winner === getRacerA(race)
       ? "A"
       : race.winner === getRacerB(race)
-      ? "B"
-      : calculatedWinner;
+        ? "B"
+        : calculatedWinner;
 
   const winnerA = winner === "A";
   const winnerB = winner === "B";
@@ -797,22 +875,22 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef}) {
         border: isOnTrack
           ? `2px solid ${COLORS.accent}`
           : isUpNext
-          ? `2px solid ${COLORS.yellow}`
-          : `1px solid ${COLORS.border}`,
+            ? `2px solid ${COLORS.yellow}`
+            : `1px solid ${COLORS.border}`,
         boxShadow: isOnTrack
           ? "0 0 22px rgba(34,197,94,0.35)"
           : isUpNext
-          ? "0 0 16px rgba(250,204,21,0.25)"
-          : "none",
+            ? "0 0 16px rgba(250,204,21,0.25)"
+            : "none",
       }}
     >
-      
-<div style={styles.raceCardHeader}>
+      <div style={styles.raceCardHeader}>
         <div>
           <div style={styles.raceNumber}>Race {race.id}</div>
           <div style={styles.raceMeta}>
-  {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car · {race.round}
-</div>
+            {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car ·{" "}
+            {race.round}
+          </div>
         </div>
 
         <div
@@ -875,14 +953,15 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef}) {
         </div>
       )}
 
-
       {(race.dq_a || race.dq_b || race.bye_for) && (
         <div style={styles.alertBox}>
           {race.bye_for && `BYE: Racer ${race.bye_for} advances`}
           {race.bye_for && (race.dq_a || race.dq_b) ? " · " : ""}
-          {race.dq_a && `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
+          {race.dq_a &&
+            `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
           {race.dq_a && race.dq_b ? " · " : ""}
-          {race.dq_b && `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
+          {race.dq_b &&
+            `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
         </div>
       )}
     </article>
@@ -1311,31 +1390,31 @@ const styles = {
   },
 
   winnerTag: {
-  color: COLORS.accent,
-  fontWeight: 950,
-  marginLeft: 6,
-  fontSize: 12,
-},
+    color: COLORS.accent,
+    fontWeight: 950,
+    marginLeft: 6,
+    fontSize: 12,
+  },
 
-tieBanner: {
-  marginTop: 10,
-  background: COLORS.yellowDark,
-  color: "#fef3c7",
-  border: `1px solid ${COLORS.yellow}`,
-  borderRadius: 12,
-  padding: 8,
-  fontWeight: 950,
-  textAlign: "center",
-},
+  tieBanner: {
+    marginTop: 10,
+    background: COLORS.yellowDark,
+    color: "#fef3c7",
+    border: `1px solid ${COLORS.yellow}`,
+    borderRadius: 12,
+    padding: 8,
+    fontWeight: 950,
+    textAlign: "center",
+  },
 
-photoFinishBanner: {
-  marginTop: 8,
-  background: "#1e293b",
-  color: "#fde68a",
-  border: `1px solid ${COLORS.yellow}`,
-  borderRadius: 12,
-  padding: 8,
-  fontWeight: 900,
-  textAlign: "center",
-},
+  photoFinishBanner: {
+    marginTop: 8,
+    background: "#1e293b",
+    color: "#fde68a",
+    border: `1px solid ${COLORS.yellow}`,
+    borderRadius: 12,
+    padding: 8,
+    fontWeight: 900,
+    textAlign: "center",
+  },
 };
