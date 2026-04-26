@@ -29,6 +29,8 @@ const DISTRICT_CONFIG = {
   ],
 },
 
+};
+
 const DIVISION_LABELS = {
   stock: "Stock Division",
   superstock: "Super Stock Division",
@@ -48,7 +50,7 @@ const COLORS = {
 };
 
 function schoolCodeToShort(code) {
-  return code.replace("11X", "").replace(/^0+/, "");
+  return code.replace(/^\d{2}X/, "").replace(/^0+/, "");
 }
 
 function normalizeCarLabel(label = "") {
