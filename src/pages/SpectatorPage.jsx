@@ -377,18 +377,31 @@ setRaces(data);
   );
 
   const nextRace = useMemo(() => {
-    if (currentRaceIndex < 0) return null;
+  return (
+    sorted
+      .filter((race) => {
+        const isCurrent =
+          districtCurrentRace &&
+          race.id === districtCurrentRace.id &&
+          race.division === districtCurrentRace.division &&
+          race.bracket_type === districtCurrentRace.bracket_type;
 
-    return (
-      sorted
-        .slice(currentRaceIndex + 1)
-        .find(
-          (race) =>
-            race.status !== "Complete" &&
-            race.status !== "DQ Conflict"
-        ) || null
-    );
-  }, [sorted, currentRaceIndex]);
+        return (
+          !isCurrent &&
+          race.status !== "Complete" &&
+          race.status !== "DQ Conflict" &&
+          !hasAnyRunData(race)
+        );
+      })
+      .sort((a, b) => {
+        if (a.division !== b.division) {
+          return a.division.localeCompare(b.division);
+        }
+
+        return a.id - b.id;
+      })[0] || null
+  );
+}, [sorted, districtCurrentRace]);
 
   useEffect(() => {
     if (currentRef.current && tab === "Races") {
@@ -678,13 +691,12 @@ setRaces(data);
 
               return (
                 <RaceCard
-                  key={`${district}-${activeDivision}-${bracketType}-${race.id}`}
-                  race={race}
-                  isOnTrack={isOnTrack}
-                  isUpNext={isUpNext}
-                  currentRef={isOnTrack ? currentRef : null}
-                  divisionLabel={DIVISION_LABELS[activeDivision]}
-                />
+  key={`${district}-${race.division}-${race.bracket_type}-${race.id}`}
+  race={race}
+  isOnTrack={isOnTrack}
+  isUpNext={isUpNext}
+  currentRef={isOnTrack ? currentRef : null}
+/>
               );
             })}
           </section>
@@ -720,7 +732,7 @@ function Stat({ label, value }) {
   );
 }
 
-function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
+function RaceCard({ race, isOnTrack, isUpNext, currentRef}) {
   const { aRun1, bRun1, aRun2, bRun2, totalA, totalB } = getRaceTimes(race);
 
   const run1Winner = getRunWinner(race, 1);
@@ -770,15 +782,13 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
           : "none",
       }}
     >
-      <div style={styles.raceMeta}>
-  {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car · {race.round}
-</div>
+      
 <div style={styles.raceCardHeader}>
         <div>
           <div style={styles.raceNumber}>Race {race.id}</div>
           <div style={styles.raceMeta}>
-            {divisionLabel} · {race.round}
-          </div>
+  {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car · {race.round}
+</div>
         </div>
 
         <div
@@ -840,6 +850,7 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef, divisionLabel }) {
           📸 Photo Finish — margin: {margin.toFixed(3)} seconds
         </div>
       )}
+
 
       {(race.dq_a || race.dq_b || race.bye_for) && (
         <div style={styles.alertBox}>
