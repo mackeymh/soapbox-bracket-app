@@ -1281,6 +1281,7 @@ const styles = {
   sectionTitle: {
     margin: "0 0 12px 0",
     fontSize: 24,
+    color: COLORS.text,
   },
 
   standingsGrid: {
