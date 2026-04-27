@@ -116,6 +116,45 @@ const COLORS = {
   chip: "#1f2937",
 };
 
+const BRACKET_LAYOUTS = {
+  "12": [
+    { label: "Play-In Round", raceIds: [1, 2, 3, 4] },
+    { label: "Quarterfinals", raceIds: [5, 6, 7, 8] },
+    { label: "Semifinals", raceIds: [9, 10] },
+    { label: "Final", raceIds: [11] },
+    { label: "Placements", raceIds: [12, 13, 14, 15, 16] },
+  ],
+
+  "32": [
+    { label: "Opening Round", raceIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+    { label: "Round of 16", raceIds: [17, 18, 19, 20, 21, 22, 23, 24] },
+    { label: "Quarterfinals", raceIds: [25, 26, 27, 28] },
+    { label: "Semifinals", raceIds: [29, 30] },
+    { label: "Final", raceIds: [31] },
+    { label: "Placements", raceIds: [32, 33, 34, 35, 36] },
+  ],
+
+  "48": [
+    { label: "Play-In Round", raceIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+    { label: "Round of 32", raceIds: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32] },
+    { label: "Sweet 16", raceIds: [33, 34, 35, 36, 37, 38, 39, 40] },
+    { label: "Quarterfinals", raceIds: [41, 42, 43, 44] },
+    { label: "Semifinals", raceIds: [45, 46] },
+    { label: "Final", raceIds: [47] },
+    { label: "Placements", raceIds: [48, 49, 50, 51, 52] },
+  ],
+
+  "64": [
+    { label: "Opening Round", raceIds: Array.from({ length: 32 }, (_, i) => i + 1) },
+    { label: "Round of 32", raceIds: Array.from({ length: 16 }, (_, i) => i + 33) },
+    { label: "Sweet 16", raceIds: Array.from({ length: 8 }, (_, i) => i + 49) },
+    { label: "Quarterfinals", raceIds: [57, 58, 59, 60] },
+    { label: "Semifinals", raceIds: [61, 62] },
+    { label: "Final", raceIds: [63] },
+    { label: "Placements", raceIds: [64, 65, 66, 67, 68] },
+  ],
+};
+
 function schoolCodeToShort(code) {
   return code.replace(/^\d{2}X/, "").replace(/^0+/, "");
 }
@@ -964,38 +1003,41 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
 }
 
 function BracketView({ races }) {
-  const rounds = {};
+  const bracketType = races[0]?.bracket_type || "12";
+  const layout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
 
+  const raceMap = {};
   races.forEach((race) => {
-    const round = race.round || "Round";
-    if (!rounds[round]) rounds[round] = [];
-    rounds[round].push(race);
+    raceMap[race.id] = race;
   });
-
-  const orderedRounds = Object.entries(rounds).map(([round, roundRaces]) => [
-    round,
-    [...roundRaces].sort((a, b) => a.id - b.id),
-  ]);
 
   return (
     <section style={styles.bracketPanel}>
-      {orderedRounds.map(([round, roundRaces], roundIndex) => {
-        const isLastRound = roundIndex === orderedRounds.length - 1;
+      {layout.map((round, roundIndex) => {
+        const gap = Math.min(28 * Math.pow(1.45, roundIndex), 110);
 
         return (
-          <div key={round} style={styles.bracketColumn}>
-            <h2 style={styles.bracketRoundTitle}>{round}</h2>
+          <div
+            key={round.label}
+            style={{
+              ...styles.bracketColumn,
+              gap,
+            }}
+          >
+            <h2 style={styles.bracketRoundTitle}>{round.label}</h2>
 
-            {roundRaces.map((race, index) => {
+            {round.raceIds.map((raceId) => {
+              const race = raceMap[raceId];
+
+              if (!race) return null;
+
               return (
                 <div
                   key={`${race.division}-${race.bracket_type}-${race.id}`}
                   style={styles.bracketNodeWrapper}
                 >
                   <div style={styles.bracketMatch}>
-                    <div style={styles.bracketRaceLabel}>
-                      Race {race.id}
-                    </div>
+                    <div style={styles.bracketRaceLabel}>Race {race.id}</div>
 
                     <div
                       style={{
@@ -1020,15 +1062,11 @@ function BracketView({ races }) {
                       {race.winner === getRacerB(race) ? "🏎️🏁 " : ""}
                       {getRacerB(race)}
                     </div>
-
-                    {race.winner && (
-                      <div style={styles.bracketWinner}>
-                        Winner: {race.winner}
-                      </div>
-                    )}
                   </div>
 
-                  {!isLastRound && <div style={styles.connectorHorizontal} />}
+                  {roundIndex < layout.length - 2 && (
+                    <div style={styles.connectorHorizontal} />
+                  )}
                 </div>
               );
             })}
