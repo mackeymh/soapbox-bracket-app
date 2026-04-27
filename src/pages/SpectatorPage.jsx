@@ -1005,6 +1005,7 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
 function BracketView({ races }) {
   const bracketType = races[0]?.bracket_type || "12";
   const layout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
+  
 
   const raceMap = {};
   races.forEach((race) => {
@@ -1014,65 +1015,77 @@ function BracketView({ races }) {
   return (
     <section style={styles.bracketPanel}>
       {layout.map((round, roundIndex) => {
-        const gap = Math.min(28 * Math.pow(1.45, roundIndex), 110);
+  const gap = Math.pow(2, roundIndex) * 12;
+  const isLastRound = roundIndex === layout.length - 1;
+
+  return (
+    <div
+      key={round.label}
+      style={{
+        ...styles.bracketColumn,
+        gap,
+      }}
+    >
+      <h2 style={styles.bracketRoundTitle}>{round.label}</h2>
+
+      {round.raceIds.map((raceId) => {
+        const race = raceMap[raceId];
+        if (!race) return null;
+
+        const racerA = getRacerA(race);
+        const racerB = getRacerB(race);
+
+        const isWinnerA = race.winner === racerA;
+        const isWinnerB = race.winner === racerB;
 
         return (
           <div
-            key={round.label}
-            style={{
-              ...styles.bracketColumn,
-              gap,
-            }}
+            key={`${race.division}-${race.bracket_type}-${race.id}`}
+            style={styles.bracketNodeWrapper}
           >
-            <h2 style={styles.bracketRoundTitle}>{round.label}</h2>
+            <div style={styles.bracketMatch}>
+              <div style={styles.bracketRaceLabel}>
+                Race {race.id}
+              </div>
 
-            {round.raceIds.map((raceId) => {
-              const race = raceMap[raceId];
+              <div
+                style={{
+                  ...styles.bracketCompetitor,
+                  ...(isWinnerA ? styles.bracketWinnerRow : {}),
+                }}
+              >
+                {isWinnerA ? "🏎️🏁 " : ""}
+                {racerA}
+              </div>
 
-              if (!race) return null;
+              <div
+                style={{
+                  ...styles.bracketCompetitor,
+                  ...(isWinnerB ? styles.bracketWinnerRow : {}),
+                }}
+              >
+                {isWinnerB ? "🏎️🏁 " : ""}
+                {racerB}
+              </div>
 
-              return (
-                <div
-                  key={`${race.division}-${race.bracket_type}-${race.id}`}
-                  style={styles.bracketNodeWrapper}
-                >
-                  <div style={styles.bracketMatch}>
-                    <div style={styles.bracketRaceLabel}>Race {race.id}</div>
-
-                    <div
-                      style={{
-                        ...styles.bracketCompetitor,
-                        ...(race.winner === getRacerA(race)
-                          ? styles.bracketWinnerRow
-                          : {}),
-                      }}
-                    >
-                      {race.winner === getRacerA(race) ? "🏎️🏁 " : ""}
-                      {getRacerA(race)}
-                    </div>
-
-                    <div
-                      style={{
-                        ...styles.bracketCompetitor,
-                        ...(race.winner === getRacerB(race)
-                          ? styles.bracketWinnerRow
-                          : {}),
-                      }}
-                    >
-                      {race.winner === getRacerB(race) ? "🏎️🏁 " : ""}
-                      {getRacerB(race)}
-                    </div>
-                  </div>
-
-                  {roundIndex < layout.length - 2 && (
-                    <div style={styles.connectorHorizontal} />
-                  )}
+              {race.winner && (
+                <div style={styles.bracketWinner}>
+                  Winner: {race.winner}
                 </div>
-              );
-            })}
+              )}
+            </div>
+
+            {/* horizontal connector */}
+            {!isLastRound && (
+              <div style={styles.connectorHorizontal} />
+            )}
           </div>
         );
       })}
+    </div>
+  );
+})
+}
     </section>
   );
 }
@@ -1541,7 +1554,7 @@ bracketColumn: {
   minWidth: 260,
   display: "flex",
   flexDirection: "column",
-  gap: 18,
+  justifyContent: "space-around", // important
   position: "relative",
 },
 
