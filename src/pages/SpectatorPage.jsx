@@ -1051,7 +1051,7 @@ function BracketView({ races }) {
 
   const bracketHeight =
   bracketType === "12"
-    ? 5 * (CARD_HEIGHT + BASE_GAP) + 80
+    ? 6 * (CARD_HEIGHT + BASE_GAP) + 120
     : bracketType === "48"
       ? 16 * (CARD_HEIGHT + BASE_GAP) + 80
       : (layout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP) + 80;
@@ -1221,16 +1221,27 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
   let y;
 
   if (bracketType === "12") {
-    const positions = {
-      0: [0, 1, 2, 3],
-      1: [0.5, 1.5, 2.5, 3.5],
-      2: [1, 3],
-      3: [2],
-      4: [0, 1, 2, 3, 4],
-    };
+  const positions = {
+    // Play-In Round
+    0: [0, 1.35, 2.7, 4.05],
 
-    y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
-  } else if (bracketType === "48") {
+    // Quarterfinals
+    1: [0.45, 1.8, 3.15, 4.5],
+
+    // Semifinals
+    2: [1.125, 3.825],
+
+    // Final
+    3: [2.475],
+
+    // Placements
+    4: [0, 1.2, 2.4, 3.6, 4.8],
+  };
+
+  y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
+}
+
+  else if (bracketType === "48") {
     const positions = {
       0: Array.from({ length: 16 }, (_, i) => i),
       1: Array.from({ length: 16 }, (_, i) => i),
