@@ -612,6 +612,10 @@ export default function SpectatorPage() {
     ];
   }, [visible, currentRace]);
 
+  const bracketRaces = sorted.filter(
+    (race) => race.division === activeDivision,
+  );
+
   const currentBannerRace = districtCurrentRace || currentRace;
 
   return (
@@ -882,12 +886,7 @@ export default function SpectatorPage() {
           </section>
         )}
 
-        {tab === "Bracket" && (
-  <BracketView
-    races={visible}
-    viewMode={viewMode}
-  />
-)}
+        {tab === "Bracket" && <BracketView races={bracketRaces} />}
       </div>
     </div>
   );
@@ -1051,7 +1050,11 @@ function BracketView({ races }) {
   const BASE_GAP = 36;
 
   const bracketHeight =
-    (layout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP);
+  bracketType === "12"
+    ? 5 * (CARD_HEIGHT + BASE_GAP) + 80
+    : bracketType === "48"
+      ? 16 * (CARD_HEIGHT + BASE_GAP) + 80
+      : (layout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP) + 80;
 
   const bracketWidth =
     layout.length * CARD_WIDTH + (layout.length - 1) * COLUMN_GAP;
@@ -1203,28 +1206,55 @@ function getRoundOffset(bracketType, roundIndex) {
     return [0, 0, 0.5, 1.5, 3.5, 7.5][roundIndex] || 0;
   }
 
-  // default for 32 & 64 (perfect brackets)
   return (Math.pow(2, roundIndex) - 1) / 2;
 }
 
-function getBracketPosition(bracketType,roundIndex, matchIndex) {
+function getBracketPosition(bracketType, roundIndex, matchIndex) {
   const CARD_WIDTH = 280;
   const CARD_HEIGHT = 150;
   const COLUMN_GAP = 120;
   const BASE_GAP = 36;
 
   const x = roundIndex * (CARD_WIDTH + COLUMN_GAP);
+  const unit = CARD_HEIGHT + BASE_GAP;
 
-  // spacing doubles each round
-  const verticalSpacing = (CARD_HEIGHT + BASE_GAP) * Math.pow(2, roundIndex);
+  let y;
 
-  // offset centers later rounds between feeder matches
-  const offset = getRoundOffset(bracketType, roundIndex) *(CARD_HEIGHT + BASE_GAP);
-  const y = matchIndex * verticalSpacing + offset;
+  if (bracketType === "12") {
+    const positions = {
+      0: [0, 1, 2, 3],
+      1: [0.5, 1.5, 2.5, 3.5],
+      2: [1, 3],
+      3: [2],
+      4: [0, 1, 2, 3, 4],
+    };
 
-  return { x, y, width: CARD_WIDTH, height: CARD_HEIGHT };
+    y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
+  } else if (bracketType === "48") {
+    const positions = {
+      0: Array.from({ length: 16 }, (_, i) => i),
+      1: Array.from({ length: 16 }, (_, i) => i),
+      2: Array.from({ length: 8 }, (_, i) => i * 2 + 0.5),
+      3: Array.from({ length: 4 }, (_, i) => i * 4 + 1.5),
+      4: Array.from({ length: 2 }, (_, i) => i * 8 + 3.5),
+      5: [7.5],
+      6: [0, 1, 2, 3, 4],
+    };
+
+    y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
+  } else {
+    const verticalSpacing = unit * Math.pow(2, roundIndex);
+    const offset = getRoundOffset(bracketType, roundIndex) * unit;
+    y = matchIndex * verticalSpacing + offset;
+  }
+
+  return {
+    x,
+    y,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+  };
 }
-
 
 function ScoreRow({
   name,
