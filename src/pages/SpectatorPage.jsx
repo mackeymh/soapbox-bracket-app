@@ -345,6 +345,40 @@ function getStandings(bracketType, races) {
   ];
 }
 
+function getNextRaceId(bracketType, raceId) {
+  if (bracketType === "12") {
+    if (raceId >= 1 && raceId <= 4) return raceId + 4;
+    if (raceId === 5 || raceId === 6) return 9;
+    if (raceId === 7 || raceId === 8) return 10;
+    if (raceId === 9 || raceId === 10) return 11;
+  }
+
+  if (bracketType === "32") {
+    if (raceId >= 1 && raceId <= 16) return 17 + Math.floor((raceId - 1) / 2);
+    if (raceId >= 17 && raceId <= 24) return 25 + Math.floor((raceId - 17) / 2);
+    if (raceId >= 25 && raceId <= 28) return 29 + Math.floor((raceId - 25) / 2);
+    if (raceId === 29 || raceId === 30) return 31;
+  }
+
+  if (bracketType === "48") {
+    if (raceId >= 1 && raceId <= 16) return raceId + 16;
+    if (raceId >= 17 && raceId <= 32) return 33 + Math.floor((raceId - 17) / 2);
+    if (raceId >= 33 && raceId <= 40) return 41 + Math.floor((raceId - 33) / 2);
+    if (raceId >= 41 && raceId <= 44) return 45 + Math.floor((raceId - 41) / 2);
+    if (raceId === 45 || raceId === 46) return 47;
+  }
+
+  if (bracketType === "64") {
+    if (raceId >= 1 && raceId <= 32) return 33 + Math.floor((raceId - 1) / 2);
+    if (raceId >= 33 && raceId <= 48) return 49 + Math.floor((raceId - 33) / 2);
+    if (raceId >= 49 && raceId <= 56) return 57 + Math.floor((raceId - 49) / 2);
+    if (raceId >= 57 && raceId <= 60) return 61 + Math.floor((raceId - 57) / 2);
+    if (raceId === 61 || raceId === 62) return 63;
+  }
+
+  return null;
+}
+
 export default function SpectatorPage() {
   const { district = "d11" } = useParams();
 
@@ -1003,91 +1037,120 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
 }
 
 function BracketView({ races }) {
-  const bracketType = races[0]?.bracket_type || "12";
-  const layout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
-  
+  const rounds = {};
 
-  const raceMap = {};
   races.forEach((race) => {
-    raceMap[race.id] = race;
+    const round = race.round || "Round";
+    if (!rounds[round]) rounds[round] = [];
+    rounds[round].push(race);
   });
+
+  const orderedRounds = Object.entries(rounds).map(([round, roundRaces]) => [
+    round,
+    [...roundRaces].sort((a, b) => a.id - b.id),
+  ]);
 
   return (
     <section style={styles.bracketPanel}>
-      {layout.map((round, roundIndex) => {
-  const gap = Math.pow(2, roundIndex) * 12;
-  const isLastRound = roundIndex === layout.length - 1;
-
-  return (
-    <div
-      key={round.label}
-      style={{
-        ...styles.bracketColumn,
-        gap,
-      }}
-    >
-      <h2 style={styles.bracketRoundTitle}>{round.label}</h2>
-
-      {round.raceIds.map((raceId) => {
-        const race = raceMap[raceId];
-        if (!race) return null;
-
-        const racerA = getRacerA(race);
-        const racerB = getRacerB(race);
-
-        const isWinnerA = race.winner === racerA;
-        const isWinnerB = race.winner === racerB;
+      {orderedRounds.map(([round, roundRaces], roundIndex) => {
+        const isLastRound = roundIndex === orderedRounds.length - 1;
 
         return (
-          <div
-            key={`${race.division}-${race.bracket_type}-${race.id}`}
-            style={styles.bracketNodeWrapper}
-          >
-            <div style={styles.bracketMatch}>
-              <div style={styles.bracketRaceLabel}>
-                Race {race.id}
-              </div>
+          <div key={round} style={styles.bracketColumn}>
+            <h2 style={styles.bracketRoundTitle}>{round}</h2>
 
-              <div
-                style={{
-                  ...styles.bracketCompetitor,
-                  ...(isWinnerA ? styles.bracketWinnerRow : {}),
-                }}
-              >
-                {isWinnerA ? "🏎️🏁 " : ""}
-                {racerA}
-              </div>
+            {roundRaces.map((race, index) => {
+              const showVerticalConnector =
+                !isLastRound && index % 2 === 0 && index + 1 < roundRaces.length;
 
-              <div
-                style={{
-                  ...styles.bracketCompetitor,
-                  ...(isWinnerB ? styles.bracketWinnerRow : {}),
-                }}
-              >
-                {isWinnerB ? "🏎️🏁 " : ""}
-                {racerB}
-              </div>
+              return (
+                <div
+                  key={`${race.division}-${race.bracket_type}-${race.id}`}
+                  style={styles.bracketNodeWrapper}
+                >
+                  <div style={styles.bracketMatch}>
+                    <div style={styles.bracketRaceLabel}>
+                      Race {race.id}
+                    </div>
 
-              {race.winner && (
-                <div style={styles.bracketWinner}>
-                  Winner: {race.winner}
+                    <div
+                      style={{
+                        ...styles.bracketCompetitor,
+                        ...(race.winner === getRacerA(race)
+                          ? styles.bracketWinnerRow
+                          : {}),
+                      }}
+                    >
+                      {race.winner === getRacerA(race) ? "🏎️🏁 " : ""}
+                      {getRacerA(race)}
+                    </div>
+
+                    <div
+                      style={{
+                        ...styles.bracketCompetitor,
+                        ...(race.winner === getRacerB(race)
+                          ? styles.bracketWinnerRow
+                          : {}),
+                      }}
+                    >
+                      {race.winner === getRacerB(race) ? "🏎️🏁 " : ""}
+                      {getRacerB(race)}
+                    </div>
+
+                    {race.winner && (
+                      <div style={styles.bracketWinner}>
+                        Winner: {race.winner}
+                      </div>
+                    )}
+                  </div>
+
+                  {!isLastRound && <div style={styles.connectorHorizontal} />}
+
+                  {showVerticalConnector && (
+                    <div style={styles.connectorVertical} />
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* horizontal connector */}
-            {!isLastRound && (
-              <div style={styles.connectorHorizontal} />
-            )}
+              );
+            })}
           </div>
         );
       })}
-    </div>
-  );
-})
-}
     </section>
   );
+}
+
+function getNextRaceId(bracketType, raceId) {
+  if (bracketType === "12") {
+    if (raceId >= 1 && raceId <= 4) return raceId + 4;
+    if (raceId === 5 || raceId === 6) return 9;
+    if (raceId === 7 || raceId === 8) return 10;
+    if (raceId === 9 || raceId === 10) return 11;
+  }
+
+  if (bracketType === "32") {
+    if (raceId >= 1 && raceId <= 16) return 17 + Math.floor((raceId - 1) / 2);
+    if (raceId >= 17 && raceId <= 24) return 25 + Math.floor((raceId - 17) / 2);
+    if (raceId >= 25 && raceId <= 28) return 29 + Math.floor((raceId - 25) / 2);
+    if (raceId === 29 || raceId === 30) return 31;
+  }
+
+  if (bracketType === "48") {
+    if (raceId >= 1 && raceId <= 16) return raceId + 16;
+    if (raceId >= 17 && raceId <= 32) return 33 + Math.floor((raceId - 17) / 2);
+    if (raceId >= 33 && raceId <= 40) return 41 + Math.floor((raceId - 33) / 2);
+    if (raceId >= 41 && raceId <= 44) return 45 + Math.floor((raceId - 41) / 2);
+    if (raceId === 45 || raceId === 46) return 47;
+  }
+
+  if (bracketType === "64") {
+    if (raceId >= 1 && raceId <= 32) return 33 + Math.floor((raceId - 1) / 2);
+    if (raceId >= 33 && raceId <= 48) return 49 + Math.floor((raceId - 33) / 2);
+    if (raceId >= 49 && raceId <= 56) return 57 + Math.floor((raceId - 49) / 2);
+    if (raceId >= 57 && raceId <= 60) return 61 + Math.floor((raceId - 57) / 2);
+    if (raceId === 61 || raceId === 62) return 63;
+  }
+
+  return null;
 }
 
 function ScoreRow({
@@ -1541,8 +1604,9 @@ const styles = {
   },
 
   bracketPanel: {
+  position: "relative",
   display: "flex",
-  gap: 36,
+  gap: 72,
   overflowX: "auto",
   padding: 16,
   background: COLORS.panel,
@@ -1550,12 +1614,22 @@ const styles = {
   borderRadius: 18,
 },
 
+bracketSvg: {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  pointerEvents: "none",
+  zIndex: 1,
+},
+
 bracketColumn: {
   minWidth: 260,
   display: "flex",
   flexDirection: "column",
-  justifyContent: "space-around", // important
+  justifyContent: "space-around",
   position: "relative",
+  zIndex: 2,
 },
 
 bracketRoundTitle: {
@@ -1573,7 +1647,6 @@ bracketMatch: {
   borderRadius: 14,
   padding: 12,
   color: COLORS.text,
-  zIndex: 2,
 },
 
 bracketRaceLabel: {
@@ -1609,6 +1682,7 @@ bracketNodeWrapper: {
   display: "flex",
   alignItems: "center",
 },
+
 
 connectorHorizontal: {
   position: "absolute",
