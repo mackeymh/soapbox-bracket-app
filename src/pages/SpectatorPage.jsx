@@ -1037,120 +1037,180 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
 }
 
 function BracketView({ races }) {
-  const rounds = {};
+  const bracketType = races[0]?.bracket_type || "12";
+  const layout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
 
+  const raceMap = {};
   races.forEach((race) => {
-    const round = race.round || "Round";
-    if (!rounds[round]) rounds[round] = [];
-    rounds[round].push(race);
+    raceMap[race.id] = race;
   });
 
-  const orderedRounds = Object.entries(rounds).map(([round, roundRaces]) => [
-    round,
-    [...roundRaces].sort((a, b) => a.id - b.id),
-  ]);
+  const CARD_WIDTH = 280;
+  const CARD_HEIGHT = 150;
+  const COLUMN_GAP = 120;
+  const BASE_GAP = 36;
+
+  const bracketHeight =
+    (layout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP);
+
+  const bracketWidth =
+    layout.length * CARD_WIDTH + (layout.length - 1) * COLUMN_GAP;
+
+  const positionedRaces = [];
+
+  layout.forEach((round, roundIndex) => {
+    round.raceIds.forEach((raceId, matchIndex) => {
+      const race = raceMap[raceId];
+      if (!race) return;
+
+      const position = getBracketPosition(roundIndex, matchIndex);
+
+      positionedRaces.push({
+        race,
+        round,
+        roundIndex,
+        matchIndex,
+        ...position,
+      });
+    });
+  });
+
+  const positionMap = {};
+  positionedRaces.forEach((item) => {
+    positionMap[item.race.id] = item;
+  });
+
+  const connectorLines = positionedRaces
+    .map((item) => {
+      const nextRaceId = getNextRaceId(item.race.bracket_type, item.race.id);
+      if (!nextRaceId || !positionMap[nextRaceId]) return null;
+
+      const from = item;
+      const to = positionMap[nextRaceId];
+
+      const startX = from.x + from.width;
+      const startY = from.y + from.height / 2;
+
+      const endX = to.x;
+      const endY = to.y + to.height / 2;
+
+      const midX = startX + (endX - startX) / 2;
+
+      return {
+        id: `${from.race.id}-${nextRaceId}`,
+        d: `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`,
+      };
+    })
+    .filter(Boolean);
 
   return (
-    <section style={styles.bracketPanel}>
-      {orderedRounds.map(([round, roundRaces], roundIndex) => {
-        const isLastRound = roundIndex === orderedRounds.length - 1;
+    <section style={styles.bracketOuter}>
+      <div
+        style={{
+          ...styles.bracketCanvas,
+          width: bracketWidth,
+          height: bracketHeight,
+        }}
+      >
+        <svg
+          style={styles.bracketSvg}
+          width={bracketWidth}
+          height={bracketHeight}
+        >
+          {connectorLines.map((line) => (
+            <path
+              key={line.id}
+              d={line.d}
+              fill="none"
+              stroke="rgba(148,163,184,0.55)"
+              strokeWidth="2"
+            />
+          ))}
+        </svg>
 
-        return (
-          <div key={round} style={styles.bracketColumn}>
-            <h2 style={styles.bracketRoundTitle}>{round}</h2>
-
-            {roundRaces.map((race, index) => {
-              const showVerticalConnector =
-                !isLastRound && index % 2 === 0 && index + 1 < roundRaces.length;
-
-              return (
-                <div
-                  key={`${race.division}-${race.bracket_type}-${race.id}`}
-                  style={styles.bracketNodeWrapper}
-                >
-                  <div style={styles.bracketMatch}>
-                    <div style={styles.bracketRaceLabel}>
-                      Race {race.id}
-                    </div>
-
-                    <div
-                      style={{
-                        ...styles.bracketCompetitor,
-                        ...(race.winner === getRacerA(race)
-                          ? styles.bracketWinnerRow
-                          : {}),
-                      }}
-                    >
-                      {race.winner === getRacerA(race) ? "🏎️🏁 " : ""}
-                      {getRacerA(race)}
-                    </div>
-
-                    <div
-                      style={{
-                        ...styles.bracketCompetitor,
-                        ...(race.winner === getRacerB(race)
-                          ? styles.bracketWinnerRow
-                          : {}),
-                      }}
-                    >
-                      {race.winner === getRacerB(race) ? "🏎️🏁 " : ""}
-                      {getRacerB(race)}
-                    </div>
-
-                    {race.winner && (
-                      <div style={styles.bracketWinner}>
-                        Winner: {race.winner}
-                      </div>
-                    )}
-                  </div>
-
-                  {!isLastRound && <div style={styles.connectorHorizontal} />}
-
-                  {showVerticalConnector && (
-                    <div style={styles.connectorVertical} />
-                  )}
-                </div>
-              );
-            })}
+        {layout.map((round, roundIndex) => (
+          <div
+            key={round.label}
+            style={{
+              ...styles.absoluteRoundTitle,
+              left: roundIndex * (CARD_WIDTH + COLUMN_GAP),
+              width: CARD_WIDTH,
+            }}
+          >
+            {round.label}
           </div>
-        );
-      })}
+        ))}
+
+        {positionedRaces.map(({ race, x, y }) => {
+          const racerA = getRacerA(race);
+          const racerB = getRacerB(race);
+
+          const isWinnerA = race.winner === racerA;
+          const isWinnerB = race.winner === racerB;
+
+          return (
+            <div
+              key={`${race.division}-${race.bracket_type}-${race.id}`}
+              style={{
+                ...styles.absoluteBracketMatch,
+                left: x,
+                top: y + 48,
+                width: CARD_WIDTH,
+                minHeight: CARD_HEIGHT,
+              }}
+            >
+              <div style={styles.bracketRaceLabel}>Race {race.id}</div>
+
+              <div
+                style={{
+                  ...styles.bracketCompetitor,
+                  ...(isWinnerA ? styles.bracketWinnerRow : {}),
+                }}
+              >
+                {isWinnerA ? "🏎️🏁 " : ""}
+                {racerA}
+              </div>
+
+              <div
+                style={{
+                  ...styles.bracketCompetitor,
+                  ...(isWinnerB ? styles.bracketWinnerRow : {}),
+                }}
+              >
+                {isWinnerB ? "🏎️🏁 " : ""}
+                {racerB}
+              </div>
+
+              {race.winner && (
+                <div style={styles.bracketWinner}>
+                  Winner: {race.winner}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
 
-function getNextRaceId(bracketType, raceId) {
-  if (bracketType === "12") {
-    if (raceId >= 1 && raceId <= 4) return raceId + 4;
-    if (raceId === 5 || raceId === 6) return 9;
-    if (raceId === 7 || raceId === 8) return 10;
-    if (raceId === 9 || raceId === 10) return 11;
-  }
+function getBracketPosition(roundIndex, matchIndex) {
+  const CARD_WIDTH = 280;
+  const CARD_HEIGHT = 150;
+  const COLUMN_GAP = 120;
+  const BASE_GAP = 36;
 
-  if (bracketType === "32") {
-    if (raceId >= 1 && raceId <= 16) return 17 + Math.floor((raceId - 1) / 2);
-    if (raceId >= 17 && raceId <= 24) return 25 + Math.floor((raceId - 17) / 2);
-    if (raceId >= 25 && raceId <= 28) return 29 + Math.floor((raceId - 25) / 2);
-    if (raceId === 29 || raceId === 30) return 31;
-  }
+  const x = roundIndex * (CARD_WIDTH + COLUMN_GAP);
 
-  if (bracketType === "48") {
-    if (raceId >= 1 && raceId <= 16) return raceId + 16;
-    if (raceId >= 17 && raceId <= 32) return 33 + Math.floor((raceId - 17) / 2);
-    if (raceId >= 33 && raceId <= 40) return 41 + Math.floor((raceId - 33) / 2);
-    if (raceId >= 41 && raceId <= 44) return 45 + Math.floor((raceId - 41) / 2);
-    if (raceId === 45 || raceId === 46) return 47;
-  }
+  // spacing doubles each round
+  const verticalSpacing = (CARD_HEIGHT + BASE_GAP) * Math.pow(2, roundIndex);
 
-  if (bracketType === "64") {
-    if (raceId >= 1 && raceId <= 32) return 33 + Math.floor((raceId - 1) / 2);
-    if (raceId >= 33 && raceId <= 48) return 49 + Math.floor((raceId - 33) / 2);
-    if (raceId >= 49 && raceId <= 56) return 57 + Math.floor((raceId - 49) / 2);
-    if (raceId >= 57 && raceId <= 60) return 61 + Math.floor((raceId - 57) / 2);
-    if (raceId === 61 || raceId === 62) return 63;
-  }
+  // offset centers later rounds between feeder matches
+  const offset = ((Math.pow(2, roundIndex) - 1) * (CARD_HEIGHT + BASE_GAP)) / 2;
 
-  return null;
+  const y = matchIndex * verticalSpacing + offset;
+
+  return { x, y, width: CARD_WIDTH, height: CARD_HEIGHT };
 }
 
 function ScoreRow({
@@ -1616,11 +1676,15 @@ const styles = {
 
 bracketSvg: {
   position: "absolute",
-  inset: 0,
-  width: "100%",
-  height: "100%",
+  left: 0,
+  top: 48,
   pointerEvents: "none",
   zIndex: 1,
+},
+
+bracketCanvas: {
+  position: "relative",
+  minWidth: "100%",
 },
 
 bracketColumn: {
@@ -1629,6 +1693,26 @@ bracketColumn: {
   flexDirection: "column",
   justifyContent: "space-around",
   position: "relative",
+  zIndex: 2,
+},
+
+absoluteRoundTitle: {
+  position: "absolute",
+  top: 0,
+  color: COLORS.text,
+  fontSize: 22,
+  fontWeight: 950,
+  textAlign: "center",
+  whiteSpace: "nowrap",
+},
+
+absoluteBracketMatch: {
+  position: "absolute",
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 12,
+  color: COLORS.text,
   zIndex: 2,
 },
 
@@ -1654,14 +1738,16 @@ bracketRaceLabel: {
   fontSize: 12,
   marginBottom: 6,
   fontWeight: 900,
+  textAlign: "center",
 },
 
 bracketCompetitor: {
-  padding: "6px 8px",
+  padding: "8px 10px",
   borderRadius: 8,
   background: "#06101f",
-  marginTop: 5,
+  marginTop: 6,
   fontWeight: 850,
+  textAlign: "center",
 },
 
 bracketWinnerRow: {
@@ -1675,6 +1761,7 @@ bracketWinner: {
   color: COLORS.accent,
   fontWeight: 900,
   fontSize: 12,
+  textAlign: "center",
 },
 
 bracketNodeWrapper: {
@@ -1683,6 +1770,15 @@ bracketNodeWrapper: {
   alignItems: "center",
 },
 
+bracketOuter: {
+  overflowX: "auto",
+  overflowY: "auto",
+  background: COLORS.panel,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 18,
+  padding: 20,
+  maxHeight: "75vh",
+},
 
 connectorHorizontal: {
   position: "absolute",

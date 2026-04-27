@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   fetchRaces,
@@ -414,7 +414,7 @@ export default function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [authorized, district, division, bracketType]);
+  }, [authorized, district, division, bracketType, advanceBracket]);
 
   async function reloadRaces() {
     const refreshed = await fetchRaces(bracketType, district, division);
@@ -590,7 +590,7 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
     return map[id]?.loser || "";
   }
 
-  async function advanceBracket(raceRows) {
+  const advanceBracket = useCallback(async (raceRows) => {
     const map = {};
     raceRows.forEach((race) => {
       map[race.id] = race;
@@ -718,7 +718,7 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
     for (const update of updates) {
       await updateRace(update.id, update.fields, bracketType, district, division);
     }
-  }
+  }, [bracketType, district, division]);
 
   function getRaceAdminOutcome(race, changedField = null, changedValue = null) {
     const nextRace =
