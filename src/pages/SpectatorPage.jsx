@@ -1051,7 +1051,7 @@ function BracketView({ races }) {
 
   const bracketHeight =
   bracketType === "12"
-    ? 6 * (CARD_HEIGHT + BASE_GAP) + 120
+    ? 5 * (CARD_HEIGHT + BASE_GAP) + 120
     : bracketType === "48"
       ? 16 * (CARD_HEIGHT + BASE_GAP) + 80
       : (layout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP) + 80;
@@ -1222,20 +1222,21 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
 
   if (bracketType === "12") {
   const positions = {
-    // Play-In Round
-    0: [0, 1.35, 2.7, 4.05],
+    // Play-In Round: Race 1, 2, 3, 4
+    0: [0, 1, 2, 3],
 
-    // Quarterfinals
-    1: [0.45, 1.8, 3.15, 4.5],
+    // Quarterfinals: Race 5, 6, 7, 8
+    // Same vertical height as Play-In Round
+    1: [0, 1, 2, 3],
 
-    // Semifinals
-    2: [1.125, 3.825],
+    // Semifinals: Race 9 sits between 5/6, Race 10 between 7/8
+    2: [0.5, 2.5],
 
-    // Final
-    3: [2.475],
+    // Final: Race 11 sits between Race 9 and Race 10
+    3: [1.5],
 
-    // Placements
-    4: [0, 1.2, 2.4, 3.6, 4.8],
+    // Placement races
+    4: [0, 1, 2, 3, 4],
   };
 
   y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
