@@ -1039,15 +1039,8 @@ function BracketView({ races }) {
   const bracketType = races[0]?.bracket_type || "12";
   const fullLayout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
 
-  const layout =
-    bracketType === "64"
-      ? fullLayout.filter((round) => round.label !== "Placements")
-      : fullLayout;
-
-  const placementLayout =
-    bracketType === "64"
-      ? fullLayout.find((round) => round.label === "Placements")
-      : null;
+  const mainLayout = fullLayout.filter((round) => round.label !== "Placements");
+  const placementLayout = fullLayout.find((round) => round.label === "Placements");
 
   const raceMap = {};
   races.forEach((race) => {
@@ -1060,18 +1053,18 @@ function BracketView({ races }) {
   const BASE_GAP = 36;
 
   const bracketHeight =
-  bracketType === "12"
-    ? 5 * (CARD_HEIGHT + BASE_GAP) + 120
-    : bracketType === "48"
-      ? 16 * (CARD_HEIGHT + BASE_GAP) + 80
-      : (layout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP) + 80;
+    bracketType === "12"
+      ? 5 * (CARD_HEIGHT + BASE_GAP) + 120
+      : bracketType === "48"
+        ? 16 * (CARD_HEIGHT + BASE_GAP) + 80
+        : (mainLayout[0]?.raceIds.length || 1) * (CARD_HEIGHT + BASE_GAP) + 80;
 
   const bracketWidth =
-    layout.length * CARD_WIDTH + (layout.length - 1) * COLUMN_GAP;
+    mainLayout.length * CARD_WIDTH + (mainLayout.length - 1) * COLUMN_GAP;
 
   const positionedRaces = [];
 
-  layout.forEach((round, roundIndex) => {
+  mainLayout.forEach((round, roundIndex) => {
     round.raceIds.forEach((raceId, matchIndex) => {
       const race = raceMap[raceId];
       if (!race) return;
@@ -1123,6 +1116,7 @@ function BracketView({ races }) {
           ...styles.bracketCanvas,
           width: bracketWidth,
           height: bracketHeight,
+          minWidth: bracketWidth,
         }}
       >
         <svg
@@ -1141,7 +1135,7 @@ function BracketView({ races }) {
           ))}
         </svg>
 
-        {layout.map((round, roundIndex) => (
+        {mainLayout.map((round, roundIndex) => (
           <div
             key={round.label}
             style={{
@@ -1195,9 +1189,7 @@ function BracketView({ races }) {
               </div>
 
               {race.winner && (
-                <div style={styles.bracketWinner}>
-                  Winner: {race.winner}
-                </div>
+                <div style={styles.bracketWinner}>Winner: {race.winner}</div>
               )}
             </div>
           );
@@ -1205,16 +1197,16 @@ function BracketView({ races }) {
       </div>
 
       {placementLayout && (
-        <div style={styles.placementPanel64}>
-          <h2 style={styles.placementTitle64}>Placements</h2>
+        <div style={styles.placementPanel}>
+          <h2 style={styles.placementTitle}>Placements</h2>
 
-          <div style={styles.placementGrid64}>
+          <div style={styles.placementGrid}>
             {placementLayout.raceIds.map((raceId) => {
               const race = raceMap[raceId];
               if (!race) return null;
 
               return (
-                <div key={raceId} style={styles.placementMatch64}>
+                <div key={raceId} style={styles.placementMatch}>
                   <div style={styles.bracketRaceLabel}>Race {race.id}</div>
                   <div style={styles.bracketCompetitor}>{getRacerA(race)}</div>
                   <div style={styles.bracketCompetitor}>{getRacerB(race)}</div>
@@ -1773,7 +1765,7 @@ bracketSvg: {
 
 bracketCanvas: {
   position: "relative",
-  minWidth: "100%",
+  flex: "0 0 auto",
 },
 
 bracketColumn: {
@@ -1882,12 +1874,12 @@ connectorHorizontal: {
   zIndex: 1,
 },
 
-placementPanel64: {
-  minWidth: 360,
+placementPanel: {
+  flex: "0 0 360px",
   marginLeft: 40,
 },
 
-placementTitle64: {
+placementTitle: {
   color: COLORS.text,
   fontSize: 22,
   fontWeight: 950,
@@ -1895,13 +1887,13 @@ placementTitle64: {
   margin: "0 0 16px 0",
 },
 
-placementGrid64: {
+placementGrid: {
   display: "flex",
   flexDirection: "column",
   gap: 16,
 },
 
-placementMatch64: {
+placementMatch: {
   background: COLORS.card,
   border: `1px solid ${COLORS.border}`,
   borderRadius: 14,
