@@ -1933,6 +1933,7 @@ const styles = {
     margin: "0 0 10px 0",
     fontSize: 20,
     fontWeight: 950,
+    color: "#f8fafc",
   },
 
   pathGrid: {
@@ -1949,18 +1950,19 @@ const styles = {
   },
 
   pathRace: {
-    color: "#bbf7d0",
+    color: "#dcfce7",
     fontWeight: 950,
     fontSize: 12,
   },
 
   pathMatch: {
+    color: "#f8fafc",
     fontWeight: 950,
     marginTop: 4,
   },
 
   pathStatus: {
-    color: COLORS.muted2,
+    color: "#e2e8f0",
     fontSize: 12,
     marginTop: 4,
   },
