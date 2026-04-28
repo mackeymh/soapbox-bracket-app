@@ -15,6 +15,7 @@ const DISTRICT_CONFIG = {
       "11X483", "11X498", "11X529", "11X566", "11X567",
     ],
   },
+
   southBronx: {
     title: "South Bronx Soap Box Derby",
     logo: "/logo.png",
@@ -40,11 +41,14 @@ const COLORS = {
   bg2: "#0f172a",
   panel: "#0f1b2d",
   card: "#0b1628",
+  inner: "#06101f",
   border: "#334155",
+  borderSoft: "rgba(148,163,184,0.3)",
   text: "#f8fafc",
   muted: "#94a3b8",
   muted2: "#cbd5e1",
-  accent: "#16a34a",
+  accent: "#22c55e",
+  accent2: "#16a34a",
   accentDark: "#14532d",
   accentSoft: "rgba(34,197,94,0.16)",
   yellow: "#facc15",
@@ -62,6 +66,7 @@ const BRACKET_LAYOUTS = {
     { label: "Final", raceIds: [11] },
     { label: "Placements", raceIds: [12, 13, 14, 15, 16] },
   ],
+
   32: [
     { label: "Opening Round", raceIds: Array.from({ length: 16 }, (_, i) => i + 1) },
     { label: "Round of 16", raceIds: Array.from({ length: 8 }, (_, i) => i + 17) },
@@ -70,6 +75,7 @@ const BRACKET_LAYOUTS = {
     { label: "Final", raceIds: [31] },
     { label: "Placements", raceIds: [32, 33, 34, 35, 36] },
   ],
+
   48: [
     { label: "Play-In Round", raceIds: Array.from({ length: 16 }, (_, i) => i + 1) },
     { label: "Round of 32", raceIds: Array.from({ length: 16 }, (_, i) => i + 17) },
@@ -79,6 +85,7 @@ const BRACKET_LAYOUTS = {
     { label: "Final", raceIds: [47] },
     { label: "Placements", raceIds: [48, 49, 50, 51, 52] },
   ],
+
   64: [
     { label: "Opening Round", raceIds: Array.from({ length: 32 }, (_, i) => i + 1) },
     { label: "Round of 32", raceIds: Array.from({ length: 16 }, (_, i) => i + 33) },
@@ -122,11 +129,21 @@ function getRacerB(race) {
 function raceMatchesSchool(race, selectedSchool) {
   if (!race) return false;
   if (selectedSchool === "All Schools") return true;
-  return racerMatchesSchool(getRacerA(race), selectedSchool) || racerMatchesSchool(getRacerB(race), selectedSchool);
+
+  return (
+    racerMatchesSchool(getRacerA(race), selectedSchool) ||
+    racerMatchesSchool(getRacerB(race), selectedSchool)
+  );
 }
 
 function sameRace(a, b) {
-  return !!a && !!b && a.id === b.id && a.division === b.division && a.bracket_type === b.bracket_type;
+  return (
+    !!a &&
+    !!b &&
+    a.id === b.id &&
+    a.division === b.division &&
+    a.bracket_type === b.bracket_type
+  );
 }
 
 function toNumber(value) {
@@ -141,9 +158,13 @@ function formatTime(value) {
 }
 
 function hasAnyRunData(race) {
-  return race.run1_lane1 != null || race.run1_lane2 != null || race.run2_lane1 != null || race.run2_lane2 != null;
+  return (
+    race.run1_lane1 != null ||
+    race.run1_lane2 != null ||
+    race.run2_lane1 != null ||
+    race.run2_lane2 != null
+  );
 }
-
 
 function isRaceMidRace(race) {
   const run1 = race.run1_lane1 != null || race.run1_lane2 != null;
@@ -154,16 +175,23 @@ function isRaceMidRace(race) {
 function getRaceTimes(race) {
   const aRun1 = toNumber(race.run1_lane1);
   const bRun1 = toNumber(race.run1_lane2);
+
   const aRun2 = toNumber(race.run2_lane2);
   const bRun2 = toNumber(race.run2_lane1);
 
   const totalA =
-    race.total_a != null ? toNumber(race.total_a) :
-    aRun1 != null && aRun2 != null ? aRun1 + aRun2 : null;
+    race.total_a != null
+      ? toNumber(race.total_a)
+      : aRun1 != null && aRun2 != null
+        ? aRun1 + aRun2
+        : null;
 
   const totalB =
-    race.total_b != null ? toNumber(race.total_b) :
-    bRun1 != null && bRun2 != null ? bRun1 + bRun2 : null;
+    race.total_b != null
+      ? toNumber(race.total_b)
+      : bRun1 != null && bRun2 != null
+        ? bRun1 + bRun2
+        : null;
 
   return { aRun1, bRun1, aRun2, bRun2, totalA, totalB };
 }
@@ -449,7 +477,9 @@ export default function SpectatorPage() {
 
     for (const div of districtDivisions) {
       const setting = await fetchEventSetting(district, div);
-      const bracket = setting?.active_bracket_type || (div === "stock" ? "12" : "32");
+      const bracket =
+        setting?.active_bracket_type || (div === "stock" ? "12" : "32");
+
       const data = await fetchRaces(bracket, district, div);
 
       const tagged = (data || []).map((race) => ({
@@ -468,15 +498,18 @@ export default function SpectatorPage() {
     const load = async () => {
       await loadRaces();
     };
+
     load();
-    
     const id = setInterval(load, 5000);
     return () => clearInterval(id);
   }, [loadRaces]);
 
   const sorted = useMemo(() => {
     return [...races].sort((a, b) => {
-      if (a.division !== b.division) return a.division.localeCompare(b.division);
+      if (a.division !== b.division) {
+        return a.division.localeCompare(b.division);
+      }
+
       return a.id - b.id;
     });
   }, [races]);
@@ -512,7 +545,6 @@ export default function SpectatorPage() {
   }, [sorted, activeBracketDivision]);
 
   const activeBracketType = bracketRaces[0]?.bracket_type || "12";
-
   const schoolIsActive = schoolFilter !== "All Schools";
 
   const schoolRaceCount = useMemo(() => {
@@ -524,7 +556,9 @@ export default function SpectatorPage() {
     return {
       total: scoped.length,
       completed: scoped.filter((race) => race.status === "Complete").length,
-      live: scoped.filter((race) => race.is_current_override || isRaceMidRace(race)).length,
+      live: scoped.filter(
+        (race) => race.is_current_override || isRaceMidRace(race),
+      ).length,
       pending: scoped.filter(
         (race) =>
           race.status !== "Complete" &&
@@ -543,13 +577,23 @@ export default function SpectatorPage() {
 
       if (raceFilter === "On Track") return sameRace(race, currentRace);
       if (raceFilter === "Up Next") return sameRace(race, nextRace);
-      if (raceFilter === "In Progress") return race.is_current_override || isRaceMidRace(race);
+      if (raceFilter === "In Progress") {
+        return race.is_current_override || isRaceMidRace(race);
+      }
       if (raceFilter === "Pending") return !hasAnyRunData(race);
       if (raceFilter === "Completed") return race.status === "Complete";
 
       return true;
     });
-  }, [scoped, schoolFilter, focusOnly, schoolIsActive, raceFilter, currentRace, nextRace]);
+  }, [
+    scoped,
+    schoolFilter,
+    focusOnly,
+    schoolIsActive,
+    raceFilter,
+    currentRace,
+    nextRace,
+  ]);
 
   const ordered = useMemo(() => {
     return [...visible].sort((a, b) => {
@@ -557,25 +601,31 @@ export default function SpectatorPage() {
       const bSchool = schoolIsActive && raceMatchesSchool(b, schoolFilter);
 
       if (aSchool !== bSchool) return aSchool ? -1 : 1;
+
       if (sameRace(a, currentRace) !== sameRace(b, currentRace)) {
         return sameRace(a, currentRace) ? -1 : 1;
       }
+
       if (sameRace(a, nextRace) !== sameRace(b, nextRace)) {
         return sameRace(a, nextRace) ? -1 : 1;
       }
-      if (a.division !== b.division) return a.division.localeCompare(b.division);
+
+      if (a.division !== b.division) {
+        return a.division.localeCompare(b.division);
+      }
+
       return a.id - b.id;
     });
   }, [visible, schoolFilter, schoolIsActive, currentRace, nextRace]);
 
   const scrollToCurrentRace = useCallback(() => {
-  if (!currentRef.current) return;
+    if (!currentRef.current) return;
 
-  currentRef.current.scrollIntoView({
-    behavior: "smooth",
-    block: "center",
-  });
-}, []);
+    currentRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, []);
 
   return (
     <div style={styles.page}>
@@ -591,7 +641,15 @@ export default function SpectatorPage() {
             }
 
             .controls-grid {
-              grid-template-columns: 1fr !important;
+              grid-template-columns: 1fr 1fr !important;
+            }
+
+            .school-control {
+              grid-column: span 2 !important;
+            }
+
+            .jump-button {
+              grid-column: span 2 !important;
             }
 
             .right-rail {
@@ -600,12 +658,66 @@ export default function SpectatorPage() {
           }
 
           @media (max-width: 640px) {
+            .page-shell {
+              padding: 10px !important;
+            }
+
+            .header {
+              display: none !important;
+            }
+
+            .live-banner {
+              position: static !important;
+              padding: 16px 12px !important;
+              border-radius: 18px !important;
+              margin-bottom: 10px !important;
+            }
+
             .banner-title {
               font-size: 24px !important;
+              line-height: 1.15 !important;
             }
 
             .banner-match {
               font-size: 18px !important;
+            }
+
+            .controls-panel {
+              padding: 10px !important;
+              border-radius: 18px !important;
+            }
+
+            .tab-button {
+              flex: 1 !important;
+              text-align: center !important;
+              padding: 9px 8px !important;
+            }
+
+            .control-card {
+              padding: 10px !important;
+              border-radius: 14px !important;
+            }
+
+            .field-label {
+              font-size: 11px !important;
+              margin-bottom: 5px !important;
+            }
+
+            .control-select {
+              min-height: 40px !important;
+              padding: 8px 10px !important;
+              font-size: 14px !important;
+            }
+
+            .focus-inline {
+              min-height: 40px !important;
+              padding: 8px 10px !important;
+              font-size: 14px !important;
+            }
+
+            .school-summary {
+              font-size: 12px !important;
+              padding: 8px !important;
             }
 
             .card-header {
@@ -614,15 +726,34 @@ export default function SpectatorPage() {
             }
 
             .times {
-              justify-content: flex-start !important;
+              justify-content: center !important;
+            }
+
+            .race-title {
+              font-size: 24px !important;
+              text-align: center !important;
+            }
+
+            .race-meta {
+              text-align: center !important;
+            }
+
+            .race-card {
+              padding: 13px !important;
+              border-radius: 18px !important;
             }
           }
         `}
       </style>
 
-      <div style={styles.container}>
-        <header style={styles.header}>
-          <img src={config.logo} alt={`${config.title} logo`} style={styles.logo} />
+      <div className="page-shell" style={styles.container}>
+        <header className="header" style={styles.header}>
+          <img
+            src={config.logo}
+            alt={`${config.title} logo`}
+            style={styles.logo}
+          />
+
           <div>
             <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
             <h1 style={styles.title}>{config.title}</h1>
@@ -630,7 +761,7 @@ export default function SpectatorPage() {
           </div>
         </header>
 
-        <section style={styles.banner}>
+        <section className="live-banner" style={styles.banner}>
           {currentRace ? (
             <>
               <div style={styles.bannerLabel}>ON THE TRACK</div>
@@ -651,13 +782,14 @@ export default function SpectatorPage() {
           )}
         </section>
 
-        <section style={styles.controls}>
+        <section className="controls-panel" style={styles.controls}>
           <div style={styles.tabRow}>
             {["Races", "Bracket", "Standings"].map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => setTab(item)}
+                className="tab-button"
                 style={tab === item ? styles.activeTab : styles.tab}
               >
                 {item}
@@ -666,80 +798,106 @@ export default function SpectatorPage() {
           </div>
 
           <div className="controls-grid" style={styles.controlsGrid}>
-            <label style={styles.field}>
-              <span style={styles.label}>School</span>
-              <select
-                value={schoolFilter}
-                onChange={(event) => setSchoolFilter(event.target.value)}
-                style={styles.primarySelect}
-              >
-                <option value="All Schools">All Schools</option>
-                {config.schoolCodes.map((school) => (
-                  <option key={school} value={school}>
-                    {school}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div
+              className="control-card school-control"
+              style={styles.controlCard}
+            >
+              <label style={styles.field}>
+                <span className="field-label" style={styles.label}>
+                  School
+                </span>
 
-            <label style={styles.field}>
-              <span style={styles.label}>Division</span>
-              <select
-                value={division}
-                onChange={(event) => setDivision(event.target.value)}
-                style={styles.select}
-              >
-                <option value="All">All Divisions</option>
-                {districtDivisions.map((div) => (
-                  <option key={div} value={div}>
-                    {DIVISION_LABELS[div]}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <div style={styles.schoolFocusRow}>
+                  <select
+                    value={schoolFilter}
+                    onChange={(event) => setSchoolFilter(event.target.value)}
+                    className="control-select"
+                    style={styles.primarySelect}
+                  >
+                    <option value="All Schools">All Schools</option>
+                    {config.schoolCodes.map((school) => (
+                      <option key={school} value={school}>
+                        {school}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label
+                    className="focus-inline"
+                    style={{
+                      ...styles.focusInline,
+                      opacity: schoolIsActive ? 1 : 0.55,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={focusOnly}
+                      disabled={!schoolIsActive}
+                      onChange={(event) => setFocusOnly(event.target.checked)}
+                      style={styles.checkbox}
+                    />
+                    <span>Focus</span>
+                  </label>
+                </div>
+              </label>
+            </div>
+
+            <div className="control-card" style={styles.controlCard}>
+              <label style={styles.field}>
+                <span className="field-label" style={styles.label}>
+                  Division
+                </span>
+
+                <select
+                  value={division}
+                  onChange={(event) => setDivision(event.target.value)}
+                  className="control-select"
+                  style={styles.select}
+                >
+                  <option value="All">All Divisions</option>
+                  {districtDivisions.map((div) => (
+                    <option key={div} value={div}>
+                      {DIVISION_LABELS[div]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="control-card" style={styles.controlCard}>
+              <label style={styles.field}>
+                <span className="field-label" style={styles.label}>
+                  Races
+                </span>
+
+                <select
+                  value={raceFilter}
+                  onChange={(event) => setRaceFilter(event.target.value)}
+                  className="control-select"
+                  style={styles.select}
+                >
+                  <option value="All">All Races</option>
+                  <option value="On Track">On Track</option>
+                  <option value="Up Next">Up Next</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </label>
+            </div>
 
             <button
-  type="button"
-  onClick={scrollToCurrentRace}
-  style={styles.jumpButton}
->
-  🎯 Jump to Live Race
-</button>
-
-            <label style={styles.field}>
-              <span style={styles.label}>Races</span>
-              <select
-                value={raceFilter}
-                onChange={(event) => setRaceFilter(event.target.value)}
-                style={styles.select}
-              >
-                <option value="All">All Races</option>
-                <option value="On Track">On Track</option>
-                <option value="Up Next">Up Next</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </label>
-
-            <label
-              style={{
-                ...styles.focusToggle,
-                opacity: schoolIsActive ? 1 : 0.55,
-              }}
+              type="button"
+              onClick={scrollToCurrentRace}
+              className="jump-button"
+              style={styles.jumpButton}
             >
-              <input
-                type="checkbox"
-                checked={focusOnly}
-                disabled={!schoolIsActive}
-                onChange={(event) => setFocusOnly(event.target.checked)}
-              />
-              Focus only on this school
-            </label>
+              🎯 Jump to Live Race
+            </button>
           </div>
 
           {schoolIsActive && (
-            <div style={styles.schoolSummary}>
+            <div className="school-summary" style={styles.schoolSummary}>
               <strong>{schoolFilter}</strong> appears in {schoolRaceCount} race
               {schoolRaceCount === 1 ? "" : "s"}.
               {focusOnly
@@ -749,32 +907,45 @@ export default function SpectatorPage() {
           )}
         </section>
 
-        <main className="spectator-main" style={styles.main}>
+                <main className="spectator-main" style={styles.main}>
           <section>
             {tab === "Races" && (
-              <div className="race-grid" style={styles.grid}>
-                {ordered.map((race) => {
-                  const schoolMatch = schoolIsActive && raceMatchesSchool(race, schoolFilter);
-                  const dimmed = schoolIsActive && !schoolMatch && !focusOnly;
-
-                  return (
-                    <RaceCard
-                      key={`${race.division}-${race.bracket_type}-${race.id}`}
-                      race={race}
-                      isOnTrack={sameRace(race, currentRace)}
-                      isUpNext={sameRace(race, nextRace)}
-                      selectedSchool={schoolFilter}
-                      isSchoolMatch={schoolMatch}
-                      isDimmed={dimmed}
-                      cardRef={sameRace(race, currentRace) ? currentRef : null}
-                    />
-                  );
-                })}
-
-                {ordered.length === 0 && (
-                  <div style={styles.emptyPanel}>No races match the selected filters.</div>
+              <>
+                {nextRace && (
+                  <div style={styles.mobileNextStrip}>
+                    <strong>Up Next:</strong> Race {nextRace.id} ·{" "}
+                    {getRacerA(nextRace)} vs {getRacerB(nextRace)}
+                  </div>
                 )}
-              </div>
+
+                <div className="race-grid" style={styles.grid}>
+                  {ordered.map((race) => {
+                    const schoolMatch =
+                      schoolIsActive && raceMatchesSchool(race, schoolFilter);
+
+                    const dimmed = schoolIsActive && !schoolMatch && !focusOnly;
+
+                    return (
+                      <RaceCard
+                        key={`${race.division}-${race.bracket_type}-${race.id}`}
+                        race={race}
+                        isOnTrack={sameRace(race, currentRace)}
+                        isUpNext={sameRace(race, nextRace)}
+                        selectedSchool={schoolFilter}
+                        isSchoolMatch={schoolMatch}
+                        isDimmed={dimmed}
+                        cardRef={sameRace(race, currentRace) ? currentRef : null}
+                      />
+                    );
+                  })}
+
+                  {ordered.length === 0 && (
+                    <div style={styles.emptyPanel}>
+                      No races match the selected filters.
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {tab === "Bracket" && (
@@ -798,6 +969,7 @@ export default function SpectatorPage() {
           <aside className="right-rail" style={styles.rail}>
             <div style={styles.sidePanel}>
               <div style={styles.sideTitle}>UP NEXT</div>
+
               {nextRace ? (
                 <>
                   <div style={styles.nextTitle}>Race {nextRace.id}</div>
@@ -805,7 +977,8 @@ export default function SpectatorPage() {
                     {getRacerA(nextRace)} vs {getRacerB(nextRace)}
                   </div>
                   <div style={styles.nextMeta}>
-                    {DIVISION_LABELS[nextRace.division]} · {nextRace.bracket_type}-Car
+                    {DIVISION_LABELS[nextRace.division]} ·{" "}
+                    {nextRace.bracket_type}-Car
                   </div>
                 </>
               ) : (
@@ -815,6 +988,7 @@ export default function SpectatorPage() {
 
             <div style={styles.sidePanel}>
               <div style={styles.sideTitle}>EVENT STATS</div>
+
               <div style={styles.statsGrid}>
                 <Stat label="Total" value={stats.total} />
                 <Stat label="Done" value={stats.completed} />
@@ -849,10 +1023,12 @@ function RaceCard({
 
   const statusText = getStatusText(race, isOnTrack, isUpNext);
   const statusColor = getStatusColor(race, isOnTrack, isUpNext);
+  const showTimes = hasAnyRunData(race) || totalA != null || totalB != null;
 
   return (
     <article
       ref={cardRef}
+      className="race-card"
       style={{
         ...styles.card,
         opacity: isDimmed ? 0.38 : 1,
@@ -862,7 +1038,7 @@ function RaceCard({
             ? `2px solid ${COLORS.yellow}`
             : isSchoolMatch
               ? `2px solid ${COLORS.accent}`
-              : `1px solid ${COLORS.border}`,
+              : `1px solid ${COLORS.borderSoft}`,
         boxShadow: isOnTrack
           ? "0 0 22px rgba(34,197,94,0.35)"
           : isUpNext
@@ -873,16 +1049,19 @@ function RaceCard({
       }}
     >
       {isSchoolMatch && selectedSchool !== "All Schools" && (
-  <div style={styles.schoolBadge}>
-    ⭐ Following {selectedSchool}
-  </div>
-)}
+        <div style={styles.schoolBadge}>
+          ⭐ Following <strong>{selectedSchool}</strong>
+        </div>
+      )}
 
       <div className="card-header" style={styles.cardHeader}>
         <div>
-          <div style={styles.raceTitle}>Race {race.id}</div>
-          <div style={styles.meta}>
-            {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car · {race.round}
+          <div className="race-title" style={styles.raceTitle}>
+            Race {race.id}
+          </div>
+          <div className="race-meta" style={styles.meta}>
+            {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car ·{" "}
+            {race.round}
           </div>
         </div>
 
@@ -897,23 +1076,45 @@ function RaceCard({
         </div>
       </div>
 
-      <CompetitorRow
-        name={racerA}
-        run1={aRun1}
-        run2={aRun2}
-        total={totalA}
-        isWinner={winner === "A"}
-        isSchool={aSchool}
-      />
+      <div style={styles.matchupBox}>
+        <div style={styles.matchupNames}>
+          <span
+            style={{
+              ...styles.matchupName,
+              ...(aSchool ? styles.schoolMatchName : {}),
+              ...(winner === "A" ? styles.winnerName : {}),
+            }}
+          >
+            {aSchool ? "⭐ " : ""}
+            {winner === "A" ? "🏁 " : ""}
+            {racerA}
+          </span>
 
-      <CompetitorRow
-        name={racerB}
-        run1={bRun1}
-        run2={bRun2}
-        total={totalB}
-        isWinner={winner === "B"}
-        isSchool={bSchool}
-      />
+          <span style={styles.vsText}>vs</span>
+
+          <span
+            style={{
+              ...styles.matchupName,
+              ...(bSchool ? styles.schoolMatchName : {}),
+              ...(winner === "B" ? styles.winnerName : {}),
+            }}
+          >
+            {bSchool ? "⭐ " : ""}
+            {winner === "B" ? "🏁 " : ""}
+            {racerB}
+          </span>
+        </div>
+
+        {showTimes ? (
+          <div className="times" style={styles.times}>
+            <span>R1: {formatTime(aRun1)} / {formatTime(bRun1)}</span>
+            <span>R2: {formatTime(aRun2)} / {formatTime(bRun2)}</span>
+            <strong>Total: {formatTime(totalA)} / {formatTime(totalB)}</strong>
+          </div>
+        ) : (
+          <div style={styles.pendingTimes}>Times pending</div>
+        )}
+      </div>
 
       {winner && (
         <div style={styles.winner}>
@@ -925,36 +1126,14 @@ function RaceCard({
         <div style={styles.alert}>
           {race.bye_for && `BYE: Racer ${race.bye_for} advances`}
           {race.bye_for && (race.dq_a || race.dq_b) ? " · " : ""}
-          {race.dq_a && `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
+          {race.dq_a &&
+            `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
           {race.dq_a && race.dq_b ? " · " : ""}
-          {race.dq_b && `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
+          {race.dq_b &&
+            `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
         </div>
       )}
     </article>
-  );
-}
-
-function CompetitorRow({ name, run1, run2, total, isWinner, isSchool }) {
-  return (
-    <div
-      style={{
-        ...styles.competitor,
-        ...(isSchool ? styles.schoolCompetitor : {}),
-        ...(isWinner ? styles.winnerCompetitor : {}),
-      }}
-    >
-      <div style={styles.competitorName}>
-        {isSchool ? "⭐ " : ""}
-        {isWinner ? "🏁 " : ""}
-        {name}
-      </div>
-
-      <div className="times" style={styles.times}>
-        <span>R1: {formatTime(run1)}</span>
-        <span>R2: {formatTime(run2)}</span>
-        <strong>Total: {formatTime(total)}</strong>
-      </div>
-    </div>
   );
 }
 
@@ -963,9 +1142,12 @@ function BracketView({ races, selectedSchool, focusOnly }) {
   const fullLayout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS[12];
 
   const mainLayout = fullLayout.filter((round) => round.label !== "Placements");
-  const placementLayout = fullLayout.find((round) => round.label === "Placements");
+  const placementLayout = fullLayout.find(
+    (round) => round.label === "Placements",
+  );
 
   const raceMap = {};
+
   races.forEach((race) => {
     raceMap[race.id] = race;
   });
@@ -995,10 +1177,13 @@ function BracketView({ races, selectedSchool, focusOnly }) {
       const race = raceMap[raceId];
       if (!race) return;
 
-      const raceHasSchool = schoolIsActive && raceMatchesSchool(race, selectedSchool);
+      const raceHasSchool =
+        schoolIsActive && raceMatchesSchool(race, selectedSchool);
       const inSchoolPath = schoolIsActive && schoolPathIds.has(race.id);
 
-      if (focusOnly && schoolIsActive && !inSchoolPath && !raceHasSchool) return;
+      if (focusOnly && schoolIsActive && !inSchoolPath && !raceHasSchool) {
+        return;
+      }
 
       positioned.push({
         race,
@@ -1011,6 +1196,7 @@ function BracketView({ races, selectedSchool, focusOnly }) {
   });
 
   const positionMap = {};
+
   positioned.forEach((item) => {
     positionMap[item.race.id] = item;
   });
@@ -1037,8 +1223,10 @@ function BracketView({ races, selectedSchool, focusOnly }) {
     })
     .filter(Boolean);
 
-  const schoolTimeline = schoolIsActive
-    ? races.filter((race) => raceMatchesSchool(race, selectedSchool)).sort((a, b) => a.id - b.id)
+      const schoolTimeline = schoolIsActive
+    ? races
+        .filter((race) => raceMatchesSchool(race, selectedSchool))
+        .sort((a, b) => a.id - b.id)
     : [];
 
   return (
@@ -1052,25 +1240,34 @@ function BracketView({ races, selectedSchool, focusOnly }) {
               {schoolTimeline.map((race) => {
                 const winner = getWinnerSide(race);
                 const winnerName =
-                  winner === "A" ? getRacerA(race) :
-                  winner === "B" ? getRacerB(race) :
-                  null;
+                  winner === "A"
+                    ? getRacerA(race)
+                    : winner === "B"
+                      ? getRacerB(race)
+                      : null;
 
                 return (
-                  <div key={`${race.division}-${race.id}`} style={styles.pathItem}>
+                  <div
+                    key={`${race.division}-${race.bracket_type}-${race.id}`}
+                    style={styles.pathItem}
+                  >
                     <div style={styles.pathRace}>Race {race.id}</div>
                     <div style={styles.pathMatch}>
                       {getRacerA(race)} vs {getRacerB(race)}
                     </div>
                     <div style={styles.pathStatus}>
-                      {winnerName ? `Winner: ${winnerName}` : getStatusText(race, false, false)}
+                      {winnerName
+                        ? `Winner: ${winnerName}`
+                        : getStatusText(race, false, false)}
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div style={styles.emptyText}>No races currently show this school.</div>
+            <div style={styles.emptyText}>
+              No races currently show this school.
+            </div>
           )}
         </div>
       )}
@@ -1084,13 +1281,21 @@ function BracketView({ races, selectedSchool, focusOnly }) {
             height: bracketHeight,
           }}
         >
-          <svg style={styles.bracketSvg} width={bracketWidth} height={bracketHeight}>
+          <svg
+            style={styles.bracketSvg}
+            width={bracketWidth}
+            height={bracketHeight}
+          >
             {connectorLines.map((line) => (
               <path
                 key={line.id}
                 d={line.d}
                 fill="none"
-                stroke={line.highlighted ? COLORS.accent : "rgba(148,163,184,0.42)"}
+                stroke={
+                  line.highlighted
+                    ? COLORS.accent
+                    : "rgba(148,163,184,0.42)"
+                }
                 strokeWidth={line.highlighted ? 4 : 2}
               />
             ))}
@@ -1114,7 +1319,6 @@ function BracketView({ races, selectedSchool, focusOnly }) {
             const racerB = getRacerB(race);
             const { totalA, totalB } = getRaceTimes(race);
             const winner = getWinnerSide(race);
-
             const dimmed = schoolIsActive && !raceHasSchool && !inSchoolPath;
 
             return (
@@ -1125,7 +1329,7 @@ function BracketView({ races, selectedSchool, focusOnly }) {
                   opacity: dimmed ? 0.35 : 1,
                   border: raceHasSchool
                     ? `2px solid ${COLORS.accent}`
-                    : `1px solid ${COLORS.border}`,
+                    : `1px solid ${COLORS.borderSoft}`,
                   left: x,
                   top: y + 48,
                   width: cardWidth,
@@ -1167,7 +1371,8 @@ function BracketView({ races, selectedSchool, focusOnly }) {
                 const race = raceMap[raceId];
                 if (!race) return null;
 
-                const schoolMatch = schoolIsActive && raceMatchesSchool(race, selectedSchool);
+                const schoolMatch =
+                  schoolIsActive && raceMatchesSchool(race, selectedSchool);
 
                 if (focusOnly && schoolIsActive && !schoolMatch) return null;
 
@@ -1179,25 +1384,32 @@ function BracketView({ races, selectedSchool, focusOnly }) {
                       opacity: schoolIsActive && !schoolMatch ? 0.38 : 1,
                       border: schoolMatch
                         ? `2px solid ${COLORS.accent}`
-                        : `1px solid ${COLORS.border}`,
+                        : `1px solid ${COLORS.borderSoft}`,
                     }}
                   >
                     <div style={styles.bracketRace}>
-                      Race {race.id} · {getPlacementLabel(bracketType, race.id)}
+                      Race {race.id} ·{" "}
+                      {getPlacementLabel(bracketType, race.id)}
                     </div>
 
                     <BracketCompetitor
                       name={getRacerA(race)}
                       time={getRaceTimes(race).totalA}
                       isWinner={race.winner === getRacerA(race)}
-                      isSchool={racerMatchesSchool(getRacerA(race), selectedSchool)}
+                      isSchool={racerMatchesSchool(
+                        getRacerA(race),
+                        selectedSchool,
+                      )}
                     />
 
                     <BracketCompetitor
                       name={getRacerB(race)}
                       time={getRaceTimes(race).totalB}
                       isWinner={race.winner === getRacerB(race)}
-                      isSchool={racerMatchesSchool(getRacerB(race), selectedSchool)}
+                      isSchool={racerMatchesSchool(
+                        getRacerB(race),
+                        selectedSchool,
+                      )}
                     />
                   </div>
                 );
@@ -1247,7 +1459,7 @@ function StandingsView({ bracketType, races, selectedSchool, division }) {
                 ...styles.standingRow,
                 border: schoolMatch
                   ? `2px solid ${COLORS.accent}`
-                  : `1px solid ${COLORS.border}`,
+                  : `1px solid ${COLORS.borderSoft}`,
                 background: schoolMatch ? COLORS.accentSoft : COLORS.card,
               }}
             >
@@ -1313,7 +1525,6 @@ const styles = {
     margin: "3px 0",
     fontSize: 30,
     lineHeight: 1.05,
-    color: COLORS.text,
   },
 
   subtitle: {
@@ -1354,7 +1565,7 @@ const styles = {
 
   controls: {
     background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 18,
     padding: 12,
     marginBottom: 16,
@@ -1370,7 +1581,7 @@ const styles = {
   tab: {
     background: COLORS.chip,
     color: COLORS.text,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 999,
     padding: "9px 15px",
     fontWeight: 850,
@@ -1391,7 +1602,14 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1.35fr 1fr 1fr auto",
     gap: 10,
-    alignItems: "end",
+    alignItems: "stretch",
+  },
+
+  controlCard: {
+    background: COLORS.card,
+    border: `1px solid ${COLORS.borderSoft}`,
+    borderRadius: 16,
+    padding: 12,
   },
 
   field: {
@@ -1406,7 +1624,15 @@ const styles = {
     fontWeight: 900,
   },
 
+  schoolFocusRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
+    gap: 8,
+    alignItems: "center",
+  },
+
   primarySelect: {
+    width: "100%",
     background: COLORS.accent,
     color: "#052e16",
     border: `1px solid ${COLORS.accent}`,
@@ -1417,26 +1643,44 @@ const styles = {
   },
 
   select: {
+    width: "100%",
     background: COLORS.chip,
     color: COLORS.text,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 999,
     padding: "10px 14px",
     fontWeight: 850,
     minHeight: 42,
   },
 
-  focusToggle: {
+  focusInline: {
     minHeight: 42,
     display: "flex",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     background: COLORS.chip,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 999,
-    padding: "0 14px",
+    padding: "8px 12px",
     fontWeight: 850,
     whiteSpace: "nowrap",
+  },
+
+  checkbox: {
+    transform: "scale(1.15)",
+  },
+
+  jumpButton: {
+    background: "linear-gradient(135deg, #16a34a, #15803d)",
+    color: "#052e16",
+    border: "none",
+    borderRadius: 999,
+    padding: "10px 16px",
+    fontWeight: 950,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    minHeight: 42,
+    alignSelf: "center",
   },
 
   schoolSummary: {
@@ -1466,7 +1710,7 @@ const styles = {
 
   sidePanel: {
     background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 20,
     padding: 16,
   },
@@ -1501,6 +1745,16 @@ const styles = {
     marginTop: 10,
   },
 
+  mobileNextStrip: {
+    background: COLORS.panel,
+    border: `1px solid ${COLORS.borderSoft}`,
+    borderRadius: 14,
+    padding: 10,
+    marginBottom: 12,
+    color: COLORS.muted2,
+    fontSize: 13,
+  },
+
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
@@ -1510,7 +1764,7 @@ const styles = {
 
   statBox: {
     background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 12,
     padding: 10,
     textAlign: "center",
@@ -1535,7 +1789,7 @@ const styles = {
 
   emptyPanel: {
     background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 18,
     padding: 18,
     color: COLORS.muted2,
@@ -1547,6 +1801,7 @@ const styles = {
     borderRadius: 18,
     padding: 14,
     transition: "opacity 0.2s ease, box-shadow 0.2s ease",
+    cursor: "pointer",
   },
 
   schoolBadge: {
@@ -1588,38 +1843,60 @@ const styles = {
     whiteSpace: "nowrap",
   },
 
-  competitor: {
-    background: "#06101f",
-    border: `1px solid ${COLORS.border}`,
+  matchupBox: {
+    background: COLORS.inner,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 14,
-    padding: 10,
-    marginTop: 8,
+    padding: 12,
   },
 
-  schoolCompetitor: {
-    background: COLORS.accentSoft,
-    border: `1px solid ${COLORS.accent}`,
+  matchupNames: {
+    display: "grid",
+    gridTemplateColumns: "1fr auto 1fr",
+    gap: 10,
+    alignItems: "center",
+    textAlign: "center",
   },
 
-  winnerCompetitor: {
+  matchupName: {
+    fontSize: 20,
+    fontWeight: 950,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  schoolMatchName: {
     color: "#dcfce7",
-    fontWeight: 950,
   },
 
-  competitorName: {
-    fontSize: 18,
-    fontWeight: 950,
-    marginBottom: 6,
+  winnerName: {
+    color: "#bbf7d0",
+  },
+
+  vsText: {
+    color: COLORS.muted,
+    fontWeight: 900,
+    fontSize: 12,
   },
 
   times: {
     display: "flex",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
     gap: 8,
     color: COLORS.muted2,
     fontVariantNumeric: "tabular-nums",
     fontSize: 13,
+    marginTop: 10,
+  },
+
+  pendingTimes: {
+    textAlign: "center",
+    color: COLORS.muted,
+    fontSize: 13,
+    fontWeight: 850,
+    marginTop: 10,
   },
 
   winner: {
@@ -1646,7 +1923,7 @@ const styles = {
 
   pathPanel: {
     background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 18,
     padding: 14,
     marginBottom: 14,
@@ -1695,7 +1972,7 @@ const styles = {
     overflowX: "auto",
     overflowY: "auto",
     background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 18,
     padding: 20,
     maxHeight: "75vh",
@@ -1747,7 +2024,7 @@ const styles = {
     gap: 8,
     padding: "8px 10px",
     borderRadius: 8,
-    background: "#06101f",
+    background: COLORS.inner,
     marginTop: 6,
     fontWeight: 850,
   },
@@ -1804,7 +2081,7 @@ const styles = {
 
   standings: {
     background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
+    border: `1px solid ${COLORS.borderSoft}`,
     borderRadius: 18,
     padding: 16,
   },
@@ -1812,7 +2089,6 @@ const styles = {
   sectionTitle: {
     margin: "0 0 12px 0",
     fontSize: 24,
-    color: COLORS.text,
   },
 
   standingsGrid: {
@@ -1838,15 +2114,4 @@ const styles = {
     fontWeight: 900,
     textAlign: "right",
   },
-
-  jumpButton: {
-  background: COLORS.accent,
-  color: "#052e16",
-  border: "none",
-  borderRadius: 999,
-  padding: "10px 16px",
-  fontWeight: 950,
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-},
 };
