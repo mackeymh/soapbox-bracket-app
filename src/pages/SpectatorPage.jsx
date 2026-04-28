@@ -568,11 +568,14 @@ export default function SpectatorPage() {
     });
   }, [visible, schoolFilter, schoolIsActive, currentRace, nextRace]);
 
-  useEffect(() => {
-    if (currentRef.current && tab === "Races") {
-      currentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [currentRace, tab]);
+  const scrollToCurrentRace = useCallback(() => {
+  if (!currentRef.current) return;
+
+  currentRef.current.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+}, []);
 
   return (
     <div style={styles.page}>
@@ -694,6 +697,14 @@ export default function SpectatorPage() {
                 ))}
               </select>
             </label>
+
+            <button
+  type="button"
+  onClick={scrollToCurrentRace}
+  style={styles.jumpButton}
+>
+  🎯 Jump to Live Race
+</button>
 
             <label style={styles.field}>
               <span style={styles.label}>Races</span>
@@ -1827,4 +1838,15 @@ const styles = {
     fontWeight: 900,
     textAlign: "right",
   },
+
+  jumpButton: {
+  background: COLORS.accent,
+  color: "#052e16",
+  border: "none",
+  borderRadius: 999,
+  padding: "10px 16px",
+  fontWeight: 950,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+},
 };
