@@ -1037,7 +1037,17 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
 
 function BracketView({ races }) {
   const bracketType = races[0]?.bracket_type || "12";
-  const layout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
+  const fullLayout = BRACKET_LAYOUTS[bracketType] || BRACKET_LAYOUTS["12"];
+
+  const layout =
+    bracketType === "64"
+      ? fullLayout.filter((round) => round.label !== "Placements")
+      : fullLayout;
+
+  const placementLayout =
+    bracketType === "64"
+      ? fullLayout.find((round) => round.label === "Placements")
+      : null;
 
   const raceMap = {};
   races.forEach((race) => {
@@ -1193,6 +1203,27 @@ function BracketView({ races }) {
           );
         })}
       </div>
+
+      {placementLayout && (
+        <div style={styles.placementPanel64}>
+          <h2 style={styles.placementTitle64}>Placements</h2>
+
+          <div style={styles.placementGrid64}>
+            {placementLayout.raceIds.map((raceId) => {
+              const race = raceMap[raceId];
+              if (!race) return null;
+
+              return (
+                <div key={raceId} style={styles.placementMatch64}>
+                  <div style={styles.bracketRaceLabel}>Race {race.id}</div>
+                  <div style={styles.bracketCompetitor}>{getRacerA(race)}</div>
+                  <div style={styles.bracketCompetitor}>{getRacerB(race)}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -1221,28 +1252,21 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
   let y;
 
   if (bracketType === "12") {
-  const positions = {
-    // Play-In Round: Race 1, 2, 3, 4
-    0: [0, 1, 2, 3],
+    const positions = {
+      // Play-In Round: Race 1, 2, 3, 4
+      0: [0, 1, 2, 3],
+      // Quarterfinals: Race 5, 6, 7, 8 at matching heights
+      1: [0, 1, 2, 3],
+      // Semifinals: Race 9 between 5/6, Race 10 between 7/8
+      2: [0.5, 2.5],
+      // Final: Race 11 centered between semifinals
+      3: [1.5],
+      // Placement races
+      4: [0, 1, 2, 3, 4],
+    };
 
-    // Quarterfinals: Race 5, 6, 7, 8
-    // Same vertical height as Play-In Round
-    1: [0, 1, 2, 3],
-
-    // Semifinals: Race 9 sits between 5/6, Race 10 between 7/8
-    2: [0.5, 2.5],
-
-    // Final: Race 11 sits between Race 9 and Race 10
-    3: [1.5],
-
-    // Placement races
-    4: [0, 1, 2, 3, 4],
-  };
-
-  y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
-}
-
-  else if (bracketType === "48") {
+    y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
+  } else if (bracketType === "48") {
     const positions = {
       0: Array.from({ length: 16 }, (_, i) => i),
       1: Array.from({ length: 16 }, (_, i) => i),
@@ -1254,6 +1278,16 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
     };
 
     y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
+  } else if (bracketType === "64") {
+    if (roundIndex === 6) {
+      const positions = [0, 1, 2, 3, 4];
+      y = (positions[matchIndex] ?? matchIndex) * unit;
+    } else {
+      const verticalSpacing = unit * Math.pow(2, roundIndex);
+      const offset = getRoundOffset(bracketType, roundIndex) * unit;
+      y = matchIndex * verticalSpacing + offset;
+    }
+
   } else {
     const verticalSpacing = unit * Math.pow(2, roundIndex);
     const offset = getRoundOffset(bracketType, roundIndex) * unit;
@@ -1826,6 +1860,9 @@ bracketNodeWrapper: {
 },
 
 bracketOuter: {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 40,
   overflowX: "auto",
   overflowY: "auto",
   background: COLORS.panel,
@@ -1845,4 +1882,29 @@ connectorHorizontal: {
   zIndex: 1,
 },
 
+placementPanel64: {
+  minWidth: 360,
+  marginLeft: 40,
+},
+
+placementTitle64: {
+  color: COLORS.text,
+  fontSize: 22,
+  fontWeight: 950,
+  textAlign: "center",
+  margin: "0 0 16px 0",
+},
+
+placementGrid64: {
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
+},
+
+placementMatch64: {
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 12,
+},
 };
