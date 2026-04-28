@@ -306,13 +306,26 @@ function hasAnyRunData(race) {
   );
 }
 
-function winnerOf(map, id) {
-    return map[id]?.winner || "";
-  }
+/* =========================================================
+   ADMIN PAGE
+========================================================= */
 
-  function loserOf(map, id) {
-    return map[id]?.loser || "";
-  }
+export default function AdminPage() {
+  const navigate = useNavigate();
+
+  const [authorized, setAuthorized] = useState(false);
+  const [district, setDistrict] = useState("d11");
+  const [division, setDivision] = useState("stock");
+  const [bracketType, setBracketType] = useState("12");
+  const [races, setRaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  const allowedDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
+  const allowedBrackets = DIVISION_BRACKETS[division] || ["32"];
+
+  const winnerOf = (map, id) => map[id]?.winner || "";
+  const loserOf = (map, id) => map[id]?.loser || "";
 
   const advanceBracket = useCallback(async (raceRows) => {
     const map = {};
@@ -443,25 +456,6 @@ function winnerOf(map, id) {
       await updateRace(update.id, update.fields, bracketType, district, division);
     }
   }, [bracketType, district, division]);
-
-  
-/* =========================================================
-   ADMIN PAGE
-========================================================= */
-
-export default function AdminPage() {
-  const navigate = useNavigate();
-
-  const [authorized, setAuthorized] = useState(false);
-  const [district, setDistrict] = useState("d11");
-  const [division, setDivision] = useState("stock");
-  const [bracketType, setBracketType] = useState("12");
-  const [races, setRaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-
-  const allowedDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
-  const allowedBrackets = DIVISION_BRACKETS[division] || ["32"];
 
   const assignmentRaces = useMemo(
     () => races.filter((race) => isAssignmentRace(race, bracketType)),

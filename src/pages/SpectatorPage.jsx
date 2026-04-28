@@ -144,9 +144,6 @@ function hasAnyRunData(race) {
   return race.run1_lane1 != null || race.run1_lane2 != null || race.run2_lane1 != null || race.run2_lane2 != null;
 }
 
-function isComplete(race) {
-  return race.status === "Complete" || !!race.winner;
-}
 
 function isRaceMidRace(race) {
   const run1 = race.run1_lane1 != null || race.run1_lane2 != null;
@@ -182,23 +179,6 @@ function getWinnerSide(race) {
   if (totalA != null && totalB != null) {
     if (totalA < totalB) return "A";
     if (totalB < totalA) return "B";
-  }
-
-  return null;
-}
-function getRunWinner(race, runNumber) {
-  if (isComplete(race)) return null;
-
-  const { aRun1, bRun1, aRun2, bRun2 } = getRaceTimes(race);
-
-  if (runNumber === 1 && aRun1 != null && bRun1 != null) {
-    if (aRun1 < bRun1) return "A";
-    if (bRun1 < aRun1) return "B";
-  }
-
-  if (runNumber === 2 && aRun2 != null && bRun2 != null) {
-    if (aRun2 < bRun2) return "A";
-    if (bRun2 < aRun2) return "B";
   }
 
   return null;
@@ -485,8 +465,12 @@ export default function SpectatorPage() {
   }, [district, districtDivisions]);
 
   useEffect(() => {
-    loadRaces();
-    const id = setInterval(loadRaces, 5000);
+    const load = async () => {
+      await loadRaces();
+    };
+    load();
+    
+    const id = setInterval(load, 5000);
     return () => clearInterval(id);
   }, [loadRaces]);
 
