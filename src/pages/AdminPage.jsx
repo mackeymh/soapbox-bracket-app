@@ -707,6 +707,9 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
       await advanceBracket(refreshedRaces);
       refreshedRaces = await fetchRaces(bracketType, district, division);
 
+      await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
+      refreshedRaces = await fetchRaces(bracketType, district, division);
+
       setRaces(refreshedRaces);
       setMessage(`Saved Race ${raceId} assignment`);
     } catch (error) {
@@ -875,11 +878,15 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
         refreshedRaces = await fetchRaces(bracketType, district, division);
         await advanceBracket(refreshedRaces);
         refreshedRaces = await fetchRaces(bracketType, district, division);
+
+        await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
       }
 
       setRaces(refreshedRaces);
       setMessage(`Saved Race ${raceId}`);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error("RACE SAVE ERROR:", error);
       setMessage(`Failed to save Race ${raceId}`);
     }
@@ -915,6 +922,9 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
 
         refreshedRaces = await fetchRaces(bracketType, district, division);
         await advanceBracket(refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
+
+        await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
         refreshedRaces = await fetchRaces(bracketType, district, division);
       }
 
@@ -992,6 +1002,9 @@ async function handleRaceByeChange(raceId, byeValue) {
 
         refreshedRaces = await fetchRaces(bracketType, district, division);
         await advanceBracket(refreshedRaces);
+        refreshedRaces = await fetchRaces(bracketType, district, division);
+
+        await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
         refreshedRaces = await fetchRaces(bracketType, district, division);
       }
 
