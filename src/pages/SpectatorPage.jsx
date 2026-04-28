@@ -44,7 +44,7 @@ const COLORS = {
   text: "#f8fafc",
   muted: "#94a3b8",
   muted2: "#cbd5e1",
-  accent: "#22c55e",
+  accent: "#16a34a",
   accentDark: "#14532d",
   accentSoft: "rgba(34,197,94,0.16)",
   yellow: "#facc15",
@@ -1327,8 +1327,8 @@ const styles = {
   },
 
   banner: {
-    background: "linear-gradient(135deg, #14532d, #052e16)",
-    border: `2px solid ${COLORS.accent}`,
+    background: "linear-gradient(135deg,#0f172a, #052e16)",
+    border: "1px solid #334155",
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
