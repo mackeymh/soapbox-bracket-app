@@ -877,7 +877,11 @@ function RaceCard({
               : "none",
       }}
     >
-      {isSchoolMatch && <div style={styles.schoolBadge}>YOUR SCHOOL RACE</div>}
+      {isSchoolMatch && selectedSchool !== "All Schools" && (
+  <div style={styles.schoolBadge}>
+    ⭐ Following {selectedSchool}
+  </div>
+)}
 
       <div className="card-header" style={styles.cardHeader}>
         <div>
