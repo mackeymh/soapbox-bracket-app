@@ -306,6 +306,145 @@ function hasAnyRunData(race) {
   );
 }
 
+function winnerOf(map, id) {
+    return map[id]?.winner || "";
+  }
+
+  function loserOf(map, id) {
+    return map[id]?.loser || "";
+  }
+
+  const advanceBracket = useCallback(async (raceRows) => {
+    const map = {};
+    raceRows.forEach((race) => {
+      map[race.id] = race;
+    });
+
+    const updates = [];
+
+    function queue(id, fields) {
+      updates.push({ id, fields });
+    }
+
+    if (bracketType === "12") {
+      queue(5, { racer_b: winnerOf(map, 1) });
+      queue(6, { racer_b: winnerOf(map, 2) });
+      queue(7, { racer_b: winnerOf(map, 3) });
+      queue(8, { racer_b: winnerOf(map, 4) });
+
+      queue(9, { racer_a: winnerOf(map, 5), racer_b: winnerOf(map, 6) });
+      queue(10, { racer_a: winnerOf(map, 7), racer_b: winnerOf(map, 8) });
+      queue(11, { racer_a: winnerOf(map, 9), racer_b: winnerOf(map, 10) });
+
+      queue(12, { racer_a: loserOf(map, 5), racer_b: loserOf(map, 6) });
+      queue(13, { racer_a: loserOf(map, 7), racer_b: loserOf(map, 8) });
+      queue(14, { racer_a: winnerOf(map, 12), racer_b: winnerOf(map, 13) });
+      queue(15, { racer_a: loserOf(map, 12), racer_b: loserOf(map, 13) });
+      queue(16, { racer_a: loserOf(map, 9), racer_b: loserOf(map, 10) });
+    }
+
+    if (bracketType === "32") {
+      for (let i = 17; i <= 24; i++) {
+        const source = (i - 17) * 2 + 1;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      for (let i = 25; i <= 28; i++) {
+        const source = (i - 25) * 2 + 17;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      queue(29, { racer_a: winnerOf(map, 25), racer_b: winnerOf(map, 26) });
+      queue(30, { racer_a: winnerOf(map, 27), racer_b: winnerOf(map, 28) });
+      queue(31, { racer_a: winnerOf(map, 29), racer_b: winnerOf(map, 30) });
+
+      queue(32, { racer_a: loserOf(map, 25), racer_b: loserOf(map, 26) });
+      queue(33, { racer_a: loserOf(map, 27), racer_b: loserOf(map, 28) });
+      queue(34, { racer_a: winnerOf(map, 32), racer_b: winnerOf(map, 33) });
+      queue(35, { racer_a: loserOf(map, 32), racer_b: loserOf(map, 33) });
+      queue(36, { racer_a: loserOf(map, 29), racer_b: loserOf(map, 30) });
+    }
+
+    if (bracketType === "48") {
+      for (let i = 17; i <= 32; i++) {
+        queue(i, { racer_b: winnerOf(map, i - 16) });
+      }
+
+      for (let i = 33; i <= 40; i++) {
+        const source = (i - 33) * 2 + 17;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      for (let i = 41; i <= 44; i++) {
+        const source = (i - 41) * 2 + 33;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      queue(45, { racer_a: winnerOf(map, 41), racer_b: winnerOf(map, 42) });
+      queue(46, { racer_a: winnerOf(map, 43), racer_b: winnerOf(map, 44) });
+      queue(47, { racer_a: winnerOf(map, 45), racer_b: winnerOf(map, 46) });
+
+      queue(48, { racer_a: loserOf(map, 41), racer_b: loserOf(map, 42) });
+      queue(49, { racer_a: loserOf(map, 43), racer_b: loserOf(map, 44) });
+      queue(50, { racer_a: winnerOf(map, 48), racer_b: winnerOf(map, 49) });
+      queue(51, { racer_a: loserOf(map, 48), racer_b: loserOf(map, 49) });
+      queue(52, { racer_a: loserOf(map, 45), racer_b: loserOf(map, 46) });
+    }
+
+    if (bracketType === "64") {
+      for (let i = 33; i <= 48; i++) {
+        const source = (i - 33) * 2 + 1;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      for (let i = 49; i <= 56; i++) {
+        const source = (i - 49) * 2 + 33;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      for (let i = 57; i <= 60; i++) {
+        const source = (i - 57) * 2 + 49;
+        queue(i, {
+          racer_a: winnerOf(map, source),
+          racer_b: winnerOf(map, source + 1),
+        });
+      }
+
+      queue(61, { racer_a: winnerOf(map, 57), racer_b: winnerOf(map, 58) });
+      queue(62, { racer_a: winnerOf(map, 59), racer_b: winnerOf(map, 60) });
+      queue(63, { racer_a: winnerOf(map, 61), racer_b: winnerOf(map, 62) });
+
+      queue(64, { racer_a: loserOf(map, 57), racer_b: loserOf(map, 59) });
+      queue(65, { racer_a: loserOf(map, 58), racer_b: loserOf(map, 60) });
+      queue(66, { racer_a: winnerOf(map, 64), racer_b: winnerOf(map, 65) });
+      queue(67, { racer_a: loserOf(map, 64), racer_b: loserOf(map, 65) });
+      queue(68, { racer_a: loserOf(map, 61), racer_b: loserOf(map, 62) });
+    }
+
+    for (const update of updates) {
+      await updateRace(update.id, update.fields, bracketType, district, division);
+    }
+  }, [bracketType, district, division]);
+
+  
 /* =========================================================
    ADMIN PAGE
 ========================================================= */
@@ -581,144 +720,6 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
       setMessage(`Failed to save Race ${raceId} assignment`);
     }
   }
-
-  function winnerOf(map, id) {
-    return map[id]?.winner || "";
-  }
-
-  function loserOf(map, id) {
-    return map[id]?.loser || "";
-  }
-
-  const advanceBracket = useCallback(async (raceRows) => {
-    const map = {};
-    raceRows.forEach((race) => {
-      map[race.id] = race;
-    });
-
-    const updates = [];
-
-    function queue(id, fields) {
-      updates.push({ id, fields });
-    }
-
-    if (bracketType === "12") {
-      queue(5, { racer_b: winnerOf(map, 1) });
-      queue(6, { racer_b: winnerOf(map, 2) });
-      queue(7, { racer_b: winnerOf(map, 3) });
-      queue(8, { racer_b: winnerOf(map, 4) });
-
-      queue(9, { racer_a: winnerOf(map, 5), racer_b: winnerOf(map, 6) });
-      queue(10, { racer_a: winnerOf(map, 7), racer_b: winnerOf(map, 8) });
-      queue(11, { racer_a: winnerOf(map, 9), racer_b: winnerOf(map, 10) });
-
-      queue(12, { racer_a: loserOf(map, 5), racer_b: loserOf(map, 6) });
-      queue(13, { racer_a: loserOf(map, 7), racer_b: loserOf(map, 8) });
-      queue(14, { racer_a: winnerOf(map, 12), racer_b: winnerOf(map, 13) });
-      queue(15, { racer_a: loserOf(map, 12), racer_b: loserOf(map, 13) });
-      queue(16, { racer_a: loserOf(map, 9), racer_b: loserOf(map, 10) });
-    }
-
-    if (bracketType === "32") {
-      for (let i = 17; i <= 24; i++) {
-        const source = (i - 17) * 2 + 1;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      for (let i = 25; i <= 28; i++) {
-        const source = (i - 25) * 2 + 17;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      queue(29, { racer_a: winnerOf(map, 25), racer_b: winnerOf(map, 26) });
-      queue(30, { racer_a: winnerOf(map, 27), racer_b: winnerOf(map, 28) });
-      queue(31, { racer_a: winnerOf(map, 29), racer_b: winnerOf(map, 30) });
-
-      queue(32, { racer_a: loserOf(map, 25), racer_b: loserOf(map, 26) });
-      queue(33, { racer_a: loserOf(map, 27), racer_b: loserOf(map, 28) });
-      queue(34, { racer_a: winnerOf(map, 32), racer_b: winnerOf(map, 33) });
-      queue(35, { racer_a: loserOf(map, 32), racer_b: loserOf(map, 33) });
-      queue(36, { racer_a: loserOf(map, 29), racer_b: loserOf(map, 30) });
-    }
-
-    if (bracketType === "48") {
-      for (let i = 17; i <= 32; i++) {
-        queue(i, { racer_b: winnerOf(map, i - 16) });
-      }
-
-      for (let i = 33; i <= 40; i++) {
-        const source = (i - 33) * 2 + 17;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      for (let i = 41; i <= 44; i++) {
-        const source = (i - 41) * 2 + 33;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      queue(45, { racer_a: winnerOf(map, 41), racer_b: winnerOf(map, 42) });
-      queue(46, { racer_a: winnerOf(map, 43), racer_b: winnerOf(map, 44) });
-      queue(47, { racer_a: winnerOf(map, 45), racer_b: winnerOf(map, 46) });
-
-      queue(48, { racer_a: loserOf(map, 41), racer_b: loserOf(map, 42) });
-      queue(49, { racer_a: loserOf(map, 43), racer_b: loserOf(map, 44) });
-      queue(50, { racer_a: winnerOf(map, 48), racer_b: winnerOf(map, 49) });
-      queue(51, { racer_a: loserOf(map, 48), racer_b: loserOf(map, 49) });
-      queue(52, { racer_a: loserOf(map, 45), racer_b: loserOf(map, 46) });
-    }
-
-    if (bracketType === "64") {
-      for (let i = 33; i <= 48; i++) {
-        const source = (i - 33) * 2 + 1;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      for (let i = 49; i <= 56; i++) {
-        const source = (i - 49) * 2 + 33;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      for (let i = 57; i <= 60; i++) {
-        const source = (i - 57) * 2 + 49;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
-      }
-
-      queue(61, { racer_a: winnerOf(map, 57), racer_b: winnerOf(map, 58) });
-      queue(62, { racer_a: winnerOf(map, 59), racer_b: winnerOf(map, 60) });
-      queue(63, { racer_a: winnerOf(map, 61), racer_b: winnerOf(map, 62) });
-
-      queue(64, { racer_a: loserOf(map, 57), racer_b: loserOf(map, 59) });
-      queue(65, { racer_a: loserOf(map, 58), racer_b: loserOf(map, 60) });
-      queue(66, { racer_a: winnerOf(map, 64), racer_b: winnerOf(map, 65) });
-      queue(67, { racer_a: loserOf(map, 64), racer_b: loserOf(map, 65) });
-      queue(68, { racer_a: loserOf(map, 61), racer_b: loserOf(map, 62) });
-    }
-
-    for (const update of updates) {
-      await updateRace(update.id, update.fields, bracketType, district, division);
-    }
-  }, [bracketType, district, division]);
 
   function getRaceAdminOutcome(race, changedField = null, changedValue = null) {
     const nextRace =
