@@ -8,12 +8,39 @@ const DISTRICT_CONFIG = {
     logo: "/logo.png",
     divisions: ["stock", "superstock"],
     schoolCodes: [
-      "11X016", "11X019", "11X041", "11X068", "11X076", "11X078",
-      "11X083", "11X087", "11X089", "11X096", "11X097", "11X103",
-      "11X105", "11X106", "11X108", "11X111", "11X121", "11X127",
-      "11X144", "11X153", "11X160", "11X169", "11X175", "11X180",
-      "11X181", "11X194", "11X370", "11X462", "11X483", "11X498",
-      "11X529", "11X566", "11X567",
+      "11X016",
+      "11X019",
+      "11X041",
+      "11X068",
+      "11X076",
+      "11X078",
+      "11X083",
+      "11X087",
+      "11X089",
+      "11X096",
+      "11X097",
+      "11X103",
+      "11X105",
+      "11X106",
+      "11X108",
+      "11X111",
+      "11X121",
+      "11X127",
+      "11X144",
+      "11X153",
+      "11X160",
+      "11X169",
+      "11X175",
+      "11X180",
+      "11X181",
+      "11X194",
+      "11X370",
+      "11X462",
+      "11X483",
+      "11X498",
+      "11X529",
+      "11X566",
+      "11X567",
     ],
   },
 
@@ -22,13 +49,44 @@ const DISTRICT_CONFIG = {
     logo: "/logo.png",
     divisions: ["superstock"],
     schoolCodes: [
-      "07X018", "07X025", "07X029", "07X043", "07X065", "07X224",
-      "07X277", "07X296", "07X298", "07X369", "08X036", "08X062",
-      "08X071", "08X072", "08X075", "08X107", "08X130", "08X131",
-      "08X140", "08X269", "08X302", "08X333", "08X367", "08X371",
-      "08X392", "08X562", "09X035", "09X042", "09X055", "09X110",
-      "09X219", "09X229", "09X285", "09X361", "10X094", "10X118",
-      "75X176", "84X718",
+      "07X018",
+      "07X025",
+      "07X029",
+      "07X043",
+      "07X065",
+      "07X224",
+      "07X277",
+      "07X296",
+      "07X298",
+      "07X369",
+      "08X036",
+      "08X062",
+      "08X071",
+      "08X072",
+      "08X075",
+      "08X107",
+      "08X130",
+      "08X131",
+      "08X140",
+      "08X269",
+      "08X302",
+      "08X333",
+      "08X367",
+      "08X371",
+      "08X392",
+      "08X562",
+      "09X035",
+      "09X042",
+      "09X055",
+      "09X110",
+      "09X219",
+      "09X229",
+      "09X285",
+      "09X361",
+      "10X094",
+      "10X118",
+      "75X176",
+      "84X718",
     ],
   },
 };
@@ -42,7 +100,9 @@ const COLORS = {
   bg: "#07111f",
   bg2: "#0f172a",
   panel: "#0f1b2d",
+  panel2: "#111827",
   card: "#0b1628",
+  row: "#132238",
   border: "#334155",
   text: "#f8fafc",
   muted: "#94a3b8",
@@ -64,6 +124,7 @@ const BRACKET_LAYOUTS = {
     { label: "Final", raceIds: [11] },
     { label: "Placements", raceIds: [12, 13, 14, 15, 16] },
   ],
+
   "32": [
     { label: "Opening Round", raceIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
     { label: "Round of 16", raceIds: [17, 18, 19, 20, 21, 22, 23, 24] },
@@ -72,6 +133,7 @@ const BRACKET_LAYOUTS = {
     { label: "Final", raceIds: [31] },
     { label: "Placements", raceIds: [32, 33, 34, 35, 36] },
   ],
+
   "48": [
     { label: "Play-In Round", raceIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
     { label: "Round of 32", raceIds: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32] },
@@ -81,6 +143,7 @@ const BRACKET_LAYOUTS = {
     { label: "Final", raceIds: [47] },
     { label: "Placements", raceIds: [48, 49, 50, 51, 52] },
   ],
+
   "64": [
     { label: "Opening Round", raceIds: Array.from({ length: 32 }, (_, i) => i + 1) },
     { label: "Round of 32", raceIds: Array.from({ length: 16 }, (_, i) => i + 33) },
@@ -106,18 +169,31 @@ function raceMatchesSchool(race, selectedSchool) {
   if (selectedSchool === "All Schools") return true;
 
   const shortCode = schoolCodeToShort(selectedSchool);
-  const racerA = normalizeCarLabel(race.racer_a || race.slot_a || "");
-  const racerB = normalizeCarLabel(race.racer_b || race.slot_b || "");
+  const racerA = normalizeCarLabel(race.racer_a || "");
+  const racerB = normalizeCarLabel(race.racer_b || "");
 
-  return racerA.startsWith(`${shortCode}-`) || racerB.startsWith(`${shortCode}-`);
+  return (
+    racerA.startsWith(`${shortCode}-`) || racerB.startsWith(`${shortCode}-`)
+  );
 }
 
 function sameRace(a, b) {
-  return !!a && !!b && a.id === b.id && a.division === b.division && a.bracket_type === b.bracket_type;
+  return (
+    !!a &&
+    !!b &&
+    a.id === b.id &&
+    a.division === b.division &&
+    a.bracket_type === b.bracket_type
+  );
 }
 
 function hasAnyRunData(race) {
-  return race.run1_lane1 != null || race.run1_lane2 != null || race.run2_lane1 != null || race.run2_lane2 != null;
+  return (
+    race.run1_lane1 != null ||
+    race.run1_lane2 != null ||
+    race.run2_lane1 != null ||
+    race.run2_lane2 != null
+  );
 }
 
 function toNumber(value) {
@@ -152,14 +228,24 @@ function isRaceMidRace(race) {
 function getRaceTimes(race) {
   const aRun1 = toNumber(race.run1_lane1);
   const bRun1 = toNumber(race.run1_lane2);
+
+  // Lane switch: Racer A's second run is lane2; Racer B's second run is lane1.
   const aRun2 = toNumber(race.run2_lane2);
   const bRun2 = toNumber(race.run2_lane1);
 
   const totalA =
-    race.total_a != null ? toNumber(race.total_a) : aRun1 != null && aRun2 != null ? aRun1 + aRun2 : null;
+    race.total_a != null
+      ? toNumber(race.total_a)
+      : aRun1 != null && aRun2 != null
+        ? aRun1 + aRun2
+        : null;
 
   const totalB =
-    race.total_b != null ? toNumber(race.total_b) : bRun1 != null && bRun2 != null ? bRun1 + bRun2 : null;
+    race.total_b != null
+      ? toNumber(race.total_b)
+      : bRun1 != null && bRun2 != null
+        ? bRun1 + bRun2
+        : null;
 
   return { aRun1, bRun1, aRun2, bRun2, totalA, totalB };
 }
@@ -202,6 +288,63 @@ function getStatusColor(race, isOnTrack, isUpNext) {
   return COLORS.muted;
 }
 
+function getStandings(bracketType, races) {
+  const map = {};
+  races.forEach((race) => {
+    map[race.id] = race;
+  });
+
+  if (bracketType === "12") {
+    return [
+      ["1st", map[11]?.winner],
+      ["2nd", map[11]?.loser],
+      ["3rd", map[16]?.winner],
+      ["4th", map[16]?.loser],
+      ["5th", map[14]?.winner],
+      ["6th", map[14]?.loser],
+      ["7th", map[15]?.winner],
+      ["8th", map[15]?.loser],
+    ];
+  }
+
+  if (bracketType === "32") {
+    return [
+      ["1st", map[31]?.winner],
+      ["2nd", map[31]?.loser],
+      ["3rd", map[36]?.winner],
+      ["4th", map[36]?.loser],
+      ["5th", map[34]?.winner],
+      ["6th", map[34]?.loser],
+      ["7th", map[35]?.winner],
+      ["8th", map[35]?.loser],
+    ];
+  }
+
+  if (bracketType === "48") {
+    return [
+      ["1st", map[47]?.winner],
+      ["2nd", map[47]?.loser],
+      ["3rd", map[52]?.winner],
+      ["4th", map[52]?.loser],
+      ["5th", map[50]?.winner],
+      ["6th", map[50]?.loser],
+      ["7th", map[51]?.winner],
+      ["8th", map[51]?.loser],
+    ];
+  }
+
+  return [
+    ["1st", map[63]?.winner],
+    ["2nd", map[63]?.loser],
+    ["3rd", map[68]?.winner],
+    ["4th", map[68]?.loser],
+    ["5th", map[66]?.winner],
+    ["6th", map[66]?.loser],
+    ["7th", map[67]?.winner],
+    ["8th", map[67]?.loser],
+  ];
+}
+
 function getNextRaceId(bracketType, raceId) {
   if (bracketType === "12") {
     if (raceId >= 1 && raceId <= 4) return raceId + 4;
@@ -238,15 +381,31 @@ function getNextRaceId(bracketType, raceId) {
 
 function getPlacementLabel(bracketType, raceId) {
   const labels = {
-    "12": { 12: "5th / 6th Qualifier", 13: "7th / 8th Qualifier", 14: "5th / 6th", 15: "7th / 8th", 16: "3rd / 4th" },
-    "32": { 32: "5th / 6th Qualifier", 33: "7th / 8th Qualifier", 34: "5th / 6th", 35: "7th / 8th", 36: "3rd / 4th" },
-    "48": { 48: "5th / 6th Qualifier", 49: "7th / 8th Qualifier", 50: "5th / 6th", 51: "7th / 8th", 52: "3rd / 4th" },
-    "64": { 64: "5th / 6th Qualifier", 65: "7th / 8th Qualifier", 66: "5th / 6th", 67: "7th / 8th", 68: "3rd / 4th" },
+    "12": {
+      12: "5th / 6th Qualifier",
+      13: "7th / 8th Qualifier",
+      14: "5th / 6th",
+      15: "7th / 8th",
+      16: "3rd / 4th",
+    },
+    "48": {
+      48: "5th / 6th Qualifier",
+      49: "5th / 6th Qualifier",
+      50: "5th / 6th",
+      51: "7th / 8th",
+      52: "3rd / 4th",
+    },
+    "64": {
+      64: "5th / 6th Qualifier",
+      65: "7th / 8th Qualifier",
+      66: "5th / 6th",
+      67: "7th / 8th",
+      68: "3rd / 4th",
+    },
   };
 
   return labels[bracketType]?.[raceId] || "Placement Race";
 }
-
 export default function SpectatorPage() {
   const { district = "d11" } = useParams();
 
@@ -261,22 +420,11 @@ export default function SpectatorPage() {
   const [viewMode, setViewMode] = useState("All");
   const [schoolFilter, setSchoolFilter] = useState("All Schools");
   const [districtCurrentRace, setDistrictCurrentRace] = useState(null);
-  const [showBracket, setShowBracket] = useState(false);
-
   const currentRef = useRef(null);
-
-  const activeDivision = districtDivisions.includes(division) ? division : districtDivisions[0];
-
-  const activeViewMode =
-    viewMode === "All" || districtDivisions.includes(viewMode) ? viewMode : "All";
-
-  const activeSchoolFilter =
-    schoolFilter === "All Schools" || config.schoolCodes.includes(schoolFilter)
-      ? schoolFilter
-      : "All Schools";
 
   const loadAllDivisionRaces = useCallback(async () => {
     const divisions = DISTRICT_CONFIG[district]?.divisions || ["stock"];
+
     let allRaces = [];
 
     for (const div of divisions) {
@@ -298,6 +446,20 @@ export default function SpectatorPage() {
 
     return allRaces;
   }, [district]);
+
+  const activeDivision = districtDivisions.includes(division)
+    ? division
+    : districtDivisions[0];
+
+  const activeViewMode =
+    viewMode === "All" || districtDivisions.includes(viewMode)
+      ? viewMode
+      : "All";
+
+  const activeSchoolFilter =
+    schoolFilter === "All Schools" || config.schoolCodes.includes(schoolFilter)
+      ? schoolFilter
+      : "All Schools";
 
   useEffect(() => {
     async function loadSetting() {
@@ -336,13 +498,19 @@ export default function SpectatorPage() {
 
       for (const divisionOption of divisionOptions) {
         const setting = await fetchEventSetting(district, divisionOption);
-
         const activeBracket =
-          setting?.active_bracket_type || (divisionOption === "stock" ? "12" : "32");
+          setting?.active_bracket_type ||
+          (divisionOption === "stock" ? "12" : "32");
 
-        const divisionRaces = await fetchRaces(activeBracket, district, divisionOption);
+        const divisionRaces = await fetchRaces(
+          activeBracket,
+          district,
+          divisionOption,
+        );
 
-        const current = (divisionRaces || []).find((race) => race.is_current_override);
+        const current = (divisionRaces || []).find(
+          (race) => race.is_current_override,
+        );
 
         if (current) {
           setDistrictCurrentRace({
@@ -372,8 +540,6 @@ export default function SpectatorPage() {
 
   const divisionRaces = sorted.filter((race) => race.division === activeDivision);
 
-  const bracketRaces = sorted.filter((race) => race.division === activeDivision);
-
   const nextRace = useMemo(() => {
     return (
       sorted
@@ -392,7 +558,10 @@ export default function SpectatorPage() {
           );
         })
         .sort((a, b) => {
-          if (a.division !== b.division) return a.division.localeCompare(b.division);
+          if (a.division !== b.division) {
+            return a.division.localeCompare(b.division);
+          }
+
           return a.id - b.id;
         })[0] || null
     );
@@ -407,44 +576,11 @@ export default function SpectatorPage() {
     }
   }, [currentRace, tab]);
 
-  const visible = useMemo(() => {
-    return sorted.filter((race) => {
-      if (activeViewMode !== "All" && race.division !== activeViewMode) return false;
-      if (!raceMatchesSchool(race, activeSchoolFilter)) return false;
-
-      if (filter === "Completed") return race.status === "Complete";
-      if (filter === "Pending") return !hasAnyRunData(race);
-      if (filter === "Current") return race.is_current_override;
-
-      return true;
-    });
-  }, [sorted, filter, activeViewMode, activeSchoolFilter]);
-
-  const orderedVisible = useMemo(() => {
-    if (!currentRace) return visible;
-
-    const currentInVisible = visible.find((race) => sameRace(race, currentRace));
-    if (!currentInVisible) return visible;
-
-    return [currentInVisible, ...visible.filter((race) => !sameRace(race, currentRace))];
-  }, [visible, currentRace]);
-
-  const racesByRound = useMemo(() => {
-    const groups = {};
-
-    visible
-      .filter((race) => race.division === activeDivision)
-      .forEach((race) => {
-        const roundName = race.round || "Other";
-        if (!groups[roundName]) groups[roundName] = [];
-        groups[roundName].push(race);
-      });
-
-    return groups;
-  }, [visible, activeDivision]);
-
   const stats = useMemo(() => {
-    const base = viewMode === "All" ? sorted : sorted.filter((race) => race.division === viewMode);
+    const base =
+      viewMode === "All"
+        ? sorted
+        : sorted.filter((race) => race.division === viewMode);
 
     const completed = base.filter((race) => race.status === "Complete").length;
 
@@ -463,8 +599,49 @@ export default function SpectatorPage() {
         !race.is_current_override,
     ).length;
 
-    return { total: base.length, completed, inProgress, pending };
+    return {
+      total: base.length,
+      completed,
+      inProgress,
+      pending,
+    };
   }, [sorted, viewMode]);
+
+  const visible = useMemo(() => {
+    return sorted.filter((race) => {
+      if (activeViewMode !== "All" && race.division !== activeViewMode) {
+        return false;
+      }
+
+      if (!raceMatchesSchool(race, activeSchoolFilter)) {
+        return false;
+      }
+
+      if (filter === "Completed") return race.status === "Complete";
+      if (filter === "Pending") return !hasAnyRunData(race);
+      if (filter === "Current") return race.is_current_override;
+
+      return true;
+    });
+  }, [sorted, filter, activeViewMode, activeSchoolFilter]);
+
+  const orderedVisible = useMemo(() => {
+    if (!currentRace) return visible;
+
+    const currentInVisible = visible.find((race) =>
+      sameRace(race, currentRace),
+    );
+    if (!currentInVisible) return visible;
+
+    return [
+      currentInVisible,
+      ...visible.filter((race) => !sameRace(race, currentRace)),
+    ];
+  }, [visible, currentRace]);
+
+  const bracketRaces = sorted.filter(
+    (race) => race.division === activeDivision,
+  );
 
   const currentBannerRace = districtCurrentRace || currentRace;
 
@@ -473,34 +650,73 @@ export default function SpectatorPage() {
       <style>
         {`
           @keyframes onTrackFlash {
-            0% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.35); transform: scale(1); }
-            100% { box-shadow: 0 0 28px rgba(34, 197, 94, 0.9); transform: scale(1.01); }
+            0% {
+              box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
+              transform: scale(1);
+            }
+            100% {
+              box-shadow: 0 0 28px rgba(34, 197, 94, 0.9);
+              transform: scale(1.01);
+            }
           }
 
           @media (max-width: 900px) {
-            .hero-grid { grid-template-columns: 1fr !important; }
-            .race-grid { grid-template-columns: 1fr 1fr !important; }
+            .hero-grid {
+              grid-template-columns: 1fr !important;
+            }
+
+            .race-grid {
+              grid-template-columns: 1fr 1fr !important;
+            }
           }
 
           @media (max-width: 620px) {
-            .spectator-shell { padding: 10px !important; }
-            .header-wrap { flex-direction: column !important; text-align: center !important; }
-            .control-row { flex-direction: column !important; align-items: stretch !important; }
-            .control-row > * { width: 100% !important; }
-            .race-grid { grid-template-columns: 1fr !important; }
-            .score-header, .score-row {
+            .spectator-shell {
+              padding: 10px !important;
+            }
+
+            .header-wrap {
+              flex-direction: column !important;
+              text-align: center !important;
+            }
+
+            .control-row {
+              flex-direction: column !important;
+              align-items: stretch !important;
+            }
+
+            .control-row > * {
+              width: 100% !important;
+            }
+
+            .race-grid {
+              grid-template-columns: 1fr !important;
+            }
+
+            .score-header,
+            .score-row {
               grid-template-columns: 1.8fr 0.9fr 0.9fr 0.9fr !important;
               font-size: 12px !important;
             }
-            .on-track-title { font-size: 24px !important; }
-            .on-track-matchup { font-size: 18px !important; }
+
+            .on-track-title {
+              font-size: 24px !important;
+            }
+
+            .on-track-matchup {
+              font-size: 18px !important;
+            }
           }
         `}
       </style>
 
       <div className="spectator-shell" style={styles.shell}>
         <header className="header-wrap" style={styles.header}>
-          <img src={config.logo} alt={`${config.title} logo`} style={styles.logo} />
+          <img
+            src={config.logo}
+            alt={`${config.title} logo`}
+            style={styles.logo}
+          />
 
           <div>
             <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
@@ -519,7 +735,9 @@ export default function SpectatorPage() {
           <div
             style={{
               ...styles.onTrackBanner,
-              animation: currentBannerRace ? "onTrackFlash 0.85s infinite alternate" : "none",
+              animation: currentBannerRace
+                ? "onTrackFlash 0.85s infinite alternate"
+                : "none",
             }}
           >
             <div style={styles.heroLabel}>🟢 ON THE TRACK</div>
@@ -527,15 +745,18 @@ export default function SpectatorPage() {
             {currentBannerRace ? (
               <>
                 <div className="on-track-title" style={styles.onTrackTitle}>
-                  Race {currentBannerRace.id} — {DIVISION_LABELS[currentBannerRace.division]}
+                  Race {currentBannerRace.id} —{" "}
+                  {DIVISION_LABELS[currentBannerRace.division]}
                 </div>
 
                 <div className="on-track-matchup" style={styles.onTrackMatchup}>
-                  {getRacerA(currentBannerRace)} vs {getRacerB(currentBannerRace)}
+                  {getRacerA(currentBannerRace)} vs{" "}
+                  {getRacerB(currentBannerRace)}
                 </div>
 
                 <div style={styles.heroSubText}>
-                  {currentBannerRace.bracket_type}-Car Bracket · Cars currently coming down the track
+                  {currentBannerRace.bracket_type}-Car Bracket · Cars currently
+                  coming down the track
                 </div>
               </>
             ) : (
@@ -556,9 +777,14 @@ export default function SpectatorPage() {
             {nextRace ? (
               <>
                 <div style={styles.nextRaceTitle}>Race {nextRace.id}</div>
-                <div style={styles.nextRaceMatchup}>{getRacerA(nextRace)} vs {getRacerB(nextRace)}</div>
+
+                <div style={styles.nextRaceMatchup}>
+                  {getRacerA(nextRace)} vs {getRacerB(nextRace)}
+                </div>
+
                 <div style={styles.nextRaceRound}>
-                  {DIVISION_LABELS[nextRace.division]} · {nextRace.bracket_type}-Car · {nextRace.round}
+                  {DIVISION_LABELS[nextRace.division]} · {nextRace.bracket_type}
+                  -Car · {nextRace.round}
                 </div>
               </>
             ) : (
@@ -577,7 +803,7 @@ export default function SpectatorPage() {
         <section style={styles.controlsPanel}>
           <div className="control-row" style={styles.controlRow}>
             <div style={styles.tabRow}>
-              {["Races", "Rounds", "Standings"].map((item) => (
+              {["Races", "Bracket", "Standings"].map((item) => (
                 <button
                   key={item}
                   onClick={() => setTab(item)}
@@ -588,15 +814,6 @@ export default function SpectatorPage() {
               ))}
             </div>
 
-            <button
-              onClick={() => setShowBracket(!showBracket)}
-              style={showBracket ? styles.activeChip : styles.chip}
-            >
-              {showBracket ? "Hide Bracket" : "View Bracket"}
-            </button>
-          </div>
-
-          <div className="control-row" style={styles.controlRow}>
             {districtDivisions.length > 1 && (
               <div style={styles.tabRow}>
                 {["All", ...districtDivisions].map((mode) => (
@@ -607,7 +824,9 @@ export default function SpectatorPage() {
                       if (mode !== "All") setDivision(mode);
                       setSchoolFilter("All Schools");
                     }}
-                    style={activeViewMode === mode ? styles.activeChip : styles.chip}
+                    style={
+                      activeViewMode === mode ? styles.activeChip : styles.chip
+                    }
                   >
                     {mode === "All" ? "All Divisions" : DIVISION_LABELS[mode]}
                   </button>
@@ -615,17 +834,12 @@ export default function SpectatorPage() {
               </div>
             )}
 
-            {config.schoolCodes.length > 0 && (
-              <select
-                value={activeSchoolFilter}
-                onChange={(event) => setSchoolFilter(event.target.value)}
-                style={styles.select}
-              >
-                <option value="All Schools">All Schools</option>
-                {config.schoolCodes.map((school) => (
-                  <option key={school} value={school}>{school}</option>
-                ))}
-              </select>
+            {districtDivisions.length === 1 && (
+              <div style={styles.tabRow}>
+                <button style={styles.activeChip}>
+                  {DIVISION_LABELS[districtDivisions[0]]}
+                </button>
+              </div>
             )}
           </div>
 
@@ -642,6 +856,21 @@ export default function SpectatorPage() {
                   </button>
                 ))}
               </div>
+
+              {config.schoolCodes.length > 0 && (
+                <select
+                  value={activeSchoolFilter}
+                  onChange={(event) => setSchoolFilter(event.target.value)}
+                  style={styles.select}
+                >
+                  <option value="All Schools">All Schools</option>
+                  {config.schoolCodes.map((school) => (
+                    <option key={school} value={school}>
+                      {school}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
         </section>
@@ -665,48 +894,26 @@ export default function SpectatorPage() {
           </section>
         )}
 
-        {tab === "Rounds" && (
-          <section style={styles.roundsPanel}>
-            {Object.entries(racesByRound).map(([round, roundRaces]) => (
-              <div key={round} style={styles.roundSection}>
-                <h2 style={styles.sectionTitle}>{round}</h2>
-
-                <div className="race-grid" style={styles.raceGrid}>
-                  {roundRaces.map((race) => (
-                    <RaceCard
-                      key={`${race.division}-${race.bracket_type}-${race.id}`}
-                      race={race}
-                      isOnTrack={sameRace(currentRace, race)}
-                      isUpNext={sameRace(nextRace, race)}
-                      currentRef={null}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-
         {tab === "Standings" && (
           <section style={styles.standingsPanel}>
-            <h2 style={styles.sectionTitle}>Standings · {DIVISION_LABELS[activeDivision]}</h2>
+            <h2 style={styles.sectionTitle}>
+              Final Standings · {DIVISION_LABELS[activeDivision]}
+            </h2>
 
             <div style={styles.standingsGrid}>
-              {getStandings(bracketType, divisionRaces).map(([place, racer]) => (
-                <div key={place} style={styles.standingRow}>
-                  <div style={styles.place}>{place}</div>
-                  <div style={styles.standingName}>{racer || "--"}</div>
-                </div>
-              ))}
+              {getStandings(bracketType, divisionRaces).map(
+                ([place, racer]) => (
+                  <div key={place} style={styles.standingRow}>
+                    <div style={styles.place}>{place}</div>
+                    <div style={styles.standingName}>{racer || "--"}</div>
+                  </div>
+                ),
+              )}
             </div>
           </section>
         )}
 
-        {showBracket && (
-          <div style={styles.bracketContainer}>
-            <BracketView races={bracketRaces} />
-          </div>
-        )}
+        {tab === "Bracket" && <BracketView races={bracketRaces} />}
       </div>
     </div>
   );
@@ -730,7 +937,11 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
 
   const calculatedWinner =
     totalA != null && totalB != null
-      ? totalA < totalB ? "A" : totalB < totalA ? "B" : null
+      ? totalA < totalB
+        ? "A"
+        : totalB < totalA
+          ? "B"
+          : null
       : null;
 
   const winner =
@@ -743,7 +954,8 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
   const winnerA = winner === "A";
   const winnerB = winner === "B";
   const isTie = totalA != null && totalB != null && totalA === totalB;
-  const margin = totalA != null && totalB != null ? Math.abs(totalA - totalB) : null;
+  const margin =
+    totalA != null && totalB != null ? Math.abs(totalA - totalB) : null;
   const isPhotoFinish = margin != null && margin > 0 && margin <= 0.01;
 
   const statusText = getStatusText(race, isOnTrack, isUpNext);
@@ -770,11 +982,18 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
         <div>
           <div style={styles.raceNumber}>Race {race.id}</div>
           <div style={styles.raceMeta}>
-            {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car · {race.round}
+            {DIVISION_LABELS[race.division]} · {race.bracket_type}-Car ·{" "}
+            {race.round}
           </div>
         </div>
 
-        <div style={{ ...styles.statusPill, color: statusColor, borderColor: statusColor }}>
+        <div
+          style={{
+            ...styles.statusPill,
+            color: statusColor,
+            borderColor: statusColor,
+          }}
+        >
           {statusText}
         </div>
       </div>
@@ -827,31 +1046,19 @@ function RaceCard({ race, isOnTrack, isUpNext, currentRef }) {
           📸 Photo Finish — margin: {margin.toFixed(3)} seconds
         </div>
       )}
+
+      {(race.dq_a || race.dq_b || race.bye_for) && (
+        <div style={styles.alertBox}>
+          {race.bye_for && `BYE: Racer ${race.bye_for} advances`}
+          {race.bye_for && (race.dq_a || race.dq_b) ? " · " : ""}
+          {race.dq_a &&
+            `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
+          {race.dq_a && race.dq_b ? " · " : ""}
+          {race.dq_b &&
+            `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
+        </div>
+      )}
     </article>
-  );
-}
-
-function ScoreRow({ name, run1, run2, total, run1Winner, run2Winner, overallWinner, complete }) {
-  return (
-    <div style={{ ...styles.scoreRow, ...(overallWinner ? styles.overallWinnerRow : {}) }}>
-      <div style={styles.competitorCell}>
-        {overallWinner ? "🏎️🏁 " : ""}
-        {name}
-        {overallWinner && <span style={styles.winnerTag}> WINNER</span>}
-      </div>
-
-      <div style={styles.timeCell}>
-        {!complete && run1Winner ? <span style={styles.check}>✓ </span> : null}
-        {formatTime(run1)}
-      </div>
-
-      <div style={styles.timeCell}>
-        {!complete && run2Winner ? <span style={styles.check}>✓ </span> : null}
-        {formatTime(run2)}
-      </div>
-
-      <div style={styles.totalCell}>{formatTime(total)}</div>
-    </div>
   );
 }
 
@@ -916,8 +1123,10 @@ function BracketView({ races }) {
 
       const startX = from.x + from.width;
       const startY = from.y + from.height / 2;
+
       const endX = to.x;
       const endY = to.y + to.height / 2;
+
       const midX = startX + (endX - startX) / 2;
 
       return {
@@ -929,8 +1138,19 @@ function BracketView({ races }) {
 
   return (
     <section style={styles.bracketOuter}>
-      <div style={{ ...styles.bracketCanvas, width: bracketWidth, height: bracketHeight, minWidth: bracketWidth }}>
-        <svg style={styles.bracketSvg} width={bracketWidth} height={bracketHeight}>
+      <div
+        style={{
+          ...styles.bracketCanvas,
+          width: bracketWidth,
+          height: bracketHeight,
+          minWidth: bracketWidth,
+        }}
+      >
+        <svg
+          style={styles.bracketSvg}
+          width={bracketWidth}
+          height={bracketHeight}
+        >
           {connectorLines.map((line) => (
             <path
               key={line.id}
@@ -958,6 +1178,7 @@ function BracketView({ races }) {
         {positionedRaces.map(({ race, x, y }) => {
           const racerA = getRacerA(race);
           const racerB = getRacerB(race);
+
           const isWinnerA = race.winner === racerA;
           const isWinnerB = race.winner === racerB;
 
@@ -974,17 +1195,29 @@ function BracketView({ races }) {
             >
               <div style={styles.bracketRaceLabel}>Race {race.id}</div>
 
-              <div style={{ ...styles.bracketCompetitor, ...(isWinnerA ? styles.bracketWinnerRow : {}) }}>
+              <div
+                style={{
+                  ...styles.bracketCompetitor,
+                  ...(isWinnerA ? styles.bracketWinnerRow : {}),
+                }}
+              >
                 {isWinnerA ? "🏎️🏁 " : ""}
                 {racerA}
               </div>
 
-              <div style={{ ...styles.bracketCompetitor, ...(isWinnerB ? styles.bracketWinnerRow : {}) }}>
+              <div
+                style={{
+                  ...styles.bracketCompetitor,
+                  ...(isWinnerB ? styles.bracketWinnerRow : {}),
+                }}
+              >
                 {isWinnerB ? "🏎️🏁 " : ""}
                 {racerB}
               </div>
 
-              {race.winner && <div style={styles.bracketWinner}>Winner: {race.winner}</div>}
+              {race.winner && (
+                <div style={styles.bracketWinner}>Winner: {race.winner}</div>
+              )}
             </div>
           );
         })}
@@ -1001,10 +1234,9 @@ function BracketView({ races }) {
 
               return (
                 <div key={raceId} style={styles.placementMatch}>
-                  <div style={styles.bracketRaceLabel}>Race {race.id}</div>
-                  <div style={styles.placementSubLabel}>
-                    {getPlacementLabel(bracketType, race.id)}
-                  </div>
+                  <div style={styles.bracketRaceLabel}>
+  Race {race.id} · {getPlacementLabel(bracketType, race.id)}
+</div>
                   <div style={styles.bracketCompetitor}>{getRacerA(race)}</div>
                   <div style={styles.bracketCompetitor}>{getRacerB(race)}</div>
                 </div>
@@ -1018,8 +1250,14 @@ function BracketView({ races }) {
 }
 
 function getRoundOffset(bracketType, roundIndex) {
-  if (bracketType === "12") return [0, 0.5, 1.5, 3.5][roundIndex] || 0;
-  if (bracketType === "48") return [0, 0, 0.5, 1.5, 3.5, 7.5][roundIndex] || 0;
+  if (bracketType === "12") {
+    return [0, 0.5, 1.5, 3.5][roundIndex] || 0;
+  }
+
+  if (bracketType === "48") {
+    return [0, 0, 0.5, 1.5, 3.5, 7.5][roundIndex] || 0;
+  }
+
   return (Math.pow(2, roundIndex) - 1) / 2;
 }
 
@@ -1036,10 +1274,16 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
 
   if (bracketType === "12") {
     const positions = {
+      // Play-In Round: Race 1, 2, 3, 4
       0: [0, 1, 2, 3],
+      // Quarterfinals: Race 5, 6, 7, 8 at matching heights
       1: [0, 1, 2, 3],
+      // Semifinals: Race 9 between 5/6, Race 10 between 7/8
       2: [0.5, 2.5],
+      // Final: Race 11 centered between semifinals
       3: [1.5],
+      // Placement races
+      4: [0, 1, 2, 3, 4],
     };
 
     y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
@@ -1051,16 +1295,72 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
       3: Array.from({ length: 4 }, (_, i) => i * 4 + 1.5),
       4: Array.from({ length: 2 }, (_, i) => i * 8 + 3.5),
       5: [7.5],
+      6: [0, 1, 2, 3, 4],
     };
 
     y = (positions[roundIndex]?.[matchIndex] ?? matchIndex) * unit;
+  } else if (bracketType === "64") {
+    if (roundIndex === 6) {
+      const positions = [0, 1, 2, 3, 4];
+      y = (positions[matchIndex] ?? matchIndex) * unit;
+    } else {
+      const verticalSpacing = unit * Math.pow(2, roundIndex);
+      const offset = getRoundOffset(bracketType, roundIndex) * unit;
+      y = matchIndex * verticalSpacing + offset;
+    }
+
   } else {
     const verticalSpacing = unit * Math.pow(2, roundIndex);
     const offset = getRoundOffset(bracketType, roundIndex) * unit;
     y = matchIndex * verticalSpacing + offset;
   }
 
-  return { x, y, width: CARD_WIDTH, height: CARD_HEIGHT };
+  return {
+    x,
+    y,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+  };
+}
+
+function ScoreRow({
+  name,
+  run1,
+  run2,
+  total,
+  run1Winner,
+  run2Winner,
+  overallWinner,
+  complete,
+}) {
+  return (
+    <div
+      style={{
+        ...styles.scoreRow,
+        ...(overallWinner ? styles.overallWinnerRow : {}),
+      }}
+    >
+      <div style={styles.competitorCell}>
+        <span>
+          {overallWinner ? "🏎️🏁 " : ""}
+          {name}
+          {overallWinner && <span style={styles.winnerTag}> WINNER</span>}
+        </span>
+      </div>
+
+      <div style={styles.timeCell}>
+        {!complete && run1Winner ? <span style={styles.check}>✓ </span> : null}
+        {formatTime(run1)}
+      </div>
+
+      <div style={styles.timeCell}>
+        {!complete && run2Winner ? <span style={styles.check}>✓ </span> : null}
+        {formatTime(run2)}
+      </div>
+
+      <div style={styles.totalCell}>{formatTime(total)}</div>
+    </div>
+  );
 }
 
 const styles = {
@@ -1069,14 +1369,55 @@ const styles = {
     minHeight: "100vh",
     color: COLORS.text,
   },
-  shell: { maxWidth: 1320, margin: "0 auto", padding: 16 },
-  header: { display: "flex", alignItems: "center", gap: 14, marginBottom: 16 },
-  logo: { width: 64, height: 64, objectFit: "contain", background: "#fff", borderRadius: 14, padding: 6 },
-  kicker: { color: COLORS.accent, fontWeight: 900, letterSpacing: 0.7, fontSize: 12 },
-  title: { margin: "3px 0", fontSize: 30, lineHeight: 1.05, color: COLORS.text },
-  subtitle: { color: COLORS.muted2, fontSize: 14 },
 
-  heroGrid: { display: "grid", gridTemplateColumns: "1.45fr 0.55fr", gap: 14, marginBottom: 14 },
+  shell: {
+    maxWidth: 1320,
+    margin: "0 auto",
+    padding: 16,
+  },
+
+  header: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 16,
+  },
+
+  logo: {
+    width: 64,
+    height: 64,
+    objectFit: "contain",
+    background: "#fff",
+    borderRadius: 14,
+    padding: 6,
+  },
+
+  kicker: {
+    color: COLORS.accent,
+    fontWeight: 900,
+    letterSpacing: 0.7,
+    fontSize: 12,
+  },
+
+  title: {
+    margin: "3px 0",
+    fontSize: 30,
+    lineHeight: 1.05,
+    color: COLORS.text,
+  },
+
+  subtitle: {
+    color: COLORS.muted2,
+    fontSize: 14,
+  },
+
+  heroGrid: {
+    display: "grid",
+    gridTemplateColumns: "1.45fr 0.55fr",
+    gap: 14,
+    marginBottom: 14,
+  },
+
   onTrackBanner: {
     background: "linear-gradient(135deg, #14532d, #052e16)",
     border: `2px solid ${COLORS.accent}`,
@@ -1084,26 +1425,118 @@ const styles = {
     padding: 18,
     textAlign: "center",
   },
-  heroLabel: { color: "#bbf7d0", fontWeight: 900, fontSize: 13, letterSpacing: 0.8, marginBottom: 6 },
-  onTrackTitle: { fontSize: 30, fontWeight: 950, lineHeight: 1.1 },
-  onTrackMatchup: { fontSize: 22, fontWeight: 900, marginTop: 6 },
-  heroSubText: { color: "#bbf7d0", marginTop: 8, fontSize: 13 },
 
-  sidePanel: { background: COLORS.panel, border: `1px solid ${COLORS.border}`, borderRadius: 20, padding: 16 },
-  sidePanelTitle: { color: COLORS.yellow, fontWeight: 950, letterSpacing: 0.6, fontSize: 13 },
-  nextRaceTitle: { fontSize: 24, fontWeight: 950, marginTop: 8 },
-  nextRaceMatchup: { fontSize: 16, fontWeight: 900, marginTop: 4 },
-  nextRaceRound: { color: COLORS.muted, fontSize: 13, marginTop: 4 },
-  emptyText: { color: COLORS.muted, marginTop: 10 },
+  heroLabel: {
+    color: "#bbf7d0",
+    fontWeight: 900,
+    fontSize: 13,
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
 
-  statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 14 },
-  statBox: { background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 8, textAlign: "center" },
-  statValue: { fontSize: 18, fontWeight: 950 },
-  statLabel: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
+  onTrackTitle: {
+    fontSize: 30,
+    fontWeight: 950,
+    lineHeight: 1.1,
+  },
 
-  controlsPanel: { background: COLORS.panel, border: `1px solid ${COLORS.border}`, borderRadius: 18, padding: 12, marginBottom: 14 },
-  controlRow: { display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 8 },
-  tabRow: { display: "flex", gap: 8, flexWrap: "wrap" },
+  onTrackMatchup: {
+    fontSize: 22,
+    fontWeight: 900,
+    marginTop: 6,
+  },
+
+  heroSubText: {
+    color: "#bbf7d0",
+    marginTop: 8,
+    fontSize: 13,
+  },
+
+  sidePanel: {
+    background: COLORS.panel,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 20,
+    padding: 16,
+  },
+
+  sidePanelTitle: {
+    color: COLORS.yellow,
+    fontWeight: 950,
+    letterSpacing: 0.6,
+    fontSize: 13,
+  },
+
+  nextRaceTitle: {
+    fontSize: 24,
+    fontWeight: 950,
+    marginTop: 8,
+  },
+
+  nextRaceMatchup: {
+    fontSize: 16,
+    fontWeight: 900,
+    marginTop: 4,
+  },
+
+  nextRaceRound: {
+    color: COLORS.muted,
+    fontSize: 13,
+    marginTop: 4,
+  },
+
+  emptyText: {
+    color: COLORS.muted,
+    marginTop: 10,
+  },
+
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 8,
+    marginTop: 14,
+  },
+
+  statBox: {
+    background: COLORS.card,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 12,
+    padding: 8,
+    textAlign: "center",
+  },
+
+  statValue: {
+    fontSize: 18,
+    fontWeight: 950,
+  },
+
+  statLabel: {
+    fontSize: 11,
+    color: COLORS.muted,
+    marginTop: 2,
+  },
+
+  controlsPanel: {
+    background: COLORS.panel,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 18,
+    padding: 12,
+    marginBottom: 14,
+  },
+
+  controlRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+    flexWrap: "wrap",
+    marginBottom: 8,
+  },
+
+  tabRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+
   tab: {
     background: COLORS.chip,
     color: COLORS.text,
@@ -1113,6 +1546,7 @@ const styles = {
     fontWeight: 850,
     cursor: "pointer",
   },
+
   activeTab: {
     background: COLORS.accent,
     color: "#052e16",
@@ -1122,6 +1556,7 @@ const styles = {
     fontWeight: 950,
     cursor: "pointer",
   },
+
   chip: {
     background: COLORS.chip,
     color: COLORS.text,
@@ -1131,6 +1566,7 @@ const styles = {
     fontWeight: 850,
     cursor: "pointer",
   },
+
   activeChip: {
     background: COLORS.accent,
     color: "#052e16",
@@ -1140,6 +1576,7 @@ const styles = {
     fontWeight: 950,
     cursor: "pointer",
   },
+
   select: {
     background: COLORS.chip,
     color: COLORS.text,
@@ -1150,23 +1587,64 @@ const styles = {
     minHeight: 38,
   },
 
-  raceGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 14 },
-  raceCard: { background: COLORS.card, borderRadius: 18, padding: 14 },
-  raceCardHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 10 },
-  raceNumber: { fontSize: 18, fontWeight: 950 },
-  raceMeta: { color: COLORS.muted, fontSize: 12, marginTop: 2 },
-  statusPill: { border: "1px solid", borderRadius: 999, padding: "5px 8px", fontSize: 11, fontWeight: 950, whiteSpace: "nowrap" },
+  raceGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+    gap: 14,
+  },
 
-  scoreTable: { background: "#06101f", border: `1px solid ${COLORS.border}`, borderRadius: 14, overflow: "hidden" },
+  raceCard: {
+    background: COLORS.card,
+    borderRadius: 18,
+    padding: 14,
+  },
+
+  raceCardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 10,
+    marginBottom: 10,
+  },
+
+  raceNumber: {
+    fontSize: 18,
+    fontWeight: 950,
+  },
+
+  raceMeta: {
+    color: COLORS.muted,
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  statusPill: {
+    border: "1px solid",
+    borderRadius: 999,
+    padding: "5px 8px",
+    fontSize: 11,
+    fontWeight: 950,
+    whiteSpace: "nowrap",
+  },
+
+  scoreTable: {
+    background: "#06101f",
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+
   scoreHeader: {
     display: "grid",
     gridTemplateColumns: "2fr 1fr 1fr 1fr",
+    gap: 0,
     background: "#020617",
     color: COLORS.muted,
     fontSize: 12,
     fontWeight: 900,
     padding: "8px 10px",
   },
+
   scoreRow: {
     display: "grid",
     gridTemplateColumns: "2fr 1fr 1fr 1fr",
@@ -1175,12 +1653,46 @@ const styles = {
     padding: "9px 10px",
     fontSize: 14,
   },
-  overallWinnerRow: { background: "rgba(34,197,94,0.18)", color: "#dcfce7", fontWeight: 950 },
-  competitorCell: { fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  timeCell: { textAlign: "center", fontVariantNumeric: "tabular-nums" },
-  totalCell: { textAlign: "center", fontWeight: 950, fontVariantNumeric: "tabular-nums" },
-  check: { color: COLORS.accent, fontWeight: 950 },
-  winnerTag: { color: COLORS.accent, fontWeight: 950, marginLeft: 6, fontSize: 12 },
+
+  overallWinnerRow: {
+    background: "rgba(34,197,94,0.18)",
+    color: "#dcfce7",
+    fontWeight: 950,
+  },
+
+  competitorCell: {
+    fontWeight: 900,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  timeCell: {
+    textAlign: "center",
+    fontVariantNumeric: "tabular-nums",
+  },
+
+  totalCell: {
+    textAlign: "center",
+    fontWeight: 950,
+    fontVariantNumeric: "tabular-nums",
+  },
+
+  check: {
+    color: COLORS.accent,
+    fontWeight: 950,
+  },
+
+  alertBox: {
+    marginTop: 10,
+    background: COLORS.redDark,
+    color: "#fecaca",
+    border: "1px solid #991b1b",
+    borderRadius: 12,
+    padding: 8,
+    fontSize: 12,
+    fontWeight: 850,
+  },
 
   winnerBanner: {
     marginTop: 10,
@@ -1192,6 +1704,53 @@ const styles = {
     fontWeight: 950,
     textAlign: "center",
   },
+
+  standingsPanel: {
+    background: COLORS.panel,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 18,
+    padding: 16,
+  },
+
+  sectionTitle: {
+    margin: "0 0 12px 0",
+    fontSize: 24,
+    color: COLORS.text,
+  },
+
+  standingsGrid: {
+    display: "grid",
+    gap: 8,
+  },
+
+  standingRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    background: COLORS.card,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 14,
+    padding: 12,
+  },
+
+  place: {
+    fontWeight: 950,
+    color: COLORS.accent,
+  },
+
+  standingName: {
+    fontWeight: 900,
+    textAlign: "right",
+  },
+
+  winnerTag: {
+    color: COLORS.accent,
+    fontWeight: 950,
+    marginLeft: 6,
+    fontSize: 12,
+  },
+
   tieBanner: {
     marginTop: 10,
     background: COLORS.yellowDark,
@@ -1202,6 +1761,7 @@ const styles = {
     fontWeight: 950,
     textAlign: "center",
   },
+
   photoFinishBanner: {
     marginTop: 8,
     background: "#1e293b",
@@ -1213,88 +1773,159 @@ const styles = {
     textAlign: "center",
   },
 
-  roundsPanel: { display: "grid", gap: 16 },
-  roundSection: { background: COLORS.panel, border: `1px solid ${COLORS.border}`, borderRadius: 18, padding: 14 },
+  bracketPanel: {
+  position: "relative",
+  display: "flex",
+  gap: 72,
+  overflowX: "auto",
+  padding: 16,
+  background: COLORS.panel,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 18,
+},
 
-  standingsPanel: { background: COLORS.panel, border: `1px solid ${COLORS.border}`, borderRadius: 18, padding: 16 },
-  sectionTitle: { margin: "0 0 12px 0", fontSize: 24, color: COLORS.text },
-  standingsGrid: { display: "grid", gap: 8 },
-  standingRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: 14,
-    padding: 12,
-  },
-  place: { fontWeight: 950, color: COLORS.accent },
-  standingName: { fontWeight: 900, textAlign: "right" },
+bracketSvg: {
+  position: "absolute",
+  left: 0,
+  top: 48,
+  pointerEvents: "none",
+  zIndex: 1,
+},
 
-  bracketContainer: { marginTop: 20, borderTop: `1px solid ${COLORS.border}`, paddingTop: 20 },
-  bracketOuter: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 40,
-    overflowX: "auto",
-    overflowY: "auto",
-    background: COLORS.panel,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: 18,
-    padding: 20,
-    maxHeight: "75vh",
-  },
-  bracketCanvas: { position: "relative", flex: "0 0 auto" },
-  bracketSvg: { position: "absolute", left: 0, top: 48, pointerEvents: "none", zIndex: 1 },
-  absoluteRoundTitle: {
-    position: "absolute",
-    top: 0,
-    color: COLORS.text,
-    fontSize: 22,
-    fontWeight: 950,
-    textAlign: "center",
-    whiteSpace: "nowrap",
-  },
-  absoluteBracketMatch: {
-    position: "absolute",
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: 14,
-    padding: 12,
-    color: COLORS.text,
-    zIndex: 2,
-  },
-  bracketRaceLabel: { color: COLORS.muted, fontSize: 12, marginBottom: 6, fontWeight: 900, textAlign: "center" },
-  bracketCompetitor: {
-    padding: "8px 10px",
-    borderRadius: 8,
-    background: "#06101f",
-    marginTop: 6,
-    fontWeight: 850,
-    textAlign: "center",
-  },
-  bracketWinnerRow: {
-    background: "rgba(34,197,94,0.18)",
-    color: "#dcfce7",
-    border: `1px solid ${COLORS.accent}`,
-  },
-  bracketWinner: { marginTop: 8, color: COLORS.accent, fontWeight: 900, fontSize: 12, textAlign: "center" },
+bracketCanvas: {
+  position: "relative",
+  flex: "0 0 auto",
+},
 
-  placementPanel: { flex: "0 0 360px", marginLeft: 40 },
-  placementTitle: { color: COLORS.text, fontSize: 22, fontWeight: 950, textAlign: "center", margin: "0 0 16px 0" },
-  placementGrid: { display: "flex", flexDirection: "column", gap: 16 },
-  placementMatch: {
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: 14,
-    padding: 12,
-  },
-  placementSubLabel: {
-    fontSize: 11,
-    color: COLORS.accent,
-    textAlign: "center",
-    marginBottom: 6,
-    fontWeight: 900,
-  },
+bracketColumn: {
+  minWidth: 260,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-around",
+  position: "relative",
+  zIndex: 2,
+},
+
+absoluteRoundTitle: {
+  position: "absolute",
+  top: 0,
+  color: COLORS.text,
+  fontSize: 22,
+  fontWeight: 950,
+  textAlign: "center",
+  whiteSpace: "nowrap",
+},
+
+absoluteBracketMatch: {
+  position: "absolute",
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 12,
+  color: COLORS.text,
+  zIndex: 2,
+},
+
+bracketRoundTitle: {
+  color: COLORS.text,
+  fontSize: 20,
+  margin: 0,
+  textAlign: "center",
+  whiteSpace: "nowrap",
+},
+
+bracketMatch: {
+  width: "100%",
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 12,
+  color: COLORS.text,
+},
+
+bracketRaceLabel: {
+  color: COLORS.muted,
+  fontSize: 12,
+  marginBottom: 6,
+  fontWeight: 900,
+  textAlign: "center",
+},
+
+bracketCompetitor: {
+  padding: "8px 10px",
+  borderRadius: 8,
+  background: "#06101f",
+  marginTop: 6,
+  fontWeight: 850,
+  textAlign: "center",
+},
+
+bracketWinnerRow: {
+  background: "rgba(34,197,94,0.18)",
+  color: "#dcfce7",
+  border: `1px solid ${COLORS.accent}`,
+},
+
+bracketWinner: {
+  marginTop: 8,
+  color: COLORS.accent,
+  fontWeight: 900,
+  fontSize: 12,
+  textAlign: "center",
+},
+
+bracketNodeWrapper: {
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+},
+
+bracketOuter: {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 40,
+  overflowX: "auto",
+  overflowY: "auto",
+  background: COLORS.panel,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 18,
+  padding: 20,
+  maxHeight: "75vh",
+},
+
+connectorHorizontal: {
+  position: "absolute",
+  right: -36,
+  top: "50%",
+  width: 36,
+  height: 2,
+  background: "rgba(148,163,184,0.45)",
+  zIndex: 1,
+},
+
+placementPanel: {
+  flex: "0 0 360px",
+  marginLeft: 40,
+},
+
+placementTitle: {
+  color: COLORS.text,
+  fontSize: 22,
+  fontWeight: 950,
+  textAlign: "center",
+  margin: "0 0 16px 0",
+},
+
+placementGrid: {
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
+},
+
+placementMatch: {
+  background: COLORS.card,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 14,
+  padding: 12,
+},
 };
