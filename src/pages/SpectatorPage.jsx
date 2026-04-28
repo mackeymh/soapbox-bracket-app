@@ -202,6 +202,40 @@ function getStatusColor(race, isOnTrack, isUpNext) {
   return COLORS.muted;
 }
 
+function getNextRaceId(bracketType, raceId) {
+  if (bracketType === "12") {
+    if (raceId >= 1 && raceId <= 4) return raceId + 4;
+    if (raceId === 5 || raceId === 6) return 9;
+    if (raceId === 7 || raceId === 8) return 10;
+    if (raceId === 9 || raceId === 10) return 11;
+  }
+
+  if (bracketType === "32") {
+    if (raceId >= 1 && raceId <= 16) return 17 + Math.floor((raceId - 1) / 2);
+    if (raceId >= 17 && raceId <= 24) return 25 + Math.floor((raceId - 17) / 2);
+    if (raceId >= 25 && raceId <= 28) return 29 + Math.floor((raceId - 25) / 2);
+    if (raceId === 29 || raceId === 30) return 31;
+  }
+
+  if (bracketType === "48") {
+    if (raceId >= 1 && raceId <= 16) return raceId + 16;
+    if (raceId >= 17 && raceId <= 32) return 33 + Math.floor((raceId - 17) / 2);
+    if (raceId >= 33 && raceId <= 40) return 41 + Math.floor((raceId - 33) / 2);
+    if (raceId >= 41 && raceId <= 44) return 45 + Math.floor((raceId - 41) / 2);
+    if (raceId === 45 || raceId === 46) return 47;
+  }
+
+  if (bracketType === "64") {
+    if (raceId >= 1 && raceId <= 32) return 33 + Math.floor((raceId - 1) / 2);
+    if (raceId >= 33 && raceId <= 48) return 49 + Math.floor((raceId - 33) / 2);
+    if (raceId >= 49 && raceId <= 56) return 57 + Math.floor((raceId - 49) / 2);
+    if (raceId >= 57 && raceId <= 60) return 61 + Math.floor((raceId - 57) / 2);
+    if (raceId === 61 || raceId === 62) return 63;
+  }
+
+  return null;
+}
+
 function getPlacementLabel(bracketType, raceId) {
   const labels = {
     "12": { 12: "5th / 6th Qualifier", 13: "7th / 8th Qualifier", 14: "5th / 6th", 15: "7th / 8th", 16: "3rd / 4th" },
