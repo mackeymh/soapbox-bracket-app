@@ -1327,8 +1327,8 @@ const styles = {
   },
 
   banner: {
-    background: "linear-gradient(135deg,#0f172a, #052e16)",
-    border: "1px solid #334155",
+    background: "linear-gradient(135deg, #14532d, #052e16)",
+    border: `2px solid ${COLORS.accent}`,
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
