@@ -1084,12 +1084,6 @@ function RaceCard({
   winner={winner}
 />
 
-      {winner && (
-        <div style={styles.winner}>
-          Winner: {winner === "A" ? racerA : racerB}
-        </div>
-      )}
-
       {(race.dq_a || race.dq_b || race.bye_for) && (
         <div style={styles.alert}>
           {race.bye_for && `BYE: Racer ${race.bye_for} advances`}
