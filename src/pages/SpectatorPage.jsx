@@ -1126,7 +1126,12 @@ function BroadcastScoreBlock({
 
       <ScoreRow label="RUN 1" left={aRun1} right={bRun1} />
       <ScoreRow label="RUN 2" left={aRun2} right={bRun2} />
-      <ScoreRow label="TOTAL" left={totalA} right={totalB} isTotal />
+      <ScoreRow
+  label="TOTAL"
+  left={totalA}
+  right={totalB}
+  isTotal
+/>
 
       {winner && (
         <div style={styles.winnerBar}>
@@ -2188,7 +2193,7 @@ scoreHeader: {
 },
 
 carName: {
-  fontSize: 24,
+  fontSize: 20,
   fontWeight: 950,
 },
 
@@ -2201,9 +2206,9 @@ vs: {
 
 scoreRow: {
   display: "grid",
-  gridTemplateColumns: "70px 1fr 80px 1fr",
+  gridTemplateColumns: "70px 1fr 70px 1fr",
   alignItems: "center",
-  padding: "9px 0",
+  padding: "6px 0",   // was 9–10
   borderTop: `1px solid ${COLORS.borderSoft}`,
 },
 
@@ -2215,8 +2220,8 @@ scoreLabel: {
 
 scoreValue: {
   textAlign: "center",
-  fontSize: 20,
-  fontWeight: 900,
+  fontSize: 16,
+  fontWeight: 800,
   fontVariantNumeric: "tabular-nums",
 },
 
@@ -2227,8 +2232,8 @@ scoreWinnerValue: {
 
 scoreMiddle: {
   textAlign: "center",
-  fontSize: 14,
-  fontWeight: 950,
+  fontSize: 12,
+  fontWeight: 900,
 },
 
 winnerBar: {
