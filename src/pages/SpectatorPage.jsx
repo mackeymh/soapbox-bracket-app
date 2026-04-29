@@ -804,7 +804,26 @@ export default function SpectatorPage() {
             >
               <label style={styles.field}>
                 <span className="field-label" style={styles.label}>
-  <span style={styles.labelIcon}>🎓</span> School
+  <span style={styles.labelIcon}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="#22c55e"  // green
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Cap top */}
+      <path d="M2 10L12 4L22 10L12 16L2 10Z" />
+      
+      {/* Cap base */}
+      <path d="M6 12V16C6 17.5 9 19 12 19C15 19 18 17.5 18 16V12" />
+      
+      {/* Tassel */}
+      <line x1="22" y1="10" x2="22" y2="16" stroke="#22c55e" strokeWidth="1.5"/>
+      <circle cx="22" cy="17.5" r="1.5" fill="#22c55e"/>
+    </svg>
+  </span>
+  School
 </span>
 
                 <div style={styles.schoolFocusRow}>
