@@ -804,8 +804,8 @@ export default function SpectatorPage() {
             >
               <label style={styles.field}>
                 <span className="field-label" style={styles.label}>
-                  School
-                </span>
+  <span style={styles.labelIcon}>🎓</span> School
+</span>
 
                 <div style={styles.schoolFocusRow}>
                   <select
@@ -845,8 +845,8 @@ export default function SpectatorPage() {
             <div className="control-card" style={styles.controlCard}>
               <label style={styles.field}>
                 <span className="field-label" style={styles.label}>
-                  Division
-                </span>
+  <span style={styles.labelIcon}>🏆</span> Division
+</span>
 
                 <select
                   value={division}
@@ -1130,7 +1130,7 @@ function BroadcastScoreBlock({
       {winner && (
         <div style={styles.winnerBar}>
           🏁 <span style={{ color: COLORS.accent }}>WINNER:</span>{" "}
-          {winner === "A" ? racerA : racerB} 🏆
+          {winner === "A" ? racerA : racerB} 
         </div>
       )}
     </div>
@@ -1676,6 +1676,9 @@ const styles = {
     color: COLORS.muted2,
     fontSize: 12,
     fontWeight: 900,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
   },
 
   schoolFocusRow: {
@@ -2242,4 +2245,8 @@ winnerBar: {
   boxShadow: "0 0 18px rgba(34,197,94,0.25)",
 },
 
+labelIcon: {
+  color: COLORS.accent,
+  marginRight: 6,
+},
 };
