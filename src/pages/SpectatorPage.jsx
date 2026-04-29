@@ -1018,12 +1018,8 @@ function RaceCard({
   const racerA = getRacerA(race);
   const racerB = getRacerB(race);
 
-  const aSchool = racerMatchesSchool(racerA, selectedSchool);
-  const bSchool = racerMatchesSchool(racerB, selectedSchool);
-
   const statusText = getStatusText(race, isOnTrack, isUpNext);
   const statusColor = getStatusColor(race, isOnTrack, isUpNext);
-  const showTimes = hasAnyRunData(race) || totalA != null || totalB != null;
 
   return (
     <article
@@ -1076,45 +1072,17 @@ function RaceCard({
         </div>
       </div>
 
-      <div style={styles.matchupBox}>
-        <div style={styles.matchupNames}>
-          <span
-            style={{
-              ...styles.matchupName,
-              ...(aSchool ? styles.schoolMatchName : {}),
-              ...(winner === "A" ? styles.winnerName : {}),
-            }}
-          >
-            {aSchool ? "⭐ " : ""}
-            {winner === "A" ? "🏁 " : ""}
-            {racerA}
-          </span>
-
-          <span style={styles.vsText}>vs</span>
-
-          <span
-            style={{
-              ...styles.matchupName,
-              ...(bSchool ? styles.schoolMatchName : {}),
-              ...(winner === "B" ? styles.winnerName : {}),
-            }}
-          >
-            {bSchool ? "⭐ " : ""}
-            {winner === "B" ? "🏁 " : ""}
-            {racerB}
-          </span>
-        </div>
-
-        {showTimes ? (
-          <div className="times" style={styles.times}>
-            <span>R1: {formatTime(aRun1)} / {formatTime(bRun1)}</span>
-            <span>R2: {formatTime(aRun2)} / {formatTime(bRun2)}</span>
-            <strong>Total: {formatTime(totalA)} / {formatTime(totalB)}</strong>
-          </div>
-        ) : (
-          <div style={styles.pendingTimes}>Times pending</div>
-        )}
-      </div>
+      <BroadcastScoreBlock
+  racerA={racerA}
+  racerB={racerB}
+  aRun1={aRun1}
+  bRun1={bRun1}
+  aRun2={aRun2}
+  bRun2={bRun2}
+  totalA={totalA}
+  totalB={totalB}
+  winner={winner}
+/>
 
       {winner && (
         <div style={styles.winner}>
@@ -1134,6 +1102,93 @@ function RaceCard({
         </div>
       )}
     </article>
+  );
+}
+
+function BroadcastScoreBlock({
+  racerA,
+  racerB,
+  aRun1,
+  bRun1,
+  aRun2,
+  bRun2,
+  totalA,
+  totalB,
+  winner,
+}) {
+  return (
+    <div style={styles.scoreBlock}>
+      <div style={styles.scoreHeader}>
+        <div style={styles.carName}>{racerA}</div>
+        <div style={styles.vs}>VS</div>
+        <div style={styles.carName}>{racerB}</div>
+      </div>
+
+      <ScoreRow label="RUN 1" left={aRun1} right={bRun1} />
+      <ScoreRow label="RUN 2" left={aRun2} right={bRun2} />
+      <ScoreRow label="TOTAL" left={totalA} right={totalB} isTotal />
+
+      {winner && (
+        <div style={styles.winnerBar}>
+          🏁 <span style={{ color: COLORS.accent }}>WINNER:</span>{" "}
+          {winner === "A" ? racerA : racerB} 🏆
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScoreRow({ label, left, right }) {
+  const l = toNumber(left);
+  const r = toNumber(right);
+
+  let result = "—";
+  let leftWin = false;
+  let rightWin = false;
+
+  if (l != null && r != null) {
+    if (l < r) {
+      result = `+${(r - l).toFixed(3)}`;
+      leftWin = true;
+    } else if (r < l) {
+      result = `+${(l - r).toFixed(3)}`;
+      rightWin = true;
+    } else {
+      result = "TIE";
+    }
+  }
+
+  return (
+    <div style={styles.scoreRow}>
+      <div style={styles.scoreLabel}>{label}</div>
+
+      <div
+        style={{
+          ...styles.scoreValue,
+          ...(leftWin ? styles.scoreWinnerValue : {}),
+        }}
+      >
+        {formatTime(l)} {leftWin && "🏆"}
+      </div>
+
+      <div
+        style={{
+          ...styles.scoreMiddle,
+          color: result === "TIE" || result === "—" ? COLORS.muted : COLORS.accent,
+        }}
+      >
+        {result}
+      </div>
+
+      <div
+        style={{
+          ...styles.scoreValue,
+          ...(rightWin ? styles.scoreWinnerValue : {}),
+        }}
+      >
+        {formatTime(r)} {rightWin && "🏆"}
+      </div>
+    </div>
   );
 }
 
@@ -2116,4 +2171,76 @@ const styles = {
     fontWeight: 900,
     textAlign: "right",
   },
+
+  scoreBlock: {
+  background: COLORS.inner,
+  border: `1px solid ${COLORS.borderSoft}`,
+  borderRadius: 16,
+  padding: 14,
+},
+
+scoreHeader: {
+  display: "grid",
+  gridTemplateColumns: "1fr auto 1fr",
+  alignItems: "center",
+  marginBottom: 12,
+  textAlign: "center",
+},
+
+carName: {
+  fontSize: 24,
+  fontWeight: 950,
+},
+
+vs: {
+  color: COLORS.muted,
+  fontWeight: 950,
+  fontSize: 13,
+  padding: "0 10px",
+},
+
+scoreRow: {
+  display: "grid",
+  gridTemplateColumns: "70px 1fr 80px 1fr",
+  alignItems: "center",
+  padding: "9px 0",
+  borderTop: `1px solid ${COLORS.borderSoft}`,
+},
+
+scoreLabel: {
+  color: COLORS.muted2,
+  fontSize: 12,
+  fontWeight: 950,
+},
+
+scoreValue: {
+  textAlign: "center",
+  fontSize: 20,
+  fontWeight: 900,
+  fontVariantNumeric: "tabular-nums",
+},
+
+scoreWinnerValue: {
+  color: "#bbf7d0",
+  fontWeight: 950,
+},
+
+scoreMiddle: {
+  textAlign: "center",
+  fontSize: 14,
+  fontWeight: 950,
+},
+
+winnerBar: {
+  marginTop: 12,
+  background: COLORS.accentDark,
+  border: `1px solid ${COLORS.accent}`,
+  borderRadius: 12,
+  padding: 10,
+  textAlign: "center",
+  fontWeight: 950,
+  fontSize: 18,
+  boxShadow: "0 0 18px rgba(34,197,94,0.25)",
+},
+
 };
