@@ -1185,7 +1185,7 @@ function ScoreRow({ label, left, right }) {
           ...(rightWin ? styles.scoreWinnerValue : {}),
         }}
       >
-        {formatTime(r)} {rightWin && "🏆"}
+        {formatTime(r)} {rightWin && "✅"}
       </div>
     </div>
   );
