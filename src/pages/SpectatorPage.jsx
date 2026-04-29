@@ -757,7 +757,7 @@ export default function SpectatorPage() {
           <div>
             <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
             <h1 style={styles.title}>{config.title}</h1>
-            <div style={styles.subtitle}>School-centered race tracker</div>
+            <div style={styles.subtitle}>Race tracker</div>
           </div>
         </header>
 
@@ -1637,6 +1637,9 @@ const styles = {
     margin: "3px 0",
     fontSize: 30,
     lineHeight: 1.05,
+    color: "#ffffff",
+    fontWeight: 980,
+    textShadow: "0 2px 10px rgba(0,0,0,0.45)",
   },
 
   subtitle: {
