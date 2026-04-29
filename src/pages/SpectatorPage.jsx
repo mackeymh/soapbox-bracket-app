@@ -2209,6 +2209,9 @@ const styles = {
   sectionTitle: {
     margin: "0 0 12px 0",
     fontSize: 24,
+    color: "#ffffff",
+    fontWeight: 980,
+    textShadow: "0 2px 10px rgba(0,0,0,0.45)",
   },
 
   standingsGrid: {
