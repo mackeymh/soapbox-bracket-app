@@ -909,8 +909,24 @@ export default function SpectatorPage() {
             <div className="control-card" style={styles.controlCard}>
               <label style={styles.field}>
                 <span className="field-label" style={styles.label}>
-                  Races
-                </span>
+  <span style={styles.labelIcon}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Car body */}
+      <path d="M3 14C3 12.9 3.9 12 5 12H15L17 9H20C20.6 9 21 9.4 21 10V14C21 15.1 20.1 16 19 16H18C18 17.1 17.1 18 16 18C14.9 18 14 17.1 14 16H10C10 17.1 9.1 18 8 18C6.9 18 6 17.1 6 16H5C3.9 16 3 15.1 3 14Z"/>
+      
+      {/* Wheels */}
+      <circle cx="8" cy="16" r="2"/>
+      <circle cx="16" cy="16" r="2"/>
+    </svg>
+  </span>
+  Races
+</span>
 
                 <select
                   value={raceFilter}
