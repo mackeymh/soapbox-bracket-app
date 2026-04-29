@@ -863,8 +863,31 @@ export default function SpectatorPage() {
 
             <div className="control-card" style={styles.controlCard}>
               <label style={styles.field}>
-                <span className="field-label" style={styles.label}>
-  <span style={styles.labelIcon}>🏆</span> Division
+               <span className="field-label" style={styles.label}>
+  <span style={styles.labelIcon}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="#22c55e"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Cup */}
+      <path d="M8 3H16V7C16 9.5 14 11 12 11C10 11 8 9.5 8 7V3Z" />
+
+      {/* Handles */}
+      <path d="M16 4H19C19 6 17.5 7.5 16 7V4Z" />
+      <path d="M8 4H5C5 6 6.5 7.5 8 7V4Z" />
+
+      {/* Stem */}
+      <rect x="11" y="11" width="2" height="4" />
+
+      {/* Base */}
+      <rect x="9" y="15" width="6" height="2" />
+      <rect x="8" y="17" width="8" height="2" />
+    </svg>
+  </span>
+  Division
 </span>
 
                 <select
