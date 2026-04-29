@@ -757,7 +757,7 @@ export default function SpectatorPage() {
           <div>
             <div style={styles.kicker}>SOAP BOX DERBY LIVE</div>
             <h1 style={styles.title}>{config.title}</h1>
-            <div style={styles.subtitle}>Race tracker</div>
+            <div style={styles.subtitle}>Race Tracker</div>
           </div>
         </header>
 
