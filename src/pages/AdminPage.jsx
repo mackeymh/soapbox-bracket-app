@@ -725,6 +725,37 @@ export default function AdminPage() {
 
   async function handleRaceBlur(raceId, field, value) {
     try {
+      if (field === "total_a" || field === "total_b") {
+        const parsedValue = value !== "" ? Number(value) : null;
+        await updateRace(raceId, { [field]: parsedValue }, bracketType, district, division);
+
+        let refreshedRaces = await fetchRaces(bracketType, district, division);
+        const race = refreshedRaces.find((item) => item.id === raceId);
+
+        if (race) {
+          const tA = field === "total_a" ? parsedValue : race.total_a;
+          const tB = field === "total_b" ? parsedValue : race.total_b;
+
+          if (tA != null && tB != null) {
+            let winner, loser, status;
+            if (tA < tB) { winner = race.racer_a || ""; loser = race.racer_b || ""; status = "Complete"; }
+            else if (tB < tA) { winner = race.racer_b || ""; loser = race.racer_a || ""; status = "Complete"; }
+            else { winner = ""; loser = ""; status = "Tiebreaker Needed"; }
+            await updateRace(raceId, { winner, loser, status }, bracketType, district, division);
+          }
+
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await advanceBracket(refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+        }
+
+        setRaces(refreshedRaces);
+        setMessage(`Saved Race ${raceId} total override`);
+        return;
+      }
+
       const parsedValue = field.includes("lane") && value !== "" ? Number(value) : value;
 
       await updateRace(raceId, { [field]: parsedValue }, bracketType, district, division);
@@ -1140,6 +1171,11 @@ function ScoreboardInputs({ race, setRaces, handleRaceBlur }) {
     ["run2_lane2", "Run 2 Lane 2"],
   ];
 
+  const totalFields = [
+    ["total_a", "Override Total A"],
+    ["total_b", "Override Total B"],
+  ];
+
   return (
     <div style={scorePanelStyle}>
       <div style={scoreHeaderStyle}>
@@ -1162,6 +1198,26 @@ function ScoreboardInputs({ race, setRaces, handleRaceBlur }) {
             />
           </label>
         ))}
+      </div>
+
+      <div style={{ marginTop: 10, borderTop: `1px dashed ${COLORS.border}`, paddingTop: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, color: "#f59e0b", marginBottom: 6, letterSpacing: 0.4 }}>TOTAL OVERRIDE</div>
+        <div className="score-grid" style={scoreGridStyle}>
+          {totalFields.map(([field, label]) => (
+            <label key={field} style={scoreInputWrapStyle}>
+              <span style={{ ...smallLabelStyle, color: "#f59e0b" }}>{label}</span>
+              <input
+                type="number"
+                step="0.001"
+                value={race[field] ?? ""}
+                placeholder="--"
+                onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, [field]: event.target.value } : item))}
+                onBlur={(event) => handleRaceBlur(race.id, field, event.target.value)}
+                style={{ ...inputStyle, borderColor: "#92400e", background: "#1c1007" }}
+              />
+            </label>
+          ))}
+        </div>
       </div>
     </div>
   );
