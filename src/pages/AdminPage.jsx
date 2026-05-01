@@ -1037,7 +1037,7 @@ export default function AdminPage() {
                       disabled={!editableFields.includes("racer_a")}
                       onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, racer_a: event.target.value } : item))}
                       onBlur={(event) => handleAssignmentBlur(race.id, "racer_a", event.target.value)}
-                      style={inputStyle}
+                      style={assignmentInputStyle}
                     />
 
                     <div style={vsStyle}>VS</div>
@@ -1048,7 +1048,7 @@ export default function AdminPage() {
                       disabled={!editableFields.includes("racer_b")}
                       onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, racer_b: event.target.value } : item))}
                       onBlur={(event) => handleAssignmentBlur(race.id, "racer_b", event.target.value)}
-                      style={inputStyle}
+                      style={assignmentInputStyle}
                     />
                   </div>
 
@@ -1313,6 +1313,18 @@ const inputStyle = {
   padding: "9px 10px",
   minHeight: 38,
   flex: 1,
+};
+
+const assignmentInputStyle = {
+  background: COLORS.input,
+  color: COLORS.text,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 10,
+  padding: "12px 14px",
+  minHeight: 48,
+  flex: 1,
+  fontSize: 16,
+  fontWeight: 700,
 };
 
 const buttonWrapStyle = {
