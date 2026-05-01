@@ -581,16 +581,39 @@ export default function AdminPage() {
     }
   }
 
+  async function clearRaceSeeds(raceId) {
+    const confirmed = window.confirm(`Clear racer assignments for Race ${raceId}?`);
+    if (!confirmed) return;
+
+    try {
+      await updateRace(
+        raceId,
+        { racer_a: "", racer_b: "" },
+        bracketType,
+        district,
+        division
+      );
+
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
+      await advanceBracket(refreshedRaces);
+      refreshedRaces = await fetchRaces(bracketType, district, division);
+
+      setRaces(refreshedRaces);
+      setMessage(`Cleared seeds for Race ${raceId}`);
+    } catch (error) {
+      console.error("CLEAR SEEDS ERROR:", error);
+      setMessage(`Failed to clear seeds for Race ${raceId}`);
+    }
+  }
+
   async function clearRaceEntries(raceId) {
-    const confirmed = window.confirm(`Clear all entries, times, DQ, BYE, winner, and status for Race ${raceId}?`);
+    const confirmed = window.confirm(`Clear times, DQ, BYE, winner, and status for Race ${raceId}? Racer assignments will be kept.`);
     if (!confirmed) return;
 
     try {
       await updateRace(
         raceId,
         {
-          racer_a: "",
-          racer_b: "",
           run1_lane1: null,
           run1_lane2: null,
           run2_lane1: null,
@@ -1036,7 +1059,7 @@ export default function AdminPage() {
                       <option value="B">Racer B advances by BYE</option>
                     </select>
 
-                    <button onClick={() => clearRaceEntries(race.id)} style={dangerButtonStyle}>Clear Race</button>
+                    <button onClick={() => clearRaceSeeds(race.id)} style={dangerButtonStyle}>Clear Seeds</button>
                   </div>
                 </div>
               );
