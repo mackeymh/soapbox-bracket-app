@@ -317,32 +317,6 @@ function hasAnyRunData(race) {
   );
 }
 
-function getSeedOrderForBracket(bracketType) {
-  if (bracketType === "16") {
-    return [
-      [1, 9],
-      [2, 13],
-      [3, 10],
-      [4, 8],
-      [5, 11],
-      [6, 14],
-      [7, 12],
-      [15, 16],
-    ];
-  }
-
-  if (bracketType === "12") {
-    return [
-      [1, 9],
-      [2, 10],
-      [3, 11],
-      [4, 12],
-    ];
-  }
-
-  return [];
-}
-
 /* =========================================================
    ADMIN PAGE
 ========================================================= */
@@ -357,7 +331,6 @@ export default function AdminPage() {
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const [seedText, setSeedText] = useState("");
 
   const allowedDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
   const allowedBrackets = DIVISION_BRACKETS[division] || ["32"];
@@ -566,7 +539,6 @@ export default function AdminPage() {
   async function handleBracketChange(newBracketType) {
     setBracketType(newBracketType);
     await upsertEventSetting({ district, division, active_bracket_type: newBracketType });
-    setSeedText("");
     setMessage(`${formatDivisionLabel(division)} active bracket set to ${newBracketType}-Car`);
   }
 
@@ -653,58 +625,6 @@ export default function AdminPage() {
     } catch (error) {
       console.error("CLEAR RACE ERROR:", error);
       setMessage(`Failed to clear Race ${raceId}`);
-    }
-  }
-
-  async function autoFillSeeds() {
-    const seedOrder = getSeedOrderForBracket(bracketType);
-
-    if (!seedOrder.length) {
-      setMessage(`Seed auto-fill is not set up for ${bracketType}-Car brackets yet.`);
-      return;
-    }
-
-    const entries = seedText
-      .split(/\n|,/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    if (entries.length === 0) {
-      setMessage("Paste seed entries first. Example: 370-1, 370-2, 175-1.");
-      return;
-    }
-
-    try {
-      const updates = [];
-
-      seedOrder.forEach(([seedA, seedB], index) => {
-        const raceId = index + 1;
-        updates.push({
-          raceId,
-          racer_a: entries[seedA - 1] || "",
-          racer_b: entries[seedB - 1] || "",
-        });
-      });
-
-      for (const update of updates) {
-        await updateRace(
-          update.raceId,
-          { racer_a: update.racer_a, racer_b: update.racer_b },
-          bracketType,
-          district,
-          division
-        );
-      }
-
-      let refreshedRaces = await fetchRaces(bracketType, district, division);
-      await advanceBracket(refreshedRaces);
-      refreshedRaces = await fetchRaces(bracketType, district, division);
-
-      setRaces(refreshedRaces);
-      setMessage(`Seeded ${entries.length} racer${entries.length === 1 ? "" : "s"} into the ${bracketType}-Car ${formatDivisionLabel(division)} bracket.`);
-    } catch (error) {
-      console.error("SEED AUTO-FILL ERROR:", error);
-      setMessage("Failed to auto-fill seeds.");
     }
   }
 
@@ -1047,30 +967,6 @@ export default function AdminPage() {
               <div style={subTextStyle}>Enter cars in the order they are drawn. Use BYE when one side advances automatically.</div>
             </div>
           </div>
-
-          {division === "stock" && (bracketType === "12" || bracketType === "16") && (
-            <div style={{ ...panelStyle, marginBottom: 14 }}>
-              <div style={sectionTitleStyle}>Seed-Based Auto-Fill</div>
-              <div style={subTextStyle}>
-                Paste racers in seed order, one per line or separated by commas.
-                {bracketType === "16"
-                  ? " The 16-car bracket uses: 1 vs 9, 2 vs 13, 3 vs 10, 4 vs 8, 5 vs 11, 6 vs 14, 7 vs 12, 15 vs 16."
-                  : " The 12-car bracket fills opening draw races from the seed list."}
-              </div>
-
-              <textarea
-                value={seedText}
-                onChange={(event) => setSeedText(event.target.value)}
-                placeholder={`Example:\n370-1\n370-2\n175-1\n175-2`}
-                style={{ ...inputStyle, width: "100%", minHeight: 150, marginTop: 12, resize: "vertical", fontFamily: "monospace" }}
-              />
-
-              <div className="button-row" style={buttonRowStyle}>
-                <button type="button" onClick={autoFillSeeds} style={primaryButtonStyle}>Auto-Fill Seeds</button>
-                <button type="button" onClick={() => setSeedText("")} style={secondaryButtonStyle}>Clear Seed List</button>
-              </div>
-            </div>
-          )}
 
           <div className="race-grid" style={cardGridStyle}>
             {assignmentRaces.map((race) => {
