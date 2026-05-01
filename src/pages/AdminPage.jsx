@@ -27,7 +27,7 @@ const DIVISION_LABELS = {
 };
 
 const DIVISION_BRACKETS = {
-  stock: ["12"],
+  stock: ["12", "16"],
   superstock: ["32", "48", "64"],
 };
 
@@ -45,14 +45,12 @@ const COLORS = {
   panel: "#111827",
   panel2: "#1e293b",
   card: "#111827",
-  cardSoft: "#1e293b",
   border: "#334155",
   text: "#f8fafc",
   muted: "#cbd5e1",
   muted2: "#94a3b8",
   accent: "#22c55e",
   accentDark: "#14532d",
-  red: "#ef4444",
   redDark: "#7f1d1d",
   yellow: "#facc15",
   input: "#020617",
@@ -122,28 +120,52 @@ function buildDefault12Races(district, division) {
   ];
 }
 
+function buildDefault16Races(district, division) {
+  const b = "16";
+
+  return [
+    baseRace(1, b, division, district, "Round of 16", "Seed 1", "Seed 9"),
+    baseRace(2, b, division, district, "Round of 16", "Seed 2", "Seed 13"),
+    baseRace(3, b, division, district, "Round of 16", "Seed 3", "Seed 10"),
+    baseRace(4, b, division, district, "Round of 16", "Seed 4", "Seed 8"),
+    baseRace(5, b, division, district, "Round of 16", "Seed 5", "Seed 11"),
+    baseRace(6, b, division, district, "Round of 16", "Seed 6", "Seed 14"),
+    baseRace(7, b, division, district, "Round of 16", "Seed 7", "Seed 12"),
+    baseRace(8, b, division, district, "Round of 16", "Seed 15", "Seed 16"),
+
+    baseRace(9, b, division, district, "Quarterfinals", "Winner Race 1", "Winner Race 2"),
+    baseRace(10, b, division, district, "Quarterfinals", "Winner Race 3", "Winner Race 4"),
+    baseRace(11, b, division, district, "Quarterfinals", "Winner Race 5", "Winner Race 6"),
+    baseRace(12, b, division, district, "Quarterfinals", "Winner Race 7", "Winner Race 8"),
+
+    baseRace(13, b, division, district, "Semifinals", "Winner Race 9", "Winner Race 10"),
+    baseRace(14, b, division, district, "Semifinals", "Winner Race 11", "Winner Race 12"),
+
+    baseRace(15, b, division, district, "5th / 6th Qualifier", "Loser Race 9", "Loser Race 10"),
+    baseRace(16, b, division, district, "7th / 8th Qualifier", "Loser Race 11", "Loser Race 12"),
+    baseRace(17, b, division, district, "5th / 6th", "Winner Race 15", "Winner Race 16"),
+    baseRace(18, b, division, district, "Final", "Winner Race 13", "Winner Race 14"),
+    baseRace(19, b, division, district, "3rd / 4th", "Loser Race 13", "Loser Race 14"),
+    baseRace(20, b, division, district, "7th / 8th", "Loser Race 15", "Loser Race 16"),
+  ];
+}
+
 function buildDefault32Races(district, division) {
   const races = [];
   const b = "32";
 
   for (let i = 1; i <= 16; i++) {
-    races.push(
-      baseRace(i, b, division, district, "Opening Draw Race", "Draw Slot A", "Draw Slot B")
-    );
+    races.push(baseRace(i, b, division, district, "Opening Draw Race", "Draw Slot A", "Draw Slot B"));
   }
 
   for (let i = 17; i <= 24; i++) {
     const source = (i - 17) * 2 + 1;
-    races.push(
-      baseRace(i, b, division, district, "Round of 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Round of 16", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   for (let i = 25; i <= 28; i++) {
     const source = (i - 25) * 2 + 17;
-    races.push(
-      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   races.push(baseRace(29, b, division, district, "Semifinals", "Winner Race 25", "Winner Race 26"));
@@ -164,30 +186,21 @@ function buildDefault48Races(district, division) {
   const b = "48";
 
   for (let i = 1; i <= 16; i++) {
-    races.push(
-      baseRace(i, b, division, district, "Preliminary Draw Race", "Draw Slot A", "Draw Slot B")
-    );
+    races.push(baseRace(i, b, division, district, "Preliminary Draw Race", "Draw Slot A", "Draw Slot B"));
   }
 
   for (let i = 17; i <= 32; i++) {
-    const playInRace = i - 16;
-    races.push(
-      baseRace(i, b, division, district, "Round of 32", "Automatic Qualifier", `Winner Race ${playInRace}`)
-    );
+    races.push(baseRace(i, b, division, district, "Round of 32", "Automatic Qualifier", `Winner Race ${i - 16}`));
   }
 
   for (let i = 33; i <= 40; i++) {
     const source = (i - 33) * 2 + 17;
-    races.push(
-      baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   for (let i = 41; i <= 44; i++) {
     const source = (i - 41) * 2 + 33;
-    races.push(
-      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   races.push(baseRace(45, b, division, district, "Semifinals", "Winner Race 41", "Winner Race 42"));
@@ -208,30 +221,22 @@ function buildDefault64Races(district, division) {
   const b = "64";
 
   for (let i = 1; i <= 32; i++) {
-    races.push(
-      baseRace(i, b, division, district, "Opening Draw Race", "Draw Slot A", "Draw Slot B")
-    );
+    races.push(baseRace(i, b, division, district, "Opening Draw Race", "Draw Slot A", "Draw Slot B"));
   }
 
   for (let i = 33; i <= 48; i++) {
     const source = (i - 33) * 2 + 1;
-    races.push(
-      baseRace(i, b, division, district, "Round of 32", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Round of 32", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   for (let i = 49; i <= 56; i++) {
     const source = (i - 49) * 2 + 33;
-    races.push(
-      baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Sweet 16", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   for (let i = 57; i <= 60; i++) {
     const source = (i - 57) * 2 + 49;
-    races.push(
-      baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`)
-    );
+    races.push(baseRace(i, b, division, district, "Quarterfinals", `Winner Race ${source}`, `Winner Race ${source + 1}`));
   }
 
   races.push(baseRace(61, b, division, district, "Semifinals", "Winner Race 57", "Winner Race 58"));
@@ -249,6 +254,7 @@ function buildDefault64Races(district, division) {
 
 function buildDefaults(bracketType, district, division) {
   if (bracketType === "12") return buildDefault12Races(district, division);
+  if (bracketType === "16") return buildDefault16Races(district, division);
   if (bracketType === "32") return buildDefault32Races(district, division);
   if (bracketType === "48") return buildDefault48Races(district, division);
   if (bracketType === "64") return buildDefault64Races(district, division);
@@ -256,13 +262,18 @@ function buildDefaults(bracketType, district, division) {
 }
 
 /* =========================================================
-   DRAW ASSIGNMENT HELPERS
+   HELPERS
 ========================================================= */
 
 function getAssignmentFields(race, bracketType) {
   if (bracketType === "12") {
     if (race.id >= 1 && race.id <= 4) return ["racer_a", "racer_b"];
     if (race.id >= 5 && race.id <= 8) return ["racer_a"];
+    return [];
+  }
+
+  if (bracketType === "16") {
+    if (race.id >= 1 && race.id <= 8) return ["racer_a", "racer_b"];
     return [];
   }
 
@@ -306,6 +317,32 @@ function hasAnyRunData(race) {
   );
 }
 
+function getSeedOrderForBracket(bracketType) {
+  if (bracketType === "16") {
+    return [
+      [1, 9],
+      [2, 13],
+      [3, 10],
+      [4, 8],
+      [5, 11],
+      [6, 14],
+      [7, 12],
+      [15, 16],
+    ];
+  }
+
+  if (bracketType === "12") {
+    return [
+      [1, 9],
+      [2, 10],
+      [3, 11],
+      [4, 12],
+    ];
+  }
+
+  return [];
+}
+
 /* =========================================================
    ADMIN PAGE
 ========================================================= */
@@ -320,6 +357,7 @@ export default function AdminPage() {
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [seedText, setSeedText] = useState("");
 
   const allowedDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
   const allowedBrackets = DIVISION_BRACKETS[division] || ["32"];
@@ -334,7 +372,6 @@ export default function AdminPage() {
     });
 
     const updates = [];
-
     function queue(id, fields) {
       updates.push({ id, fields });
     }
@@ -356,21 +393,33 @@ export default function AdminPage() {
       queue(16, { racer_a: loserOf(map, 9), racer_b: loserOf(map, 10) });
     }
 
+    if (bracketType === "16") {
+      queue(9, { racer_a: winnerOf(map, 1), racer_b: winnerOf(map, 2) });
+      queue(10, { racer_a: winnerOf(map, 3), racer_b: winnerOf(map, 4) });
+      queue(11, { racer_a: winnerOf(map, 5), racer_b: winnerOf(map, 6) });
+      queue(12, { racer_a: winnerOf(map, 7), racer_b: winnerOf(map, 8) });
+
+      queue(13, { racer_a: winnerOf(map, 9), racer_b: winnerOf(map, 10) });
+      queue(14, { racer_a: winnerOf(map, 11), racer_b: winnerOf(map, 12) });
+
+      queue(15, { racer_a: loserOf(map, 9), racer_b: loserOf(map, 10) });
+      queue(16, { racer_a: loserOf(map, 11), racer_b: loserOf(map, 12) });
+      queue(17, { racer_a: winnerOf(map, 15), racer_b: winnerOf(map, 16) });
+
+      queue(18, { racer_a: winnerOf(map, 13), racer_b: winnerOf(map, 14) });
+      queue(19, { racer_a: loserOf(map, 13), racer_b: loserOf(map, 14) });
+      queue(20, { racer_a: loserOf(map, 15), racer_b: loserOf(map, 16) });
+    }
+
     if (bracketType === "32") {
       for (let i = 17; i <= 24; i++) {
         const source = (i - 17) * 2 + 1;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       for (let i = 25; i <= 28; i++) {
         const source = (i - 25) * 2 + 17;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       queue(29, { racer_a: winnerOf(map, 25), racer_b: winnerOf(map, 26) });
@@ -385,24 +434,16 @@ export default function AdminPage() {
     }
 
     if (bracketType === "48") {
-      for (let i = 17; i <= 32; i++) {
-        queue(i, { racer_b: winnerOf(map, i - 16) });
-      }
+      for (let i = 17; i <= 32; i++) queue(i, { racer_b: winnerOf(map, i - 16) });
 
       for (let i = 33; i <= 40; i++) {
         const source = (i - 33) * 2 + 17;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       for (let i = 41; i <= 44; i++) {
         const source = (i - 41) * 2 + 33;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       queue(45, { racer_a: winnerOf(map, 41), racer_b: winnerOf(map, 42) });
@@ -419,26 +460,17 @@ export default function AdminPage() {
     if (bracketType === "64") {
       for (let i = 33; i <= 48; i++) {
         const source = (i - 33) * 2 + 1;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       for (let i = 49; i <= 56; i++) {
         const source = (i - 49) * 2 + 33;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       for (let i = 57; i <= 60; i++) {
         const source = (i - 57) * 2 + 49;
-        queue(i, {
-          racer_a: winnerOf(map, source),
-          racer_b: winnerOf(map, source + 1),
-        });
+        queue(i, { racer_a: winnerOf(map, source), racer_b: winnerOf(map, source + 1) });
       }
 
       queue(61, { racer_a: winnerOf(map, 57), racer_b: winnerOf(map, 58) });
@@ -464,20 +496,13 @@ export default function AdminPage() {
 
   useEffect(() => {
     const access = sessionStorage.getItem("admin_access");
-
-    if (access !== "granted") {
-      navigate("/admin-login");
-    } else {
-      setAuthorized(true);
-    }
+    if (access !== "granted") navigate("/admin-login");
+    else setAuthorized(true);
   }, [navigate]);
 
   useEffect(() => {
     const districtDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
-
-    const nextDivision = districtDivisions.includes(division)
-      ? division
-      : districtDivisions[0];
+    const nextDivision = districtDivisions.includes(division) ? division : districtDivisions[0];
 
     if (nextDivision !== division) {
       setDivision(nextDivision);
@@ -485,13 +510,9 @@ export default function AdminPage() {
     }
 
     const bracketOptions = DIVISION_BRACKETS[nextDivision] || ["32"];
-    const nextBracket = bracketOptions.includes(bracketType)
-      ? bracketType
-      : bracketOptions[0];
+    const nextBracket = bracketOptions.includes(bracketType) ? bracketType : bracketOptions[0];
 
-    if (nextBracket !== bracketType) {
-      setBracketType(nextBracket);
-    }
+    if (nextBracket !== bracketType) setBracketType(nextBracket);
   }, [district, division, bracketType]);
 
   useEffect(() => {
@@ -504,41 +525,28 @@ export default function AdminPage() {
       setMessage("");
 
       try {
-        await upsertEventSetting({
-          district,
-          division,
-          active_bracket_type: bracketType,
-        });
+        await upsertEventSetting({ district, division, active_bracket_type: bracketType });
 
         let raceRows = await fetchRaces(bracketType, district, division);
-
         if (cancelled) return;
 
         if (raceRows.length === 0) {
           const defaults = buildDefaults(bracketType, district, division);
-
-          for (const race of defaults) {
-            await upsertRace(race);
-          }
-
+          for (const race of defaults) await upsertRace(race);
           raceRows = await fetchRaces(bracketType, district, division);
         }
 
         await advanceBracket(raceRows);
         raceRows = await fetchRaces(bracketType, district, division);
 
-        if (!cancelled) {
-          setRaces(raceRows);
-        }
+        if (!cancelled) setRaces(raceRows);
       } catch (error) {
         if (!cancelled) {
           console.error("ADMIN LOAD ERROR:", error);
           setMessage(`Failed to load admin data: ${error.message || "Unknown error"}`);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -557,14 +565,9 @@ export default function AdminPage() {
 
   async function handleBracketChange(newBracketType) {
     setBracketType(newBracketType);
-
-    await upsertEventSetting({
-      district,
-      division,
-      active_bracket_type: newBracketType,
-    });
-
-    setMessage(`${formatDivisionLabel(division)} active bracket set to ${newBracketType}`);
+    await upsertEventSetting({ district, division, active_bracket_type: newBracketType });
+    setSeedText("");
+    setMessage(`${formatDivisionLabel(division)} active bracket set to ${newBracketType}-Car`);
   }
 
   async function setCurrentRace(raceId) {
@@ -572,7 +575,6 @@ export default function AdminPage() {
       for (const divisionOption of DISTRICT_DIVISIONS[district]) {
         for (const bracketOption of DIVISION_BRACKETS[divisionOption]) {
           const divisionRaces = await fetchRaces(bracketOption, district, divisionOption);
-
           for (const race of divisionRaces) {
             if (race.is_current_override) {
               await updateRace(
@@ -587,14 +589,7 @@ export default function AdminPage() {
         }
       }
 
-      await updateRace(
-        raceId,
-        { is_current_override: true },
-        bracketType,
-        district,
-        division
-      );
-
+      await updateRace(raceId, { is_current_override: true }, bracketType, district, division);
       await reloadRaces();
       setMessage(`${formatDivisionLabel(division)} Race ${raceId} set as NOW RACING`);
     } catch (error) {
@@ -605,14 +600,7 @@ export default function AdminPage() {
 
   async function clearCurrentRace(raceId) {
     try {
-      await updateRace(
-        raceId,
-        { is_current_override: false },
-        bracketType,
-        district,
-        division
-      );
-
+      await updateRace(raceId, { is_current_override: false }, bracketType, district, division);
       await reloadRaces();
       setMessage(`Cleared NOW RACING override for Race ${raceId}`);
     } catch (error) {
@@ -622,10 +610,7 @@ export default function AdminPage() {
   }
 
   async function clearRaceEntries(raceId) {
-    const confirmed = window.confirm(
-      `Clear all entries, times, DQ, BYE, winner, and status for Race ${raceId}?`
-    );
-
+    const confirmed = window.confirm(`Clear all entries, times, DQ, BYE, winner, and status for Race ${raceId}?`);
     if (!confirmed) return;
 
     try {
@@ -661,7 +646,7 @@ export default function AdminPage() {
       refreshedRaces = await fetchRaces(bracketType, district, division);
 
       await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
-refreshedRaces = await fetchRaces(bracketType, district, division);
+      refreshedRaces = await fetchRaces(bracketType, district, division);
 
       setRaces(refreshedRaces);
       setMessage(`Cleared Race ${raceId}`);
@@ -671,36 +656,75 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
     }
   }
 
+  async function autoFillSeeds() {
+    const seedOrder = getSeedOrderForBracket(bracketType);
+
+    if (!seedOrder.length) {
+      setMessage(`Seed auto-fill is not set up for ${bracketType}-Car brackets yet.`);
+      return;
+    }
+
+    const entries = seedText
+      .split(/\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (entries.length === 0) {
+      setMessage("Paste seed entries first. Example: 370-1, 370-2, 175-1.");
+      return;
+    }
+
+    try {
+      const updates = [];
+
+      seedOrder.forEach(([seedA, seedB], index) => {
+        const raceId = index + 1;
+        updates.push({
+          raceId,
+          racer_a: entries[seedA - 1] || "",
+          racer_b: entries[seedB - 1] || "",
+        });
+      });
+
+      for (const update of updates) {
+        await updateRace(
+          update.raceId,
+          { racer_a: update.racer_a, racer_b: update.racer_b },
+          bracketType,
+          district,
+          division
+        );
+      }
+
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
+      await advanceBracket(refreshedRaces);
+      refreshedRaces = await fetchRaces(bracketType, district, division);
+
+      setRaces(refreshedRaces);
+      setMessage(`Seeded ${entries.length} racer${entries.length === 1 ? "" : "s"} into the ${bracketType}-Car ${formatDivisionLabel(division)} bracket.`);
+    } catch (error) {
+      console.error("SEED AUTO-FILL ERROR:", error);
+      setMessage("Failed to auto-fill seeds.");
+    }
+  }
+
   async function handleAssignmentBlur(raceId, field, value) {
     try {
       const trimmed = value.trim();
-
-      await updateRace(
-        raceId,
-        { [field]: trimmed },
-        bracketType,
-        district,
-        division
-      );
+      await updateRace(raceId, { [field]: trimmed }, bracketType, district, division);
 
       let refreshedRaces = await fetchRaces(bracketType, district, division);
       const changedRace = refreshedRaces.find((race) => race.id === raceId);
 
       if (changedRace && changedRace.bye_for) {
         const outcome = getRaceAdminOutcome(changedRace);
-
         await updateRace(
           raceId,
-          {
-            winner: outcome.winner,
-            loser: outcome.loser,
-            status: outcome.status,
-          },
+          { winner: outcome.winner, loser: outcome.loser, status: outcome.status },
           bracketType,
           district,
           division
         );
-
         refreshedRaces = await fetchRaces(bracketType, district, division);
       }
 
@@ -719,47 +743,26 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
   }
 
   function getRaceAdminOutcome(race, changedField = null, changedValue = null) {
-    const nextRace =
-      changedField !== null ? { ...race, [changedField]: changedValue } : race;
+    const nextRace = changedField !== null ? { ...race, [changedField]: changedValue } : race;
 
     if (nextRace.bye_for === "A") {
-      return {
-        winner: nextRace.racer_a || "",
-        loser: nextRace.racer_b || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_a || "", loser: nextRace.racer_b || "", status: "Complete" };
     }
 
     if (nextRace.bye_for === "B") {
-      return {
-        winner: nextRace.racer_b || "",
-        loser: nextRace.racer_a || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_b || "", loser: nextRace.racer_a || "", status: "Complete" };
     }
 
     if (nextRace.dq_a && !nextRace.dq_b) {
-      return {
-        winner: nextRace.racer_b || "",
-        loser: nextRace.racer_a || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_b || "", loser: nextRace.racer_a || "", status: "Complete" };
     }
 
     if (nextRace.dq_b && !nextRace.dq_a) {
-      return {
-        winner: nextRace.racer_a || "",
-        loser: nextRace.racer_b || "",
-        status: "Complete",
-      };
+      return { winner: nextRace.racer_a || "", loser: nextRace.racer_b || "", status: "Complete" };
     }
 
     if (nextRace.dq_a && nextRace.dq_b) {
-      return {
-        winner: "",
-        loser: "",
-        status: "DQ Conflict",
-      };
+      return { winner: "", loser: "", status: "DQ Conflict" };
     }
 
     return {
@@ -790,73 +793,38 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
     const totalB = Number(race.run1_lane2) + Number(race.run2_lane1);
 
     if (totalA < totalB) {
-      return {
-        winner: race.racer_a || "",
-        loser: race.racer_b || "",
-        status: "Complete",
-        total_a: totalA,
-        total_b: totalB,
-      };
+      return { winner: race.racer_a || "", loser: race.racer_b || "", status: "Complete", total_a: totalA, total_b: totalB };
     }
 
     if (totalB < totalA) {
-      return {
-        winner: race.racer_b || "",
-        loser: race.racer_a || "",
-        status: "Complete",
-        total_a: totalA,
-        total_b: totalB,
-      };
+      return { winner: race.racer_b || "", loser: race.racer_a || "", status: "Complete", total_a: totalA, total_b: totalB };
     }
 
-    return {
-      winner: "",
-      loser: "",
-      status: "Tiebreaker Needed",
-      total_a: totalA,
-      total_b: totalB,
-    };
+    return { winner: "", loser: "", status: "Tiebreaker Needed", total_a: totalA, total_b: totalB };
   }
 
   async function handleRaceBlur(raceId, field, value) {
     try {
-      const parsedValue =
-        field.includes("lane") && value !== "" ? Number(value) : value;
+      const parsedValue = field.includes("lane") && value !== "" ? Number(value) : value;
 
-      await updateRace(
-        raceId,
-        { [field]: parsedValue },
-        bracketType,
-        district,
-        division
-      );
+      await updateRace(raceId, { [field]: parsedValue }, bracketType, district, division);
 
       let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((item) => item.id === raceId);
 
       if (race) {
-        const adminOutcome = getRaceAdminOutcome({
-          ...race,
-          [field]: parsedValue,
-        });
+        const adminOutcome = getRaceAdminOutcome({ ...race, [field]: parsedValue });
 
         if (race.bye_for || race.dq_a || race.dq_b) {
           await updateRace(
             raceId,
-            {
-              winner: adminOutcome.winner,
-              loser: adminOutcome.loser,
-              status: adminOutcome.status,
-            },
+            { winner: adminOutcome.winner, loser: adminOutcome.loser, status: adminOutcome.status },
             bracketType,
             district,
             division
           );
         } else {
-          const outcome = getOutcomeFromTimes({
-            ...race,
-            [field]: parsedValue,
-          });
+          const outcome = getOutcomeFromTimes({ ...race, [field]: parsedValue });
 
           if (outcome) {
             await updateRace(
@@ -885,8 +853,7 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
 
       setRaces(refreshedRaces);
       setMessage(`Saved Race ${raceId}`);
-    } 
-    catch (error) {
+    } catch (error) {
       console.error("RACE SAVE ERROR:", error);
       setMessage(`Failed to save Race ${raceId}`);
     }
@@ -894,13 +861,7 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
 
   async function handleRaceToggle(raceId, field, checked) {
     try {
-      await updateRace(
-        raceId,
-        { [field]: checked },
-        bracketType,
-        district,
-        division
-      );
+      await updateRace(raceId, { [field]: checked }, bracketType, district, division);
 
       let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((item) => item.id === raceId);
@@ -910,11 +871,7 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
 
         await updateRace(
           raceId,
-          {
-            winner: outcome.winner,
-            loser: outcome.loser,
-            status: outcome.status,
-          },
+          { winner: outcome.winner, loser: outcome.loser, status: outcome.status },
           bracketType,
           district,
           division
@@ -937,50 +894,31 @@ refreshedRaces = await fetchRaces(bracketType, district, division);
   }
 
   async function autoAdvanceCurrentRaceIfComplete(completedRaceId, raceRows) {
-  const completedRace = raceRows.find((r) => r.id === completedRaceId);
+    const completedRace = raceRows.find((r) => r.id === completedRaceId);
 
-  if (!completedRace?.is_current_override) return;
-  if (completedRace.status !== "Complete") return;
+    if (!completedRace?.is_current_override) return;
+    if (completedRace.status !== "Complete") return;
 
-  const nextRace = [...raceRows]
-    .filter(
-      (r) =>
-        r.id !== completedRaceId &&
-        !r.is_current_override &&
-        r.status !== "Complete" &&
-        r.status !== "DQ Conflict" &&
-        !hasAnyRunData(r)
-    )
-    .sort((a, b) => a.id - b.id)[0];
+    const nextRace = [...raceRows]
+      .filter(
+        (r) =>
+          r.id !== completedRaceId &&
+          !r.is_current_override &&
+          r.status !== "Complete" &&
+          r.status !== "DQ Conflict" &&
+          !hasAnyRunData(r)
+      )
+      .sort((a, b) => a.id - b.id)[0];
 
-  if (!nextRace) return;
+    if (!nextRace) return;
 
-  await updateRace(
-    completedRaceId,
-    { is_current_override: false },
-    bracketType,
-    district,
-    division
-  );
+    await updateRace(completedRaceId, { is_current_override: false }, bracketType, district, division);
+    await updateRace(nextRace.id, { is_current_override: true }, bracketType, district, division);
+  }
 
-  await updateRace(
-    nextRace.id,
-    { is_current_override: true },
-    bracketType,
-    district,
-    division
-  );
-}
-
-async function handleRaceByeChange(raceId, byeValue) {
+  async function handleRaceByeChange(raceId, byeValue) {
     try {
-      await updateRace(
-        raceId,
-        { bye_for: byeValue },
-        bracketType,
-        district,
-        division
-      );
+      await updateRace(raceId, { bye_for: byeValue }, bracketType, district, division);
 
       let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((item) => item.id === raceId);
@@ -990,11 +928,7 @@ async function handleRaceByeChange(raceId, byeValue) {
 
         await updateRace(
           raceId,
-          {
-            winner: outcome.winner,
-            loser: outcome.loser,
-            status: outcome.status,
-          },
+          { winner: outcome.winner, loser: outcome.loser, status: outcome.status },
           bracketType,
           district,
           division
@@ -1029,92 +963,34 @@ async function handleRaceByeChange(raceId, byeValue) {
       <style>
         {`
           @media (max-width: 900px) {
-            .admin-top-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .race-grid {
-              grid-template-columns: 1fr !important;
-            }
+            .admin-top-grid { grid-template-columns: 1fr !important; }
+            .race-grid { grid-template-columns: 1fr !important; }
           }
 
           @media (max-width: 560px) {
-            .admin-page {
-              padding: 12px !important;
-            }
-            .race-card {
-              padding: 12px !important;
-            }
-            .row-wrap {
-              flex-direction: column !important;
-              align-items: stretch !important;
-            }
-            .row-wrap > * {
-              width: 100% !important;
-            }
-            .score-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .button-row {
-              flex-direction: column !important;
-            }
-            .button-row button {
-              width: 100% !important;
-            }
+            .admin-page { padding: 12px !important; }
+            .race-card { padding: 12px !important; }
+            .row-wrap { flex-direction: column !important; align-items: stretch !important; }
+            .row-wrap > * { width: 100% !important; }
+            .score-grid { grid-template-columns: 1fr !important; }
+            .button-row { flex-direction: column !important; }
+            .button-row button { width: 100% !important; }
           }
         `}
       </style>
 
       <div className="admin-page" style={{ maxWidth: 1320, margin: "0 auto", padding: 20 }}>
-        <header
-          style={{
-            marginBottom: 18,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            gap: 10,
-          }}
-        >
-          <img
-            src="/logo.png"
-            alt="Soap Box Derby logo"
-            style={{
-              width: 64,
-              height: 64,
-              objectFit: "contain",
-              background: "#fff",
-              borderRadius: 12,
-              padding: 6,
-            }}
-          />
+        <header style={{ marginBottom: 18, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 10 }}>
+          <img src="/logo.png" alt="Soap Box Derby logo" style={{ width: 64, height: 64, objectFit: "contain", background: "#fff", borderRadius: 12, padding: 6 }} />
 
           <div>
-            <div style={{ color: COLORS.accent, fontWeight: 900, letterSpacing: 0.6 }}>
-              SOAP BOX DERBY
-            </div>
-
-            <h1
-              style={{
-                margin: "4px 0",
-                fontSize: 34,
-                lineHeight: 1.05,
-                color: COLORS.text,
-              }}
-            >
-              Race Control Dashboard
-            </h1>
-
-            <div style={{ color: COLORS.muted }}>
-              Manage divisions, brackets, draws, race timing, BYEs, DQs, and live race status.
-            </div>
+            <div style={{ color: COLORS.accent, fontWeight: 900, letterSpacing: 0.6 }}>SOAP BOX DERBY</div>
+            <h1 style={{ margin: "4px 0", fontSize: 34, lineHeight: 1.05, color: COLORS.text }}>Race Control Dashboard</h1>
+            <div style={{ color: COLORS.muted }}>Manage divisions, brackets, draws, race timing, BYEs, DQs, and live race status.</div>
           </div>
         </header>
 
-        {message && (
-          <div style={messageStyle}>
-            {message}
-          </div>
-        )}
+        {message && <div style={messageStyle}>{message}</div>}
 
         <section className="admin-top-grid" style={topGridStyle}>
           <div style={panelStyle}>
@@ -1122,15 +998,9 @@ async function handleRaceByeChange(raceId, byeValue) {
 
             <div style={fieldGroupStyle}>
               <label style={labelStyle}>District</label>
-              <select
-                value={district}
-                onChange={(event) => setDistrict(event.target.value)}
-                style={selectStyle}
-              >
+              <select value={district} onChange={(event) => setDistrict(event.target.value)} style={selectStyle}>
                 {DISTRICT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
+                  <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </div>
@@ -1139,11 +1009,7 @@ async function handleRaceByeChange(raceId, byeValue) {
               <label style={labelStyle}>Division</label>
               <div style={buttonWrapStyle}>
                 {allowedDivisions.map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setDivision(item)}
-                    style={division === item ? activeButtonStyle : secondaryButtonStyle}
-                  >
+                  <button key={item} onClick={() => setDivision(item)} style={division === item ? activeButtonStyle : secondaryButtonStyle}>
                     {DIVISION_LABELS[item]}
                   </button>
                 ))}
@@ -1154,12 +1020,8 @@ async function handleRaceByeChange(raceId, byeValue) {
               <label style={labelStyle}>Bracket</label>
               <div style={buttonWrapStyle}>
                 {allowedBrackets.map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => handleBracketChange(item)}
-                    style={bracketType === item ? activeButtonStyle : secondaryButtonStyle}
-                  >
-                    {division === "stock" ? "12-Car Stock" : `${item}-Car Super Stock`}
+                  <button key={item} onClick={() => handleBracketChange(item)} style={bracketType === item ? activeButtonStyle : secondaryButtonStyle}>
+                    {division === "stock" ? `${item}-Car Stock` : `${item}-Car Super Stock`}
                   </button>
                 ))}
               </div>
@@ -1168,42 +1030,47 @@ async function handleRaceByeChange(raceId, byeValue) {
 
           <div style={panelStyle}>
             <div style={sectionTitleStyle}>Current Context</div>
-            <div style={contextLineStyle}>
-              <span>District</span>
-              <strong>{DISTRICT_OPTIONS.find((d) => d.value === district)?.label}</strong>
-            </div>
-            <div style={contextLineStyle}>
-              <span>Division</span>
-              <strong>{formatDivisionLabel(division)}</strong>
-            </div>
-            <div style={contextLineStyle}>
-              <span>Bracket</span>
-              <strong>{bracketType}-Car</strong>
-            </div>
-            <div style={contextLineStyle}>
-              <span>Total Races</span>
-              <strong>{races.length}</strong>
-            </div>
-            <div style={contextLineStyle}>
-              <span>Assignment Races</span>
-              <strong>{assignmentRaces.length}</strong>
-            </div>
+            <div style={contextLineStyle}><span>District</span><strong>{DISTRICT_OPTIONS.find((d) => d.value === district)?.label}</strong></div>
+            <div style={contextLineStyle}><span>Division</span><strong>{formatDivisionLabel(division)}</strong></div>
+            <div style={contextLineStyle}><span>Bracket</span><strong>{bracketType}-Car</strong></div>
+            <div style={contextLineStyle}><span>Total Races</span><strong>{races.length}</strong></div>
+            <div style={contextLineStyle}><span>Assignment Races</span><strong>{assignmentRaces.length}</strong></div>
           </div>
         </section>
 
-        {loading && (
-          <div style={panelStyle}>Loading bracket data...</div>
-        )}
+        {loading && <div style={{ ...panelStyle, marginTop: 18 }}>Loading bracket data...</div>}
 
         <section style={{ marginTop: 18 }}>
           <div style={sectionHeaderStyle}>
             <div>
               <h2 style={h2Style}>Draw / Race Assignments</h2>
-              <div style={subTextStyle}>
-                Enter cars in the order they are drawn. Use BYE when one side advances automatically.
-              </div>
+              <div style={subTextStyle}>Enter cars in the order they are drawn. Use BYE when one side advances automatically.</div>
             </div>
           </div>
+
+          {division === "stock" && (bracketType === "12" || bracketType === "16") && (
+            <div style={{ ...panelStyle, marginBottom: 14 }}>
+              <div style={sectionTitleStyle}>Seed-Based Auto-Fill</div>
+              <div style={subTextStyle}>
+                Paste racers in seed order, one per line or separated by commas.
+                {bracketType === "16"
+                  ? " The 16-car bracket uses: 1 vs 9, 2 vs 13, 3 vs 10, 4 vs 8, 5 vs 11, 6 vs 14, 7 vs 12, 15 vs 16."
+                  : " The 12-car bracket fills opening draw races from the seed list."}
+              </div>
+
+              <textarea
+                value={seedText}
+                onChange={(event) => setSeedText(event.target.value)}
+                placeholder={`Example:\n370-1\n370-2\n175-1\n175-2`}
+                style={{ ...inputStyle, width: "100%", minHeight: 150, marginTop: 12, resize: "vertical", fontFamily: "monospace" }}
+              />
+
+              <div className="button-row" style={buttonRowStyle}>
+                <button type="button" onClick={autoFillSeeds} style={primaryButtonStyle}>Auto-Fill Seeds</button>
+                <button type="button" onClick={() => setSeedText("")} style={secondaryButtonStyle}>Clear Seed List</button>
+              </div>
+            </div>
+          )}
 
           <div className="race-grid" style={cardGridStyle}>
             {assignmentRaces.map((race) => {
@@ -1218,18 +1085,8 @@ async function handleRaceByeChange(raceId, byeValue) {
                       value={race.racer_a || ""}
                       placeholder={race.slot_a || "Racer A"}
                       disabled={!editableFields.includes("racer_a")}
-                      onChange={(event) =>
-                        setRaces((previous) =>
-                          previous.map((item) =>
-                            item.id === race.id
-                              ? { ...item, racer_a: event.target.value }
-                              : item
-                          )
-                        )
-                      }
-                      onBlur={(event) =>
-                        handleAssignmentBlur(race.id, "racer_a", event.target.value)
-                      }
+                      onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, racer_a: event.target.value } : item))}
+                      onBlur={(event) => handleAssignmentBlur(race.id, "racer_a", event.target.value)}
                       style={inputStyle}
                     />
 
@@ -1239,41 +1096,20 @@ async function handleRaceByeChange(raceId, byeValue) {
                       value={race.racer_b || ""}
                       placeholder={race.slot_b || "Racer B"}
                       disabled={!editableFields.includes("racer_b")}
-                      onChange={(event) =>
-                        setRaces((previous) =>
-                          previous.map((item) =>
-                            item.id === race.id
-                              ? { ...item, racer_b: event.target.value }
-                              : item
-                          )
-                        )
-                      }
-                      onBlur={(event) =>
-                        handleAssignmentBlur(race.id, "racer_b", event.target.value)
-                      }
+                      onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, racer_b: event.target.value } : item))}
+                      onBlur={(event) => handleAssignmentBlur(race.id, "racer_b", event.target.value)}
                       style={inputStyle}
                     />
                   </div>
 
                   <div className="button-row" style={buttonRowStyle}>
-                    <select
-                      value={race.bye_for ?? ""}
-                      onChange={(event) =>
-                        handleRaceByeChange(race.id, event.target.value)
-                      }
-                      style={selectStyle}
-                    >
+                    <select value={race.bye_for ?? ""} onChange={(event) => handleRaceByeChange(race.id, event.target.value)} style={selectStyle}>
                       <option value="">No BYE</option>
                       <option value="A">Racer A advances by BYE</option>
                       <option value="B">Racer B advances by BYE</option>
                     </select>
 
-                    <button
-                      onClick={() => clearRaceEntries(race.id)}
-                      style={dangerButtonStyle}
-                    >
-                      Clear Race
-                    </button>
+                    <button onClick={() => clearRaceEntries(race.id)} style={dangerButtonStyle}>Clear Race</button>
                   </div>
                 </div>
               );
@@ -1285,9 +1121,7 @@ async function handleRaceByeChange(raceId, byeValue) {
           <div style={sectionHeaderStyle}>
             <div>
               <h2 style={h2Style}>Race Control</h2>
-              <div style={subTextStyle}>
-                Enter run times, set NOW RACING, manage BYEs/DQs, and monitor advancement.
-              </div>
+              <div style={subTextStyle}>Enter run times, set NOW RACING, manage BYEs/DQs, and monitor advancement.</div>
             </div>
           </div>
 
@@ -1298,50 +1132,21 @@ async function handleRaceByeChange(raceId, byeValue) {
                 key={`${district}-${division}-${bracketType}-${race.id}`}
                 style={{
                   ...raceCardStyle,
-                  border: race.is_current_override
-                    ? `2px solid ${COLORS.accent}`
-                    : `1px solid ${COLORS.border}`,
-                  boxShadow: race.is_current_override
-                    ? "0 0 18px rgba(34,197,94,0.22)"
-                    : "none",
+                  border: race.is_current_override ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.border}`,
+                  boxShadow: race.is_current_override ? "0 0 18px rgba(34,197,94,0.22)" : "none",
                 }}
               >
                 <RaceHeader race={race} />
 
-                <div style={matchupStyle}>
-                  {getRaceDisplayName(race)}
-                </div>
+                <div style={matchupStyle}>{getRaceDisplayName(race)}</div>
 
                 <div className="button-row" style={buttonRowStyle}>
-                  <button
-                    onClick={() => setCurrentRace(race.id)}
-                    style={primaryButtonStyle}
-                  >
-                    Set NOW RACING
-                  </button>
-
-                  {race.is_current_override && (
-                    <button
-                      onClick={() => clearCurrentRace(race.id)}
-                      style={secondaryButtonStyle}
-                    >
-                      Clear LIVE
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => clearRaceEntries(race.id)}
-                    style={dangerButtonStyle}
-                  >
-                    Clear Race
-                  </button>
+                  <button onClick={() => setCurrentRace(race.id)} style={primaryButtonStyle}>Set NOW RACING</button>
+                  {race.is_current_override && <button onClick={() => clearCurrentRace(race.id)} style={secondaryButtonStyle}>Clear LIVE</button>}
+                  <button onClick={() => clearRaceEntries(race.id)} style={dangerButtonStyle}>Clear Race</button>
                 </div>
 
-                <ScoreboardInputs
-                  race={race}
-                  setRaces={setRaces}
-                  handleRaceBlur={handleRaceBlur}
-                />
+                <ScoreboardInputs race={race} setRaces={setRaces} handleRaceBlur={handleRaceBlur} />
 
                 <div style={statusBoxStyle}>
                   <div><span style={mutedLabelStyle}>Status:</span> {race.status || "Pending"}</div>
@@ -1355,13 +1160,7 @@ async function handleRaceByeChange(raceId, byeValue) {
 
                 <div style={fieldGroupStyle}>
                   <label style={labelStyle}>BYE</label>
-                  <select
-                    value={race.bye_for ?? ""}
-                    onChange={(event) =>
-                      handleRaceByeChange(race.id, event.target.value)
-                    }
-                    style={selectStyle}
-                  >
+                  <select value={race.bye_for ?? ""} onChange={(event) => handleRaceByeChange(race.id, event.target.value)} style={selectStyle}>
                     <option value="">No BYE</option>
                     <option value="A">Racer A advances by BYE</option>
                     <option value="B">Racer B advances by BYE</option>
@@ -1370,57 +1169,25 @@ async function handleRaceByeChange(raceId, byeValue) {
 
                 <div className="row-wrap" style={rowWrapStyle}>
                   <label style={checkboxLabelStyle}>
-                    <input
-                      type="checkbox"
-                      checked={!!race.dq_a}
-                      onChange={(event) =>
-                        handleRaceToggle(race.id, "dq_a", event.target.checked)
-                      }
-                    />
+                    <input type="checkbox" checked={!!race.dq_a} onChange={(event) => handleRaceToggle(race.id, "dq_a", event.target.checked)} />
                     DQ Racer A
                   </label>
 
                   <label style={checkboxLabelStyle}>
-                    <input
-                      type="checkbox"
-                      checked={!!race.dq_b}
-                      onChange={(event) =>
-                        handleRaceToggle(race.id, "dq_b", event.target.checked)
-                      }
-                    />
+                    <input type="checkbox" checked={!!race.dq_b} onChange={(event) => handleRaceToggle(race.id, "dq_b", event.target.checked)} />
                     DQ Racer B
                   </label>
                 </div>
 
                 <div className="row-wrap" style={rowWrapStyle}>
-                  <select
-                    value={race.dq_reason_a ?? ""}
-                    onChange={(event) =>
-                      handleRaceBlur(race.id, "dq_reason_a", event.target.value)
-                    }
-                    style={selectStyle}
-                  >
+                  <select value={race.dq_reason_a ?? ""} onChange={(event) => handleRaceBlur(race.id, "dq_reason_a", event.target.value)} style={selectStyle}>
                     <option value="">DQ reason for Racer A</option>
-                    {DQ_REASONS.map((reason) => (
-                      <option key={reason} value={reason}>
-                        {reason}
-                      </option>
-                    ))}
+                    {DQ_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
                   </select>
 
-                  <select
-                    value={race.dq_reason_b ?? ""}
-                    onChange={(event) =>
-                      handleRaceBlur(race.id, "dq_reason_b", event.target.value)
-                    }
-                    style={selectStyle}
-                  >
+                  <select value={race.dq_reason_b ?? ""} onChange={(event) => handleRaceBlur(race.id, "dq_reason_b", event.target.value)} style={selectStyle}>
                     <option value="">DQ reason for Racer B</option>
-                    {DQ_REASONS.map((reason) => (
-                      <option key={reason} value={reason}>
-                        {reason}
-                      </option>
-                    ))}
+                    {DQ_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
                   </select>
                 </div>
 
@@ -1429,18 +1196,8 @@ async function handleRaceByeChange(raceId, byeValue) {
                   <input
                     type="text"
                     value={race.note ?? ""}
-                    onChange={(event) =>
-                      setRaces((previous) =>
-                        previous.map((item) =>
-                          item.id === race.id
-                            ? { ...item, note: event.target.value }
-                            : item
-                        )
-                      )
-                    }
-                    onBlur={(event) =>
-                      handleRaceBlur(race.id, "note", event.target.value)
-                    }
+                    onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, note: event.target.value } : item))}
+                    onBlur={(event) => handleRaceBlur(race.id, "note", event.target.value)}
                     style={inputStyle}
                   />
                 </div>
@@ -1461,12 +1218,8 @@ function RaceHeader({ race, compact = false }) {
   return (
     <div style={raceHeaderStyle}>
       <div>
-        <div style={{ fontWeight: 900, fontSize: compact ? 15 : 17 }}>
-          Race {race.id}
-        </div>
-        <div style={{ color: COLORS.muted2, fontSize: 12 }}>
-          {race.round}
-        </div>
+        <div style={{ fontWeight: 900, fontSize: compact ? 15 : 17 }}>Race {race.id}</div>
+        <div style={{ color: COLORS.muted2, fontSize: 12 }}>{race.round}</div>
       </div>
 
       <div
@@ -1507,18 +1260,8 @@ function ScoreboardInputs({ race, setRaces, handleRaceBlur }) {
               step="0.001"
               value={race[field] ?? ""}
               placeholder="--"
-              onChange={(event) =>
-                setRaces((previous) =>
-                  previous.map((item) =>
-                    item.id === race.id
-                      ? { ...item, [field]: event.target.value }
-                      : item
-                  )
-                )
-              }
-              onBlur={(event) =>
-                handleRaceBlur(race.id, field, event.target.value)
-              }
+              onChange={(event) => setRaces((previous) => previous.map((item) => item.id === race.id ? { ...item, [field]: event.target.value } : item))}
+              onBlur={(event) => handleRaceBlur(race.id, field, event.target.value)}
               style={inputStyle}
             />
           </label>
