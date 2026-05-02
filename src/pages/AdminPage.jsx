@@ -1264,73 +1264,43 @@ function RaceHeader({ race, compact = false }) {
 }
 
 function SouthBronxScoreboardInputs({ race, setRaces, handleSouthBronxLeg }) {
-  const leg1Winner = (race.run1_lane1 != null && race.run1_lane1 !== "") ? "A" : (race.run1_lane2 != null && race.run1_lane2 !== "") ? "B" : null;
-  const leg2Winner = (race.run2_lane1 != null && race.run2_lane1 !== "") ? "A" : (race.run2_lane2 != null && race.run2_lane2 !== "") ? "B" : null;
-  const leg1Time = leg1Winner === "A" ? (race.run1_lane1 ?? "") : leg1Winner === "B" ? (race.run1_lane2 ?? "") : "";
-  const leg2Time = leg2Winner === "A" ? (race.run2_lane1 ?? "") : leg2Winner === "B" ? (race.run2_lane2 ?? "") : "";
-
-  const legWinners = [leg1Winner, leg2Winner];
-  const legTimes = [leg1Time, leg2Time];
+  const legs = [
+    { leg: 1, fieldA: "run1_lane1", fieldB: "run1_lane2" },
+    { leg: 2, fieldA: "run2_lane1", fieldB: "run2_lane2" },
+  ];
 
   return (
     <div style={scorePanelStyle}>
       <div style={scoreHeaderStyle}>
-        <span>Race Legs</span>
-        <span style={{ color: COLORS.muted2 }}>Select winner · enter time</span>
+        <span>Run Times</span>
+        <span style={{ color: COLORS.muted2 }}>Enter winner's time only</span>
       </div>
 
-      {[1, 2].map((leg) => {
-        const legWinner = legWinners[leg - 1];
-        const legTime = legTimes[leg - 1];
+      {legs.map(({ leg, fieldA, fieldB }) => {
         const racerA = race.racer_a || "Racer A";
         const racerB = race.racer_b || "Racer B";
-        const timeField = leg === 1 ? (legWinner === "A" ? "run1_lane1" : "run1_lane2") : (legWinner === "A" ? "run2_lane1" : "run2_lane2");
 
         return (
           <div key={leg} style={{ marginBottom: 10, padding: "10px 12px", background: COLORS.panel2, borderRadius: 10, border: `1px solid ${COLORS.border}` }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: COLORS.muted, marginBottom: 8, letterSpacing: 0.4 }}>LEG {leg}</div>
-
-            <div style={{ display: "flex", gap: 8, marginBottom: legWinner ? 10 : 0 }}>
-              {[["A", racerA], ["B", racerB]].map(([side, name]) => (
-                <button
-                  key={side}
-                  onClick={() => handleSouthBronxLeg(race.id, leg, side, legWinner === side ? legTime : "")}
-                  style={{
-                    flex: 1,
-                    padding: "9px 6px",
-                    borderRadius: 8,
-                    border: `2px solid ${legWinner === side ? COLORS.accent : COLORS.border}`,
-                    background: legWinner === side ? COLORS.accentDark : COLORS.input,
-                    color: legWinner === side ? "#bbf7d0" : COLORS.text,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {name}
-                </button>
+            <div className="score-grid" style={scoreGridStyle}>
+              {[["A", racerA, fieldA], ["B", racerB, fieldB]].map(([side, name, field]) => (
+                <label key={side} style={scoreInputWrapStyle}>
+                  <span style={smallLabelStyle}>{name}</span>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={race[field] ?? ""}
+                    placeholder="--"
+                    onChange={(event) =>
+                      setRaces((prev) => prev.map((r) => r.id === race.id ? { ...r, [field]: event.target.value } : r))
+                    }
+                    onBlur={(event) => handleSouthBronxLeg(race.id, leg, side, event.target.value)}
+                    style={inputStyle}
+                  />
+                </label>
               ))}
             </div>
-
-            {legWinner && (
-              <label style={scoreInputWrapStyle}>
-                <span style={smallLabelStyle}>Winner Time ({legWinner === "A" ? racerA : racerB})</span>
-                <input
-                  type="number"
-                  step="0.001"
-                  value={legTime}
-                  placeholder="--"
-                  onChange={(event) =>
-                    setRaces((prev) => prev.map((r) => r.id === race.id ? { ...r, [timeField]: event.target.value } : r))
-                  }
-                  onBlur={(event) => handleSouthBronxLeg(race.id, leg, legWinner, event.target.value)}
-                  style={inputStyle}
-                />
-              </label>
-            )}
           </div>
         );
       })}
