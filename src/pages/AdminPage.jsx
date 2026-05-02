@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  fetchEventSetting,
   fetchRaces,
   updateRace,
   upsertRace,
@@ -329,7 +328,6 @@ export default function AdminPage() {
   const [district, setDistrict] = useState("d11");
   const [division, setDivision] = useState("stock");
   const [bracketType, setBracketType] = useState("12");
-  const [spectatorBracketType, setSpectatorBracketType] = useState("");
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -500,15 +498,7 @@ export default function AdminPage() {
       setMessage("");
 
       try {
-        const setting = await fetchEventSetting(district, division);
-        const displayedBracket = setting?.active_bracket_type;
-        const bracketOptions = DIVISION_BRACKETS[division] || ["32"];
-
-        if (!cancelled) {
-          setSpectatorBracketType(
-            bracketOptions.includes(displayedBracket) ? displayedBracket : bracketType
-          );
-        }
+        await upsertEventSetting({ district, division, active_bracket_type: bracketType });
 
         let raceRows = await fetchRaces(bracketType, district, division);
         if (cancelled) return;
@@ -548,18 +538,8 @@ export default function AdminPage() {
 
   async function handleBracketChange(newBracketType) {
     setBracketType(newBracketType);
-    setMessage(`${formatDivisionLabel(division)} editing bracket set to ${newBracketType}-Car`);
-  }
-
-  async function handleSpectatorBracketChange(newBracketType) {
-    try {
-      await upsertEventSetting({ district, division, active_bracket_type: newBracketType });
-      setSpectatorBracketType(newBracketType);
-      setMessage(`${formatDivisionLabel(division)} spectator bracket set to ${newBracketType}-Car`);
-    } catch (error) {
-      console.error("SPECTATOR BRACKET SAVE ERROR:", error);
-      setMessage(`Failed to update spectator bracket for ${formatDivisionLabel(division)}`);
-    }
+    await upsertEventSetting({ district, division, active_bracket_type: newBracketType });
+    setMessage(`${formatDivisionLabel(division)} active bracket set to ${newBracketType}-Car`);
   }
 
   async function setCurrentRace(raceId) {
@@ -1011,25 +991,10 @@ export default function AdminPage() {
             </div>
 
             <div style={fieldGroupStyle}>
-              <label style={labelStyle}>Editing Bracket</label>
+              <label style={labelStyle}>Bracket</label>
               <div style={buttonWrapStyle}>
                 {allowedBrackets.map((item) => (
                   <button key={item} onClick={() => handleBracketChange(item)} style={bracketType === item ? activeButtonStyle : secondaryButtonStyle}>
-                    {division === "stock" ? `${item}-Car Stock` : `${item}-Car Super Stock`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={fieldGroupStyle}>
-              <label style={labelStyle}>Spectator App Bracket</label>
-              <div style={buttonWrapStyle}>
-                {allowedBrackets.map((item) => (
-                  <button
-                    key={`spectator-${item}`}
-                    onClick={() => handleSpectatorBracketChange(item)}
-                    style={spectatorBracketType === item ? activeButtonStyle : secondaryButtonStyle}
-                  >
                     {division === "stock" ? `${item}-Car Stock` : `${item}-Car Super Stock`}
                   </button>
                 ))}
@@ -1041,8 +1006,7 @@ export default function AdminPage() {
             <div style={sectionTitleStyle}>Current Context</div>
             <div style={contextLineStyle}><span>District</span><strong>{DISTRICT_OPTIONS.find((d) => d.value === district)?.label}</strong></div>
             <div style={contextLineStyle}><span>Division</span><strong>{formatDivisionLabel(division)}</strong></div>
-            <div style={contextLineStyle}><span>Editing Bracket</span><strong>{bracketType}-Car</strong></div>
-            <div style={contextLineStyle}><span>Spectator Bracket</span><strong>{spectatorBracketType ? `${spectatorBracketType}-Car` : `${bracketType}-Car`}</strong></div>
+            <div style={contextLineStyle}><span>Bracket</span><strong>{bracketType}-Car</strong></div>
             <div style={contextLineStyle}><span>Total Races</span><strong>{races.length}</strong></div>
             <div style={contextLineStyle}><span>Assignment Races</span><strong>{assignmentRaces.length}</strong></div>
           </div>
