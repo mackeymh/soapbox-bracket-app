@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function AdminGate() {
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { district } = useParams();
 
   const expected = import.meta.env.VITE_ADMIN_PASSCODE;
 
@@ -13,7 +14,7 @@ export default function AdminGate() {
 
     if (passcode === expected) {
       sessionStorage.setItem("admin_access", "granted");
-      navigate("/admin");
+      navigate(district ? `/admin/${district}` : "/admin");
       return;
     }
 

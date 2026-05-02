@@ -14,7 +14,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/" element={<Navigate to="/spectator/d11" replace />} />
         <Route path="/spectator/:district" element={<SpectatorPage />} />
         <Route path="/admin-login" element={<AdminGate />} />
+        <Route path="/admin-login/:district" element={<AdminGate />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/:district" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/spectator/d11" replace />} />
       </Routes>
     </BrowserRouter>

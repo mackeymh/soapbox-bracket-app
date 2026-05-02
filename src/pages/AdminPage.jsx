@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   fetchEventSetting,
   fetchRaces,
@@ -324,9 +324,10 @@ function hasAnyRunData(race) {
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const { district: districtParam } = useParams();
 
   const [authorized, setAuthorized] = useState(false);
-  const [district, setDistrict] = useState("d11");
+  const [district, setDistrict] = useState(districtParam || "d11");
   const [division, setDivision] = useState("stock");
   const [bracketType, setBracketType] = useState("12");
   const [races, setRaces] = useState([]);
@@ -470,9 +471,9 @@ export default function AdminPage() {
 
   useEffect(() => {
     const access = sessionStorage.getItem("admin_access");
-    if (access !== "granted") navigate("/admin-login");
+    if (access !== "granted") navigate(districtParam ? `/admin-login/${districtParam}` : "/admin-login");
     else setAuthorized(true);
-  }, [navigate]);
+  }, [navigate, districtParam]);
 
   useEffect(() => {
     const districtDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];
@@ -982,6 +983,7 @@ export default function AdminPage() {
           <div style={panelStyle}>
             <div style={sectionTitleStyle}>Event Setup</div>
 
+            {!districtParam && (
             <div style={fieldGroupStyle}>
               <label style={labelStyle}>District</label>
               <select value={district} onChange={(event) => setDistrict(event.target.value)} style={selectStyle}>
@@ -990,6 +992,7 @@ export default function AdminPage() {
                 ))}
               </select>
             </div>
+            )}
 
             <div style={fieldGroupStyle}>
               <label style={labelStyle}>Division</label>
