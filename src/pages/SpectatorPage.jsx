@@ -36,6 +36,11 @@ const DIVISION_LABELS = {
   superstock: "Super Stock Division",
 };
 
+const DIVISION_BRACKETS = {
+  stock: ["12", "16"],
+  superstock: ["32", "48", "64"],
+};
+
 const COLORS = {
   bg: "#07111f",
   bg2: "#0f172a",
@@ -474,9 +479,27 @@ export default function SpectatorPage() {
 
     for (const div of districtDivisions) {
       const setting = await fetchEventSetting(district, div);
-      const bracket = setting?.active_bracket_type || (div === "stock" ? "12" : "32");
+      const divisionBrackets = DIVISION_BRACKETS[div] || [div === "stock" ? "12" : "32"];
+      const configuredBracket = setting?.active_bracket_type;
+      const preferredBracket = divisionBrackets.includes(String(configuredBracket))
+        ? String(configuredBracket)
+        : divisionBrackets[0];
 
-      const data = await fetchRaces(bracket, district, div);
+      let bracket = preferredBracket;
+      let data = await fetchRaces(bracket, district, div);
+
+      // If configured bracket has no races yet, fall back to the first bracket that does.
+      if (!data?.length) {
+        for (const candidate of divisionBrackets) {
+          if (candidate === preferredBracket) continue;
+          const candidateData = await fetchRaces(candidate, district, div);
+          if (candidateData?.length) {
+            bracket = candidate;
+            data = candidateData;
+            break;
+          }
+        }
+      }
 
       const tagged = (data || []).map((race) => ({
         ...race,

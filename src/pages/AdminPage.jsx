@@ -502,7 +502,9 @@ export default function AdminPage() {
       try {
         const bracketOptions = DIVISION_BRACKETS[division] || ["32"];
         const setting = await fetchEventSetting(district, division);
-        const savedBracketType = setting?.active_bracket_type;
+        const savedBracketType = setting?.active_bracket_type != null
+          ? String(setting.active_bracket_type)
+          : null;
 
         if (
           savedBracketType &&
