@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  fetchEventSetting,
   fetchRaces,
   updateRace,
   upsertRace,
@@ -498,7 +499,18 @@ export default function AdminPage() {
       setMessage("");
 
       try {
-        await upsertEventSetting({ district, division, active_bracket_type: bracketType });
+        const bracketOptions = DIVISION_BRACKETS[division] || ["32"];
+        const setting = await fetchEventSetting(district, division);
+        const savedBracketType = setting?.active_bracket_type;
+
+        if (
+          savedBracketType &&
+          bracketOptions.includes(savedBracketType) &&
+          savedBracketType !== bracketType
+        ) {
+          if (!cancelled) setBracketType(savedBracketType);
+          return;
+        }
 
         let raceRows = await fetchRaces(bracketType, district, division);
         if (cancelled) return;
