@@ -759,6 +759,66 @@ export default function AdminPage() {
     return { winner: "", loser: "", status: "Tiebreaker Needed", total_a: totalA, total_b: totalB };
   }
 
+  // South Bronx: 2 legs, only the winner's time is entered per leg.
+  // run1_lane1 = leg1 time if A won, run1_lane2 = leg1 time if B won
+  // run2_lane1 = leg2 time if A won, run2_lane2 = leg2 time if B won
+  function getOutcomeFromDifferential(race) {
+    const leg1A = race.run1_lane1;
+    const leg1B = race.run1_lane2;
+    const leg2A = race.run2_lane1;
+    const leg2B = race.run2_lane2;
+
+    const leg1Done = (leg1A != null && leg1A !== "") || (leg1B != null && leg1B !== "");
+    const leg2Done = (leg2A != null && leg2A !== "") || (leg2B != null && leg2B !== "");
+    if (!leg1Done || !leg2Done) return null;
+
+    const winsA = (leg1A != null && leg1A !== "" ? 1 : 0) + (leg2A != null && leg2A !== "" ? 1 : 0);
+    const winsB = (leg1B != null && leg1B !== "" ? 1 : 0) + (leg2B != null && leg2B !== "" ? 1 : 0);
+
+    if (winsA === 2) return { winner: race.racer_a || "", loser: race.racer_b || "", status: "Complete" };
+    if (winsB === 2) return { winner: race.racer_b || "", loser: race.racer_a || "", status: "Complete" };
+
+    // 1-1 split: greater (higher) winning time = biggest differential = wins overall
+    const timeA = leg1A != null && leg1A !== "" ? Number(leg1A) : Number(leg2A);
+    const timeB = leg1B != null && leg1B !== "" ? Number(leg1B) : Number(leg2B);
+    if (timeA > timeB) return { winner: race.racer_a || "", loser: race.racer_b || "", status: "Complete" };
+    if (timeB > timeA) return { winner: race.racer_b || "", loser: race.racer_a || "", status: "Complete" };
+    return { winner: "", loser: "", status: "Tiebreaker Needed" };
+  }
+
+  async function handleSouthBronxLeg(raceId, leg, winner, time) {
+    try {
+      const parsedTime = time !== "" && time != null ? Number(time) : null;
+      const update =
+        leg === 1
+          ? { run1_lane1: winner === "A" ? parsedTime : null, run1_lane2: winner === "B" ? parsedTime : null }
+          : { run2_lane1: winner === "A" ? parsedTime : null, run2_lane2: winner === "B" ? parsedTime : null };
+
+      await updateRace(raceId, update, bracketType, district, division);
+
+      let refreshedRaces = await fetchRaces(bracketType, district, division);
+      const race = refreshedRaces.find((r) => r.id === raceId);
+
+      if (race) {
+        const outcome = getOutcomeFromDifferential({ ...race, ...update });
+        if (outcome) {
+          await updateRace(raceId, { winner: outcome.winner, loser: outcome.loser, status: outcome.status }, bracketType, district, division);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await advanceBracket(refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+        }
+      }
+
+      setRaces(refreshedRaces);
+      setMessage(`Saved Race ${raceId} Leg ${leg}`);
+    } catch (error) {
+      console.error("SOUTH BRONX LEG SAVE ERROR:", error);
+      setMessage(`Failed to save Race ${raceId}`);
+    }
+  }
+
   async function handleRaceBlur(raceId, field, value) {
     try {
       if (field === "total_a" || field === "total_b") {
@@ -1111,7 +1171,9 @@ export default function AdminPage() {
                   <button onClick={() => clearRaceEntries(race.id)} style={dangerButtonStyle}>Clear Race</button>
                 </div>
 
-                <ScoreboardInputs race={race} setRaces={setRaces} handleRaceBlur={handleRaceBlur} />
+                {districtParam === "southbronx"
+                  ? <SouthBronxScoreboardInputs race={race} setRaces={setRaces} handleSouthBronxLeg={handleSouthBronxLeg} />
+                  : <ScoreboardInputs race={race} setRaces={setRaces} handleRaceBlur={handleRaceBlur} />}
 
                 <div style={statusBoxStyle}>
                   <div><span style={mutedLabelStyle}>Status:</span> {race.status || "Pending"}</div>
@@ -1197,6 +1259,81 @@ function RaceHeader({ race, compact = false }) {
       >
         {race.is_current_override ? "● LIVE" : race.status || "Pending"}
       </div>
+    </div>
+  );
+}
+
+function SouthBronxScoreboardInputs({ race, setRaces, handleSouthBronxLeg }) {
+  const leg1Winner = (race.run1_lane1 != null && race.run1_lane1 !== "") ? "A" : (race.run1_lane2 != null && race.run1_lane2 !== "") ? "B" : null;
+  const leg2Winner = (race.run2_lane1 != null && race.run2_lane1 !== "") ? "A" : (race.run2_lane2 != null && race.run2_lane2 !== "") ? "B" : null;
+  const leg1Time = leg1Winner === "A" ? (race.run1_lane1 ?? "") : leg1Winner === "B" ? (race.run1_lane2 ?? "") : "";
+  const leg2Time = leg2Winner === "A" ? (race.run2_lane1 ?? "") : leg2Winner === "B" ? (race.run2_lane2 ?? "") : "";
+
+  const legWinners = [leg1Winner, leg2Winner];
+  const legTimes = [leg1Time, leg2Time];
+
+  return (
+    <div style={scorePanelStyle}>
+      <div style={scoreHeaderStyle}>
+        <span>Race Legs</span>
+        <span style={{ color: COLORS.muted2 }}>Select winner · enter time</span>
+      </div>
+
+      {[1, 2].map((leg) => {
+        const legWinner = legWinners[leg - 1];
+        const legTime = legTimes[leg - 1];
+        const racerA = race.racer_a || "Racer A";
+        const racerB = race.racer_b || "Racer B";
+        const timeField = leg === 1 ? (legWinner === "A" ? "run1_lane1" : "run1_lane2") : (legWinner === "A" ? "run2_lane1" : "run2_lane2");
+
+        return (
+          <div key={leg} style={{ marginBottom: 10, padding: "10px 12px", background: COLORS.panel2, borderRadius: 10, border: `1px solid ${COLORS.border}` }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: COLORS.muted, marginBottom: 8, letterSpacing: 0.4 }}>LEG {leg}</div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: legWinner ? 10 : 0 }}>
+              {[["A", racerA], ["B", racerB]].map(([side, name]) => (
+                <button
+                  key={side}
+                  onClick={() => handleSouthBronxLeg(race.id, leg, side, legWinner === side ? legTime : "")}
+                  style={{
+                    flex: 1,
+                    padding: "9px 6px",
+                    borderRadius: 8,
+                    border: `2px solid ${legWinner === side ? COLORS.accent : COLORS.border}`,
+                    background: legWinner === side ? COLORS.accentDark : COLORS.input,
+                    color: legWinner === side ? "#bbf7d0" : COLORS.text,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: "pointer",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+
+            {legWinner && (
+              <label style={scoreInputWrapStyle}>
+                <span style={smallLabelStyle}>Winner Time ({legWinner === "A" ? racerA : racerB})</span>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={legTime}
+                  placeholder="--"
+                  onChange={(event) =>
+                    setRaces((prev) => prev.map((r) => r.id === race.id ? { ...r, [timeField]: event.target.value } : r))
+                  }
+                  onBlur={(event) => handleSouthBronxLeg(race.id, leg, legWinner, event.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
