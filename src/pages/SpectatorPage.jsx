@@ -183,12 +183,17 @@ function isRaceMidRace(race) {
   return run1 && !run2;
 }
 
+function isSouthBronxRace(race) {
+  return normalizeDistrict(race?.district) === "southBronx";
+}
+
 function getRaceTimes(race) {
   const aRun1 = toNumber(race.run1_lane1);
   const bRun1 = toNumber(race.run1_lane2);
 
-  const aRun2 = toNumber(race.run2_lane2);
-  const bRun2 = toNumber(race.run2_lane1);
+  // South Bronx uses direct per-racer leg entry (no lane swap mapping).
+  const aRun2 = isSouthBronxRace(race) ? toNumber(race.run2_lane1) : toNumber(race.run2_lane2);
+  const bRun2 = isSouthBronxRace(race) ? toNumber(race.run2_lane2) : toNumber(race.run2_lane1);
 
   const totalA = race.total_a != null ? toNumber(race.total_a) : aRun1 != null && aRun2 != null ? aRun1 + aRun2 : null;
   const totalB = race.total_b != null ? toNumber(race.total_b) : bRun1 != null && bRun2 != null ? bRun1 + bRun2 : null;
@@ -678,7 +683,9 @@ export default function SpectatorPage() {
                 {getRacerA(currentRace)} vs {getRacerB(currentRace)}
               </div>
               <div style={styles.bannerSub}>
-                {isRaceMidRace(currentRace) ? "Run 2 Incoming · Lane Switch" : `${currentRace.bracket_type}-Car Bracket`}
+                {isRaceMidRace(currentRace) && !isSouthBronxRace(currentRace)
+                  ? "Run 2 Incoming · Lane Switch"
+                  : `${currentRace.bracket_type}-Car Bracket`}
               </div>
             </>
           ) : (
