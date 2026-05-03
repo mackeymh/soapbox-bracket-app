@@ -330,6 +330,7 @@ export default function AdminPage() {
   const [district, setDistrict] = useState(districtParam || "d11");
   const [division, setDivision] = useState("stock");
   const [bracketType, setBracketType] = useState("12");
+  const [bracketByDivision, setBracketByDivision] = useState({});
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -485,10 +486,16 @@ export default function AdminPage() {
     }
 
     const bracketOptions = DIVISION_BRACKETS[nextDivision] || ["32"];
-    const nextBracket = bracketOptions.includes(bracketType) ? bracketType : bracketOptions[0];
+    const savedLocalBracket = bracketByDivision[`${district}:${nextDivision}`];
+    const nextBracket =
+      savedLocalBracket && bracketOptions.includes(savedLocalBracket)
+        ? savedLocalBracket
+        : bracketOptions.includes(bracketType)
+          ? bracketType
+          : bracketOptions[0];
 
     if (nextBracket !== bracketType) setBracketType(nextBracket);
-  }, [district, division, bracketType]);
+  }, [district, division, bracketType, bracketByDivision]);
 
   useEffect(() => {
     if (!authorized) return;
@@ -505,6 +512,15 @@ export default function AdminPage() {
         const savedBracketType = setting?.active_bracket_type != null
           ? String(setting.active_bracket_type)
           : null;
+
+        if (savedBracketType && bracketOptions.includes(savedBracketType)) {
+          if (!cancelled) {
+            setBracketByDivision((previous) => ({
+              ...previous,
+              [`${district}:${division}`]: savedBracketType,
+            }));
+          }
+        }
 
         if (
           savedBracketType &&
@@ -553,6 +569,10 @@ export default function AdminPage() {
 
   async function handleBracketChange(newBracketType) {
     setBracketType(newBracketType);
+    setBracketByDivision((previous) => ({
+      ...previous,
+      [`${district}:${division}`]: newBracketType,
+    }));
     await upsertEventSetting({ district, division, active_bracket_type: newBracketType });
     setMessage(`${formatDivisionLabel(division)} active bracket set to ${newBracketType}-Car`);
   }
