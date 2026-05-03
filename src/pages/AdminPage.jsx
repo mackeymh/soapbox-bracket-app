@@ -32,6 +32,13 @@ const DIVISION_BRACKETS = {
   superstock: ["32", "48", "64"],
 };
 
+function normalizeDistrict(value) {
+  const input = String(value || "").toLowerCase().replace(/[-_\s]/g, "");
+  if (input === "southbronx") return "southBronx";
+  if (input === "d11" || input === "district11") return "d11";
+  return value || "d11";
+}
+
 const DQ_REASONS = [
   "Crash into opponent",
   "Hit barrier",
@@ -325,9 +332,10 @@ function hasAnyRunData(race) {
 export default function AdminPage() {
   const navigate = useNavigate();
   const { district: districtParam } = useParams();
+  const normalizedDistrictParam = districtParam ? normalizeDistrict(districtParam) : null;
 
   const [authorized, setAuthorized] = useState(false);
-  const [district, setDistrict] = useState(districtParam || "d11");
+  const [district, setDistrict] = useState(normalizedDistrictParam || "d11");
   const [division, setDivision] = useState("stock");
   const [bracketType, setBracketType] = useState("12");
   const [bracketByDivision, setBracketByDivision] = useState({});
@@ -475,6 +483,12 @@ export default function AdminPage() {
     if (access !== "granted") navigate(districtParam ? `/admin-login/${districtParam}` : "/admin-login");
     else setAuthorized(true);
   }, [navigate, districtParam]);
+
+  useEffect(() => {
+    if (!districtParam) return;
+    const normalized = normalizeDistrict(districtParam);
+    if (normalized !== district) setDistrict(normalized);
+  }, [districtParam, district]);
 
   useEffect(() => {
     const districtDivisions = DISTRICT_DIVISIONS[district] || ["superstock"];

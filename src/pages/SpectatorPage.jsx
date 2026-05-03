@@ -36,6 +36,13 @@ const DIVISION_LABELS = {
   superstock: "Super Stock Division",
 };
 
+function normalizeDistrict(value) {
+  const input = String(value || "").toLowerCase().replace(/[-_\s]/g, "");
+  if (input === "southbronx") return "southBronx";
+  if (input === "d11" || input === "district11") return "d11";
+  return value || "d11";
+}
+
 const DIVISION_BRACKETS = {
   stock: ["12", "16"],
   superstock: ["32", "48", "64"],
@@ -460,7 +467,8 @@ function getBracketPosition(bracketType, roundIndex, matchIndex) {
 }
 
 export default function SpectatorPage() {
-  const { district = "d11" } = useParams();
+  const { district: districtParam = "d11" } = useParams();
+  const district = normalizeDistrict(districtParam);
 
   const config = DISTRICT_CONFIG[district] || DISTRICT_CONFIG.d11;
   const districtDivisions = config.divisions;
