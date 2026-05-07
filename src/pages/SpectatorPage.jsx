@@ -920,6 +920,12 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
           {dqBMessage}
         </div>
       )}
+
+      {isSouthBronxRace(race) && (
+        <div style={styles.alert}>
+          💡 South Bronx: Times entered only for leg winners. Higher leg-winning time wins in 1-1 splits.
+        </div>
+      )}
     </article>
   );
 }
