@@ -834,6 +834,7 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
   const winner = getWinnerSide(race);
   const racerA = getRacerA(race);
   const racerB = getRacerB(race);
+  const byeAdvancer = race.bye_for === "A" ? racerA : race.bye_for === "B" ? racerB : race.winner || "--";
   const statusText = getStatusText(race, isOnTrack, isUpNext);
   const statusColor = getStatusColor(race, isOnTrack, isUpNext);
 
@@ -885,7 +886,7 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
 
       {(race.dq_a || race.dq_b || race.bye_for) && (
         <div style={styles.alert}>
-          {race.bye_for && `BYE: ${(race.bye_for === "A" ? racerA : racerB) || `Racer ${race.bye_for}`} advances`}
+          {race.bye_for && `BYE: ${byeAdvancer} advances`}
           {race.bye_for && (race.dq_a || race.dq_b) ? " · " : ""}
           {race.dq_a && `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
           {race.dq_a && race.dq_b ? " · " : ""}
