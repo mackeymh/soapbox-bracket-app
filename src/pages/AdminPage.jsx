@@ -325,6 +325,28 @@ function hasAnyRunData(race) {
   );
 }
 
+function extractSeedNumber(label) {
+  const value = String(label || "").trim();
+  if (!value) return null;
+
+  const explicitSeed = value.match(/seed\s*(\d+)/i);
+  if (explicitSeed) return Number(explicitSeed[1]);
+
+  const firstNumber = value.match(/\d+/);
+  return firstNumber ? Number(firstNumber[0]) : null;
+}
+
+function orderRacersBySeed(racerA, racerB) {
+  const aSeed = extractSeedNumber(racerA);
+  const bSeed = extractSeedNumber(racerB);
+
+  if (aSeed === null || bSeed === null || aSeed <= bSeed) {
+    return { racer_a: racerA, racer_b: racerB };
+  }
+
+  return { racer_a: racerB, racer_b: racerA };
+}
+
 /* =========================================================
    ADMIN PAGE
 ========================================================= */
@@ -357,7 +379,20 @@ export default function AdminPage() {
 
     const updates = [];
     function queue(id, fields) {
-      updates.push({ id, fields });
+      const nextFields = { ...fields };
+
+      if (
+        typeof nextFields.racer_a === "string" &&
+        typeof nextFields.racer_b === "string" &&
+        nextFields.racer_a &&
+        nextFields.racer_b
+      ) {
+        const ordered = orderRacersBySeed(nextFields.racer_a, nextFields.racer_b);
+        nextFields.racer_a = ordered.racer_a;
+        nextFields.racer_b = ordered.racer_b;
+      }
+
+      updates.push({ id, fields: nextFields });
     }
 
     if (bracketType === "12") {
@@ -706,7 +741,30 @@ export default function AdminPage() {
       await updateRace(raceId, { [field]: trimmed }, bracketType, district, division);
 
       let refreshedRaces = await fetchRaces(bracketType, district, division);
-      const changedRace = refreshedRaces.find((race) => race.id === raceId);
+      let changedRace = refreshedRaces.find((race) => race.id === raceId);
+
+      if (
+        changedRace &&
+        changedRace.racer_a &&
+        changedRace.racer_b &&
+        !hasAnyRunData(changedRace) &&
+        changedRace.status !== "Complete"
+      ) {
+        const ordered = orderRacersBySeed(changedRace.racer_a, changedRace.racer_b);
+
+        if (ordered.racer_a !== changedRace.racer_a || ordered.racer_b !== changedRace.racer_b) {
+          await updateRace(
+            raceId,
+            { racer_a: ordered.racer_a, racer_b: ordered.racer_b },
+            bracketType,
+            district,
+            division
+          );
+
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          changedRace = refreshedRaces.find((race) => race.id === raceId);
+        }
+      }
 
       if (changedRace && changedRace.bye_for) {
         const outcome = getRaceAdminOutcome(changedRace);
@@ -830,25 +888,16 @@ export default function AdminPage() {
           ? { run1_lane1: winner === "A" ? parsedTime : null, run1_lane2: winner === "B" ? parsedTime : null }
           : { run2_lane1: winner === "A" ? parsedTime : null, run2_lane2: winner === "B" ? parsedTime : null };
 
+      if (parsedTime != null) {
+        update.bye_for = "";
+      }
+
       await updateRace(raceId, update, bracketType, district, division);
 
       let refreshedRaces = await fetchRaces(bracketType, district, division);
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
-        if (race.bye_for) {
-          const outcome = getRaceAdminOutcome(race);
-          await updateRace(raceId, { winner: outcome.winner, loser: outcome.loser, status: outcome.status }, bracketType, district, division);
-          refreshedRaces = await fetchRaces(bracketType, district, division);
-          await advanceBracket(refreshedRaces);
-          refreshedRaces = await fetchRaces(bracketType, district, division);
-          await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
-          refreshedRaces = await fetchRaces(bracketType, district, division);
-          setRaces(refreshedRaces);
-          setMessage(`Race ${raceId} is BYE locked. Clear BYE to enter leg times.`);
-          return;
-        }
-
         const outcome = getOutcomeFromDifferential({ ...race, ...update });
         if (outcome) {
           await updateRace(raceId, { winner: outcome.winner, loser: outcome.loser, status: outcome.status }, bracketType, district, division);
