@@ -1112,8 +1112,22 @@ function BracketView({ races, selectedSchool, focusOnly }) {
               >
                 <div style={styles.bracketRace}>Race {race.id}</div>
 
-                <BracketCompetitor name={racerA} time={totalA} isWinner={winner === "A"} isSchool={racerMatchesSchool(racerA, selectedSchool)} isDQ={!!race.dq_a} />
-                <BracketCompetitor name={racerB} time={totalB} isWinner={winner === "B"} isSchool={racerMatchesSchool(racerB, selectedSchool)} isDQ={!!race.dq_b} />
+                <BracketCompetitor
+                  name={racerA}
+                  time={totalA}
+                  isWinner={winner === "A"}
+                  isSchool={racerMatchesSchool(racerA, selectedSchool)}
+                  isDQ={!!race.dq_a}
+                  isBye={race.bye_for === "A"}
+                />
+                <BracketCompetitor
+                  name={racerB}
+                  time={totalB}
+                  isWinner={winner === "B"}
+                  isSchool={racerMatchesSchool(racerB, selectedSchool)}
+                  isDQ={!!race.dq_b}
+                  isBye={race.bye_for === "B"}
+                />
 
                 {winner && <div style={styles.bracketWinner}>Winner: {winner === "A" ? racerA : racerB}</div>}
               </div>
@@ -1143,8 +1157,22 @@ function BracketView({ races, selectedSchool, focusOnly }) {
                     }}
                   >
                     <div style={styles.bracketRace}>Race {race.id} · {getPlacementLabel(bracketType, race.id)}</div>
-                    <BracketCompetitor name={getRacerA(race)} time={getRaceTimes(race).totalA} isWinner={race.winner === getRacerA(race)} isSchool={racerMatchesSchool(getRacerA(race), selectedSchool)} isDQ={!!race.dq_a} />
-                    <BracketCompetitor name={getRacerB(race)} time={getRaceTimes(race).totalB} isWinner={race.winner === getRacerB(race)} isSchool={racerMatchesSchool(getRacerB(race), selectedSchool)} isDQ={!!race.dq_b} />
+                    <BracketCompetitor
+                      name={getRacerA(race)}
+                      time={getRaceTimes(race).totalA}
+                      isWinner={race.winner === getRacerA(race)}
+                      isSchool={racerMatchesSchool(getRacerA(race), selectedSchool)}
+                      isDQ={!!race.dq_a}
+                      isBye={race.bye_for === "A"}
+                    />
+                    <BracketCompetitor
+                      name={getRacerB(race)}
+                      time={getRaceTimes(race).totalB}
+                      isWinner={race.winner === getRacerB(race)}
+                      isSchool={racerMatchesSchool(getRacerB(race), selectedSchool)}
+                      isDQ={!!race.dq_b}
+                      isBye={race.bye_for === "B"}
+                    />
                   </div>
                 );
               })}
@@ -1156,11 +1184,11 @@ function BracketView({ races, selectedSchool, focusOnly }) {
   );
 }
 
-function BracketCompetitor({ name, time, isWinner, isSchool, isDQ = false }) {
+function BracketCompetitor({ name, time, isWinner, isSchool, isDQ = false, isBye = false }) {
   return (
     <div style={{ ...styles.bracketCompetitor, ...(isSchool ? styles.bracketSchool : {}), ...(isWinner ? styles.bracketWinnerRow : {}) }}>
       <span>{isSchool ? "⭐ " : ""}{isWinner ? "🏁 " : ""}{name}</span>
-      <span style={styles.bracketTime}>{isDQ ? "DQ" : formatTime(time)}</span>
+      <span style={styles.bracketTime}>{isDQ ? "DQ" : isBye ? "BYE" : formatTime(time)}</span>
     </div>
   );
 }
