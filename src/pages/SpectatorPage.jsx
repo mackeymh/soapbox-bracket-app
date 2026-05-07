@@ -717,6 +717,12 @@ export default function SpectatorPage() {
           )}
         </section>
 
+        {district === "southBronx" && (
+          <section style={{ ...styles.alert, margin: "12px 0", padding: "12px 16px", borderRadius: "12px", backgroundColor: "rgba(34, 197, 94, 0.1)", border: `1px solid ${COLORS.accent}`, fontSize: "14px", color: COLORS.text }}>
+            💡 <strong>South Bronx Format:</strong> Times entered only for phase winners. Higher phase-winning time wins in 1-1 phase split.
+          </section>
+        )}
+
         <section className="controls-panel" style={styles.controls}>
           <div style={styles.tabRow}>
             {["Races", "Bracket", "Standings"].map((item) => (
@@ -918,12 +924,6 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
           {dqAMessage}
           {race.dq_a && race.dq_b ? " · " : ""}
           {dqBMessage}
-        </div>
-      )}
-
-      {isSouthBronxRace(race) && (
-        <div style={styles.alert}>
-          💡 South Bronx: Times entered only for leg winners. Higher leg-winning time wins in 1-1 splits.
         </div>
       )}
     </article>
