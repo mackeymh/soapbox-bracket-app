@@ -976,7 +976,7 @@ function ScoreRow({ label, left, right, isTotal = false }) {
         {formatTime(l)}
       </div>
 
-      <div style={{ ...styles.scoreMiddle, color: result === "TIE" || result === "—" ? COLORS.muted : COLORS.accent }}>
+      <div style={{ ...styles.scoreMiddle, color: result === "TIE" || result === "—" ? COLORS.muted : leftWin || rightWin ? COLORS.accent : COLORS.muted }}>
         {result}
       </div>
 
