@@ -178,6 +178,11 @@ function hasAnyRunData(race) {
 }
 
 function isRaceMidRace(race) {
+  if (!race) return false;
+  if (race.status === "Complete") return false;
+  if (race.bye_for) return false;
+  if (race.dq_a || race.dq_b) return false;
+
   const run1 = race.run1_lane1 != null || race.run1_lane2 != null;
   const run2 = race.run2_lane1 != null || race.run2_lane2 != null;
   return run1 && !run2;
