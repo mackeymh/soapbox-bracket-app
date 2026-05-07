@@ -206,13 +206,26 @@ function isSouthBronxRace(race) {
 function getRaceTimes(race) {
   const aRun1 = toNumber(race.run1_lane1);
   const bRun1 = toNumber(race.run1_lane2);
+  const southBronx = isSouthBronxRace(race);
 
   // South Bronx uses direct per-racer leg entry (no lane swap mapping).
-  const aRun2 = isSouthBronxRace(race) ? toNumber(race.run2_lane1) : toNumber(race.run2_lane2);
-  const bRun2 = isSouthBronxRace(race) ? toNumber(race.run2_lane2) : toNumber(race.run2_lane1);
+  const aRun2 = southBronx ? toNumber(race.run2_lane1) : toNumber(race.run2_lane2);
+  const bRun2 = southBronx ? toNumber(race.run2_lane2) : toNumber(race.run2_lane1);
 
-  const totalA = race.total_a != null ? toNumber(race.total_a) : aRun1 != null && aRun2 != null ? aRun1 + aRun2 : null;
-  const totalB = race.total_b != null ? toNumber(race.total_b) : bRun1 != null && bRun2 != null ? bRun1 + bRun2 : null;
+  const totalA = race.total_a != null
+    ? toNumber(race.total_a)
+    : southBronx
+      ? [aRun1, aRun2].filter((value) => value != null).reduce((sum, value) => sum + value, 0) || null
+      : aRun1 != null && aRun2 != null
+        ? aRun1 + aRun2
+        : null;
+  const totalB = race.total_b != null
+    ? toNumber(race.total_b)
+    : southBronx
+      ? [bRun1, bRun2].filter((value) => value != null).reduce((sum, value) => sum + value, 0) || null
+      : bRun1 != null && bRun2 != null
+        ? bRun1 + bRun2
+        : null;
 
   return { aRun1, bRun1, aRun2, bRun2, totalA, totalB };
 }
