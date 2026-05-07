@@ -835,6 +835,12 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
   const racerA = getRacerA(race);
   const racerB = getRacerB(race);
   const byeAdvancer = race.bye_for === "A" ? racerA : race.bye_for === "B" ? racerB : race.winner || "--";
+  const dqAMessage = race.dq_a
+    ? `${racerA} DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}${!race.dq_b ? `: ${racerB} advances` : ""}`
+    : "";
+  const dqBMessage = race.dq_b
+    ? `${racerB} DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}${!race.dq_a ? `: ${racerA} advances` : ""}`
+    : "";
   const statusText = getStatusText(race, isOnTrack, isUpNext);
   const statusColor = getStatusColor(race, isOnTrack, isUpNext);
 
@@ -888,9 +894,9 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
         <div style={styles.alert}>
           {race.bye_for && `BYE: ${byeAdvancer} advances`}
           {race.bye_for && (race.dq_a || race.dq_b) ? " · " : ""}
-          {race.dq_a && `A DQ${race.dq_reason_a ? `: ${race.dq_reason_a}` : ""}`}
+          {dqAMessage}
           {race.dq_a && race.dq_b ? " · " : ""}
-          {race.dq_b && `B DQ${race.dq_reason_b ? `: ${race.dq_reason_b}` : ""}`}
+          {dqBMessage}
         </div>
       )}
     </article>
