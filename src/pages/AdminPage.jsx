@@ -836,6 +836,19 @@ export default function AdminPage() {
       const race = refreshedRaces.find((r) => r.id === raceId);
 
       if (race) {
+        if (race.bye_for) {
+          const outcome = getRaceAdminOutcome(race);
+          await updateRace(raceId, { winner: outcome.winner, loser: outcome.loser, status: outcome.status }, bracketType, district, division);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await advanceBracket(refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          await autoAdvanceCurrentRaceIfComplete(raceId, refreshedRaces);
+          refreshedRaces = await fetchRaces(bracketType, district, division);
+          setRaces(refreshedRaces);
+          setMessage(`Race ${raceId} is BYE locked. Clear BYE to enter leg times.`);
+          return;
+        }
+
         const outcome = getOutcomeFromDifferential({ ...race, ...update });
         if (outcome) {
           await updateRace(raceId, { winner: outcome.winner, loser: outcome.loser, status: outcome.status }, bracketType, district, division);
