@@ -1275,7 +1275,7 @@ export default function AdminPage() {
 
                 <div style={statusBoxStyle}>
                   <div><span style={mutedLabelStyle}>Status:</span> {race.status || "Pending"}</div>
-                  <div><span style={mutedLabelStyle}>Winner:</span> {race.winner || "--"}</div>
+                  <div><span style={mutedLabelStyle}>Winner:</span> {race.winner ? `✅ ${race.winner}` : "--"}</div>
                   <div><span style={mutedLabelStyle}>Loser:</span> {race.loser || "--"}</div>
                   <div><span style={mutedLabelStyle}>Total A:</span> {race.total_a ?? "--"}</div>
                   <div><span style={mutedLabelStyle}>Total B:</span> {race.total_b ?? "--"}</div>
