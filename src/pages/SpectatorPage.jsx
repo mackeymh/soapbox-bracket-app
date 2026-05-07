@@ -915,6 +915,7 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
         totalA={totalA}
         totalB={totalB}
         winner={winner}
+        isSouthBronx={isSouthBronxRace(race)}
       />
 
       {(race.dq_a || race.dq_b || race.bye_for) && (
@@ -930,7 +931,7 @@ function RaceCard({ race, isOnTrack, isUpNext, selectedSchool, isSchoolMatch, is
   );
 }
 
-function BroadcastScoreBlock({ racerA, racerB, aRun1, bRun1, aRun2, bRun2, totalA, totalB, winner }) {
+function BroadcastScoreBlock({ racerA, racerB, aRun1, bRun1, aRun2, bRun2, totalA, totalB, winner, isSouthBronx }) {
   return (
     <div style={styles.scoreBlock}>
       <div style={styles.scoreHeader}>
@@ -941,14 +942,14 @@ function BroadcastScoreBlock({ racerA, racerB, aRun1, bRun1, aRun2, bRun2, total
 
       <ScoreRow label="RUN 1" left={aRun1} right={bRun1} />
       <ScoreRow label="RUN 2" left={aRun2} right={bRun2} />
-      <ScoreRow label="TOTAL" left={totalA} right={totalB} isTotal />
+      <ScoreRow label="TOTAL" left={totalA} right={totalB} isTotal isSouthBronx={isSouthBronx} />
 
       {winner && <div style={styles.winnerOverlay}>🏆 {winner === "A" ? racerA : racerB}</div>}
     </div>
   );
 }
 
-function ScoreRow({ label, left, right, isTotal = false }) {
+function ScoreRow({ label, left, right, isTotal = false, isSouthBronx = false }) {
   const l = toNumber(left);
   const r = toNumber(right);
 
@@ -957,11 +958,15 @@ function ScoreRow({ label, left, right, isTotal = false }) {
   let rightWin = false;
 
   if (l != null && r != null) {
-    if (l < r) {
-      result = `+${(r - l).toFixed(3)}`;
+    // For South Bronx totals with 1-1 split, higher time wins. For phases/normal scoring, lower time wins.
+    const leftWins = isTotal && isSouthBronx ? l > r : l < r;
+    const rightWins = isTotal && isSouthBronx ? r > l : r < l;
+    
+    if (leftWins) {
+      result = `+${Math.abs(r - l).toFixed(3)}`;
       leftWin = true;
-    } else if (r < l) {
-      result = `+${(l - r).toFixed(3)}`;
+    } else if (rightWins) {
+      result = `+${Math.abs(l - r).toFixed(3)}`;
       rightWin = true;
     } else {
       result = "TIE";
