@@ -719,7 +719,7 @@ export default function SpectatorPage() {
 
         {district === "southBronx" && (
           <section style={{ ...styles.alert, margin: "12px 0", padding: "12px 16px", borderRadius: "12px", backgroundColor: "rgba(239, 68, 68, 0.15)", border: `1px solid ${COLORS.red}`, fontSize: "14px", color: COLORS.text }}>
-            💡 <strong>South Bronx Format:</strong> Times entered only for phase winners. Higher phase-winning time wins in 1-1 phase split.
+            💡 <strong>How winners are decided:</strong> Times entered only for phase winners. Higher phase-winning time wins in 1-1 phase split.
           </section>
         )}
 
