@@ -188,6 +188,17 @@ function isRaceMidRace(race) {
   return run1 && !run2;
 }
 
+function isPendingRace(race) {
+  if (!race) return false;
+  if (race.status === "Complete") return false;
+  if (race.status === "DQ Conflict") return false;
+  if (race.bye_for) return false;
+  if (race.dq_a || race.dq_b) return false;
+  if (race.is_current_override) return false;
+  if (isRaceMidRace(race)) return false;
+  return !hasAnyRunData(race);
+}
+
 function isSouthBronxRace(race) {
   return normalizeDistrict(race?.district) === "southBronx";
 }
@@ -557,9 +568,7 @@ export default function SpectatorPage() {
       scoped.find(
         (race) =>
           !sameRace(race, currentRace) &&
-          race.status !== "Complete" &&
-          race.status !== "DQ Conflict" &&
-          !hasAnyRunData(race)
+          isPendingRace(race)
       ) || null
     );
   }, [scoped, currentRace]);
@@ -585,13 +594,7 @@ export default function SpectatorPage() {
     total: scoped.length,
     completed: scoped.filter((race) => race.status === "Complete").length,
     live: scoped.filter((race) => race.is_current_override || isRaceMidRace(race)).length,
-    pending: scoped.filter(
-      (race) =>
-        race.status !== "Complete" &&
-        race.status !== "DQ Conflict" &&
-        !race.is_current_override &&
-        !isRaceMidRace(race)
-    ).length,
+    pending: scoped.filter((race) => isPendingRace(race)).length,
   }), [scoped]);
 
   const visible = useMemo(() => {
@@ -602,7 +605,7 @@ export default function SpectatorPage() {
       if (raceFilter === "On Track") return sameRace(race, currentRace);
       if (raceFilter === "Up Next") return sameRace(race, nextRace);
       if (raceFilter === "In Progress") return race.is_current_override || isRaceMidRace(race);
-      if (raceFilter === "Pending") return !hasAnyRunData(race);
+      if (raceFilter === "Pending") return isPendingRace(race);
       if (raceFilter === "Completed") return race.status === "Complete";
 
       return true;
